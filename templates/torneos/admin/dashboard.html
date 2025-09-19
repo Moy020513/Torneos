@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Administración{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <h2><i class="fa-solid fa-gear"></i> Panel de Administración</h2>
+        </div>
+        <div class="card-body">
+            <h4>Torneos</h4>
+            <ul>
+                {% for torneo in torneos %}
+                <li>{{ torneo.nombre }} ({{ torneo.fecha_inicio }} - {{ torneo.fecha_fin }})</li>
+                {% empty %}
+                <li>No hay torneos registrados.</li>
+                {% endfor %}
+            </ul>
+            <h4>Categorías</h4>
+            <ul>
+                {% for categoria in categorias %}
+                <li>{{ categoria.nombre }} ({{ categoria.torneo.nombre }})</li>
+                {% empty %}
+                <li>No hay categorías registradas.</li>
+                {% endfor %}
+            </ul>
+            <h4>Equipos</h4>
+            <ul>
+                {% for equipo in equipos %}
+                <li>{{ equipo.nombre }} ({{ equipo.categoria.nombre }})</li>
+                {% empty %}
+                <li>No hay equipos registrados.</li>
+                {% endfor %}
+            </ul>
+            <h4>Jugadores</h4>
+            <ul>
+                {% for jugador in jugadores %}
+                <li>{{ jugador.nombre }} {{ jugador.apellido }} ({{ jugador.equipo.nombre }})</li>
+                {% empty %}
+                <li>No hay jugadores registrados.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

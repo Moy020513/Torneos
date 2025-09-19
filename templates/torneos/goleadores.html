@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Goleadores - {{ categoria.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .goleador-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #ffc107;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .goleador-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+    .goleador-rank {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #ffc107;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .goleador-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #ffc107;
+    }
+    .goleador-stats {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border-radius: 10px;
+        padding: 15px;
+    }
+    .goal-badge {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #198754;
+    }
+    .stats-badge {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 5px 15px;
+        font-weight: bold;
+    }
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    .team-logo-med {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card gradient-bg text-white">
+            <div class="card-body">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'index' %}" class="text-white">Inicio</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="text-white">
+                                {{ categoria.torneo.nombre }}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'categoria_detalle' categoria.id %}" class="text-white">
+                                {{ categoria.nombre }}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-white">Goleadores</li>
+                    </ol>
+                </nav>
+                
+                <h1 class="display-5"><i class="fa-solid fa-futbol"></i> Tabla de Goleadores</h1>
+                <p class="lead">Los mejores anotadores de {{ categoria.nombre }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-crown"></i> Ranking de Goleadores</h3>
+            </div>
+            <div class="card-body">
+                {% if goleadores_data %}
+                    {% for goleador in goleadores_data %}
+                    <div class="goleador-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-1 text-center">
+                                <div class="goleador-rank">#{{ forloop.counter }}</div>
+                            </div>
+                            
+                            <div class="col-md-2 text-center">
+                                {% if goleador.jugador.foto %}
+                                <img src="{{ goleador.jugador.foto.url }}" alt="{{ goleador.jugador.nombre }}" class="goleador-avatar">
+                                {% else %}
+                                <div class="goleador-avatar bg-secondary d-flex align-items-center justify-content-center">
+                                    <i class="fa-solid fa-user fa-2x text-white"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-5">
+                                <h4 class="mb-1">{{ goleador.jugador.nombre }} {{ goleador.jugador.apellido }}</h4>
+                                <div class="d-flex align-items-center">
+                                    {% if goleador.jugador.equipo.logo %}
+                                    <img src="{{ goleador.jugador.equipo.logo.url }}" alt="{{ goleador.jugador.equipo.nombre }}" class="team-logo-med">
+                                    {% endif %}
+                                    <span class="text-muted">{{ goleador.jugador.equipo.nombre }}</span>
+                                </div>
+                                <small class="text-muted">#{{ goleador.jugador.numero_camiseta }} | {{ goleador.jugador.get_posicion_display }}</small>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="goleador-stats text-center">
+                                    <div class="goal-badge">{{ goleador.total_goles }}</div>
+                                    <small class="text-muted">Goles totales</small>
+                                    <div class="mt-2">
+                                        <span class="stats-badge">
+                                            {{ goleador.promedio_goles }} gol/es por partido
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Efectividad de gol</small>
+                                    <small class="text-muted">{{ goleador.porcentaje_efectividad }}%</small>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" 
+                                         style="width: {{ goleador.porcentaje_efectividad }}%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fa-solid fa-info-circle fa-2x mb-3"></i>
+                    <h4>No hay datos de goleadores</h4>
+                    <p>No se han registrado goles para esta categoría todavía.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-pie"></i> Estadísticas</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="display-4 text-primary">{{ total_goles }}</div>
+                    <p class="text-muted">Goles totales en la categoría</p>
+                </div>
+                
+                <div class="stats-badge mb-3">
+                    <i class="fa-solid fa-people-group"></i> {{ total_jugadores }} Jugadores
+                </div>
+                
+                <div class="stats-badge mb-3">
+                    <i class="fa-solid fa-shield"></i> {{ total_equipos }} Equipos
+                </div>
+                
+                <div class="stats-badge mb-3">
+                    <i class="fa-solid fa-gamepad"></i> {{ total_partidos }} Partidos
+                </div>
+                
+                <div class="stats-badge">
+                    <i class="fa-solid fa-futbol"></i> {{ promedio_goles }} Goles/partido
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-gradient">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-star"></i> Destacados</h3>
+            </div>
+            <div class="card-body">
+                {% if goleadores %}
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span>Máximo goleador:</span>
+                            <strong>{{ goleadores_data.0.jugador.nombre }} ({{ goleadores_data.0.total_goles }} goles)</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span>Mejor promedio:</span>
+                            <strong>{{ mejor_promedio.jugador.nombre }} ({{ mejor_promedio.promedio_goles }})</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span>Equipo con más goles:</span>
+                            <strong>{{ equipo_mas_goles }} ({{ max_goles_equipo }})</strong>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-exclamation-triangle"></i>
+                    No hay datos suficientes
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Volver a la Categoría
+        </a>
+        
+        <button class="btn btn-outline-success ms-2" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Imprimir Ranking
+        </button>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminatorias - {{ categoria.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bracket-container {
+        display: flex;
+        overflow-x: auto;
+        padding: 20px 0;
+    }
+    .bracket-round {
+        min-width: 300px;
+        margin-right: 30px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .bracket-header {
+        text-align: center;
+        padding: 10px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    .bracket-match {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #0d6efd;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .bracket-match:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .team-score {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: #198754;
+    }
+    .team-vs {
+        text-align: center;
+        color: #6c757d;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+    .match-date {
+        font-size: 0.9em;
+        color: #6c757d;
+        text-align: center;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+    .winner {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border-left: 4px solid #198754;
+    }
+    .team-logo-small {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card gradient-bg text-white">
+            <div class="card-body">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'index' %}" class="text-white">Inicio</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="text-white">
+                                {{ categoria.torneo.nombre }}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'categoria_detalle' categoria.id %}" class="text-white">
+                                {{ categoria.nombre }}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-white">Eliminatorias</li>
+                    </ol>
+                </nav>
+                
+                <h1 class="display-5"><i class="fa-solid fa-bracket"></i> Eliminatorias</h1>
+                <p class="lead">{{ categoria.nombre }} - Fase de Eliminación Directa</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-trophy"></i> Cuadro de Eliminatorias</h3>
+            </div>
+            <div class="card-body">
+                {% if bracket_data %}
+                <div class="bracket-container">
+                    {% for round_name, round_data in bracket_data.items %}
+                    <div class="bracket-round">
+                        <div class="bracket-header">
+                            <h5 class="mb-0">{{ round_data.orden }}. {{ round_name|title }}</h5>
+                        </div>
+                        
+                        {% for partido in round_data.partidos %}
+                        <div class="bracket-match {% if partido.jugado and partido.goles_local > partido.goles_visitante %}winner{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        {% if partido.equipo_local.logo %}
+                                        <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
+                                        {% endif %}
+                                        <span class="{% if partido.jugado and partido.goles_local > partido.goles_visitante %}fw-bold text-success{% endif %}">
+                                            {{ partido.equipo_local.nombre }}
+                                        </span>
+                                        {% if partido.jugado %}
+                                        <span class="team-score ms-2">{{ partido.goles_local }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="team-vs">VS</div>
+                                    
+                                    <div class="d-flex align-items-center">
+                                        {% if partido.equipo_visitante.logo %}
+                                        <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small">
+                                        {% endif %}
+                                        <span class="{% if partido.jugado and partido.goles_visitante > partido.goles_local %}fw-bold text-success{% endif %}">
+                                            {{ partido.equipo_visitante.nombre }}
+                                        </span>
+                                        {% if partido.jugado %}
+                                        <span class="team-score ms-2">{{ partido.goles_visitante }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if partido.jugado %}
+                            <div class="match-date">
+                                <i class="fa-solid fa-check-circle text-success"></i>
+                                Resultado registrado
+                            </div>
+                            {% elif partido.fecha %}
+                            <div class="match-date">
+                                <i class="fa-solid fa-calendar"></i>
+                                {{ partido.fecha|date:"d M Y H:i" }}
+                            </div>
+                            {% else %}
+                            <div class="match-date text-warning">
+                                <i class="fa-solid fa-clock"></i>
+                                Por programar
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fa-solid fa-info-circle fa-2x mb-3"></i>
+                    <h4>Eliminatorias no configuradas</h4>
+                    <p>Las eliminatorias para esta categoría aún no han sido configuradas.</p>
+                    {% if user.is_superuser %}
+                    <a href="/admin/torneos/eliminatoria/add/" class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> Configurar Eliminatorias
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card card-gradient">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-bar"></i> Estadísticas de Eliminatorias</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <h2>{{ total_partidos }}</h2>
+                            <p class="text-muted">Partidos Programados</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <h2>{{ partidos_jugados }}</h2>
+                            <p class="text-muted">Partidos Jugados</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <h2>{{ total_goles }}</h2>
+                            <p class="text-muted">Goles Totales</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <h2>{{ equipos_activos }}</h2>
+                            <p class="text-muted">Equipos en Competencia</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Volver a la Categoría
+        </a>
+        
+        {% if user.is_superuser %}
+        <a href="/admin/torneos/partidoeliminatoria/" class="btn btn-outline-primary ms-2">
+            <i class="fa-solid fa-edit"></i> Gestionar Partidos
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

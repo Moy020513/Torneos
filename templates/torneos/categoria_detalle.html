@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ categoria.nombre }} - Sistema de Torneos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .match-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #0d6efd;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .match-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+    .match-card.jugado {
+        border-left: 4px solid #198754;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    }
+    .match-card.proximo {
+        border-left: 4px solid #ffc107;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    }
+    .team-score {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #198754;
+    }
+    .vs-text {
+        font-size: 0.9em;
+        color: #6c757d;
+        text-align: center;
+        margin: 5px 0;
+    }
+    .match-date {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    .match-status {
+        font-size: 0.8em;
+        font-weight: bold;
+        padding: 3px 10px;
+        border-radius: 12px;
+    }
+    .status-jugado {
+        background: #198754;
+        color: white;
+    }
+    .status-proximo {
+        background: #ffc107;
+        color: black;
+    }
+    .team-logo-small {
+        width: 35px;
+        height: 35px;
+        object-fit: contain;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card gradient-bg text-white">
+            <div class="card-body">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'index' %}" class="text-white">Inicio</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="text-white">
+                                {{ categoria.torneo.nombre }}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-white">{{ categoria.nombre }}</li>
+                    </ol>
+                </nav>
+                
+                <h1 class="display-5">{{ categoria.nombre }}</h1>
+                <p class="lead">{{ categoria.descripcion }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Sección de Próximos Enfrentamientos -->
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-calendar-days"></i> Próximos Enfrentamientos</h3>
+            </div>
+            <div class="card-body">
+                {% if proximos_partidos %}
+                    {% for partido in proximos_partidos %}
+                    <div class="match-card proximo">
+                        <div class="row align-items-center">
+                            <div class="col-md-1 d-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
+                                <span class="match-status status-proximo mb-2">J{{ partido.jornada }}</span>
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="text-center">
+                                            {% if partido.equipo_local.logo %}
+                                            <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small mb-1">
+                                            {% endif %}
+                                            <div>{{ partido.equipo_local.nombre }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mx-3">
+                                        <div class="vs-text">VS</div>
+                                        <div class="match-date">
+                                            <i class="fa-solid fa-clock"></i>
+                                            {{ partido.fecha|date:"d M H:i" }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center">
+                                        <div class="text-center">
+                                            {% if partido.equipo_visitante.logo %}
+                                            <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small mb-1">
+                                            {% endif %}
+                                            <div>{{ partido.equipo_visitante.nombre }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-center">
+                                <small class="text-muted">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    {% if partido.campo %}{{ partido.campo }}{% else %}Por definir{% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fa-solid fa-info-circle"></i> 
+                        No hay próximos enfrentamientos programados.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sección de Últimos Resultados -->
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-history"></i> Últimos Resultados</h3>
+            </div>
+            <div class="card-body">
+                {% if ultimos_resultados %}
+                    {% for partido in ultimos_resultados %}
+                    <div class="match-card jugado">
+                        <div class="row align-items-center">
+                            <div class="col-md-1 d-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
+                                <span class="match-status status-jugado mb-2">J{{ partido.jornada }}</span>
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="text-center">
+                                            {% if partido.equipo_local.logo %}
+                                            <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small mb-1">
+                                            {% endif %}
+                                            <div class="{% if partido.goles_local > partido.goles_visitante %}fw-bold text-success{% endif %}">{{ partido.equipo_local.nombre }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mx-3">
+                                        <div class="team-score">
+                                            {{ partido.goles_local }} - {{ partido.goles_visitante }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ partido.fecha|date:"d M Y" }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center">
+                                        <div class="text-center">
+                                            {% if partido.equipo_visitante.logo %}
+                                            <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small mb-1">
+                                            {% endif %}
+                                            <div class="{% if partido.goles_visitante > partido.goles_local %}fw-bold text-success{% endif %}">{{ partido.equipo_visitante.nombre }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-center">
+                                <small class="text-muted">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    {% if partido.campo %}{{ partido.campo }}{% else %}Sede neutral{% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fa-solid fa-info-circle"></i> 
+                        No hay resultados registrados todavía.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tabla de Posiciones (se mantiene igual) -->
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-ranking-star"></i> Tabla de Posiciones</h3>
+            </div>
+            <div class="card-body">
+                {% if equipos %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Equipo</th>
+                                    <th>PJ</th>
+                                    <th>PG</th>
+                                    <th>PE</th>
+                                    <th>PP</th>
+                                    <th>GF</th>
+                                    <th>GC</th>
+                                    <th>DG</th>
+                                    <th>Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for equipo in equipos %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        {% if equipo.logo %}
+                                        <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" class="team-logo me-2">
+                                        {% endif %}
+                                        {{ equipo.nombre }}
+                                    </td>
+                                    <td>{{ equipo.partidos_jugados }}</td>
+                                    <td>{{ equipo.partidos_ganados }}</td>
+                                    <td>{{ equipo.partidos_empatados }}</td>
+                                    <td>{{ equipo.partidos_perdidos }}</td>
+                                    <td>{{ equipo.goles_favor }}</td>
+                                    <td>{{ equipo.goles_contra }}</td>
+                                    <td>{{ equipo.diferencia_goles }}</td>
+                                    <td><strong>{{ equipo.puntos }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fa-solid fa-info-circle"></i> 
+                        No hay equipos en esta categoría.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Sección de Estadísticas Rápidas -->
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-simple"></i> Estadísticas</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="stats-card">
+                            <h4>{{ total_partidos }}</h4>
+                            <p class="text-muted">Partidos</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stats-card">
+                            <h4>{{ partidos_jugados }}</h4>
+                            <p class="text-muted">Jugados</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stats-card">
+                            <h4>{{ partidos_pendientes }}</h4>
+                            <p class="text-muted">Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stats-card">
+                            <h4>{{ total_goles }}</h4>
+                            <p class="text-muted">Goles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipos (se mantiene igual) -->
+        <div class="card card-gradient mb-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-people-group"></i> Equipos ({{ equipos|length }})</h3>
+            </div>
+            <div class="card-body">
+                {% if equipos %}
+                    <div class="list-group">
+                        {% for equipo in equipos %}
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                {% if equipo.logo %}
+                                <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" class="team-logo me-3">
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">{{ equipo.nombre }}</h6>
+                                    <small class="text-muted">{{ equipo.jugador_set.count }} jugadores</small>
+                                </div>
+                                <span class="badge bg-primary">{{ equipo.puntos }} pts</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fa-solid fa-exclamation-triangle"></i> 
+                        No hay equipos registrados.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Acciones (se mantiene igual) -->
+        <div class="card card-gradient">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-link"></i> Acciones</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if categoria.tiene_eliminatorias %}
+                    <a href="{% url 'eliminatorias' categoria.id %}" class="btn btn-success">
+                        <i class="fa-solid fa-bracket"></i> Ver Eliminatorias
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'goleadores' categoria.id %}" class="btn btn-info">
+                        <i class="fa-solid fa-futbol"></i> Goleadores
+                    </a>
+                    
+                    <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-arrow-left"></i> Volver al Torneo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
