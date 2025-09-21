@@ -1,3 +1,14 @@
+# AJAX para filtrar categorías por torneo en el admin
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import JsonResponse
+@staff_member_required
+def get_categorias_by_torneo(request):
+    torneo_id = request.GET.get('torneo_id')
+    categorias = []
+    if torneo_id:
+        categorias_qs = Categoria.objects.filter(torneo_id=torneo_id).values('id', 'nombre')
+        categorias = list(categorias_qs)
+    return JsonResponse({'categorias': categorias})
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages

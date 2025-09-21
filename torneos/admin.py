@@ -28,6 +28,9 @@ class EquipoAdmin(admin.ModelAdmin):
     list_filter = ('categoria', 'activo')
     search_fields = ('nombre',)
 
+    class Media:
+        js = ('admin/js/filtrar_categorias.js',)
+
 @admin.register(Jugador)
 class JugadorAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'apellido', 'equipo', 'numero_camiseta', 'posicion', 'activo')

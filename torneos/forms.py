@@ -3,13 +3,31 @@ from django import forms
 from .models import *
 
 class EquipoAdminForm(forms.ModelForm):
+    torneo = forms.ModelChoiceField(queryset=Torneo.objects.all(), required=False, label='Torneo')
+
     class Meta:
         model = Equipo
-        fields = '__all__'
+        fields = ['torneo', 'categoria', 'nombre', 'logo', 'color_principal', 'color_secundario', 'activo']
         widgets = {
             'color_principal': forms.TextInput(attrs={'type': 'color'}),
             'color_secundario': forms.TextInput(attrs={'type': 'color'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Si hay torneo seleccionado, filtrar categorías
+        if self.data.get('torneo'):
+            try:
+                torneo_id = int(self.data.get('torneo'))
+                self.fields['categoria'].queryset = Categoria.objects.filter(torneo_id=torneo_id)
+            except (ValueError, TypeError):
+                self.fields['categoria'].queryset = Categoria.objects.none()
+        elif self.instance.pk and self.instance.categoria:
+            torneo = self.instance.categoria.torneo
+            self.fields['categoria'].queryset = Categoria.objects.filter(torneo=torneo)
+            self.fields['torneo'].initial = torneo
+        else:
+            self.fields['categoria'].queryset = Categoria.objects.none()
 
 class GoleadorForm(forms.ModelForm):
     class Meta:
