@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 style="color: #fff;" class="mb-0">Equipos - {{ categoria.nombre }}</h2>
+            <div style="height: 4px; background: linear-gradient(90deg, #39ff14 0%, #39ff14 100%); box-shadow: 0 0 8px #39ff14; border-radius: 2px; margin-top: 4px;"></div>
+            <div class="mt-2 text-light">
+                <strong>Total de equipos:</strong> <span id="total-equipos">{{ equipos|length }}</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <input type="text" id="buscador-equipos" class="form-control" placeholder="Buscar equipo..." style="max-width: 220px;">
+            <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+    <div class="row" id="equipos-lista">
+        {% for equipo in equipos %}
+        <div class="col-md-4 mb-3 equipo-item">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        {% if equipo.logo %}
+                            <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width:40px; height:40px; object-fit:contain; margin-right:10px;">
+                        {% endif %}
+                        <h5 class="card-title mb-0 nombre-equipo">{{ equipo.nombre }}</h5>
+                    </div>
+                    <p class="card-text">
+                        <strong>Capitán:</strong> {{ equipo.capitan.get_full_name|default:"Sin capitán" }}<br>
+                        <strong>Jugadores:</strong> {{ equipo.jugador_set.count }}<br>
+                        <strong>Color:</strong> <span style="color: {{ equipo.color }}; font-weight: bold;">{{ equipo.color }}</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No hay equipos registrados en esta categoría.</div>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const buscador = document.getElementById('buscador-equipos');
+        const equipos = document.querySelectorAll('.equipo-item');
+        const totalSpan = document.getElementById('total-equipos');
+        buscador.addEventListener('input', function() {
+            let count = 0;
+            equipos.forEach(function(item) {
+                const nombre = item.querySelector('.nombre-equipo').textContent.toLowerCase();
+                if (nombre.includes(buscador.value.toLowerCase())) {
+                    item.style.display = '';
+                    count++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            totalSpan.textContent = count;
+        });
+    });
+    </script>
+</div>
+{% endblock %}

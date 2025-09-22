@@ -113,7 +113,7 @@ class Partido(models.Model):
     jornada = models.PositiveIntegerField()
     equipo_local = models.ForeignKey(Equipo, related_name='partidos_local', on_delete=models.CASCADE)
     equipo_visitante = models.ForeignKey(Equipo, related_name='partidos_visitante', on_delete=models.CASCADE)
-    fecha = models.DateTimeField()
+    fecha = models.DateTimeField(null=True, blank=True)
     goles_local = models.PositiveIntegerField(default=0)
     goles_visitante = models.PositiveIntegerField(default=0)
     jugado = models.BooleanField(default=False)

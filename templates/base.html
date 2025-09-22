@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -16,8 +17,70 @@
     
     <!-- CSS personalizado -->
     <style>
+        .navbar-toggler-icon {
+            background-image: none !important;
+            width: 1.5em;
+            height: 1.5em;
+            display: inline-block;
+            position: relative;
+        }
+        .navbar-toggler-icon::before {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                #0a2342 0 3px,
+                transparent 3px 6px
+            );
+            border-radius: 3px;
+        }
+        .main-title, .main-subtitle {
+            color: #0a2342 !important;
+        }
+        .navbar, .navbar-nav .nav-link, .navbar-brand, .navbar-toggler, .navbar-nav .dropdown-menu {
+            color: #0a2342 !important;
+        }
+        .navbar-nav .nav-link.active, .navbar-nav .nav-link:focus, .navbar-nav .nav-link:hover {
+            color: #145da0 !important;
+        }
+        body {
+            background: #0a2342 !important;
+        }
+        /* Navbar compacta y logo grande */
+        .navbar {
+            min-height: 38px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        .navbar-brand {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            height: 70px !important;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand img {
+            height: 140px !important;
+            width: auto;
+            margin-right: 4px;
+            padding-right: 0px;
+        }
+        .logo-footer {
+            height: 150px !important;
+            width: auto;
+            margin-right: 10px;
+            object-fit: contain;
+            
+        }
+        footer.gradient-bg {
+            min-height: 80px !important;
+            padding-top: 16px !important;
+            padding-bottom: 16px !important;
+        }
         .gradient-bg {
-            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            background: linear-gradient(120deg, #0a2342 0 2.5%, #39ff14 2.5% 5%, #00cfff 5% 7.5%, #fff 7.5% 100%);
         }
         
         .card-gradient {
@@ -53,17 +116,18 @@
             object-fit: cover;
             border-radius: 50%;
         }
+        
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark gradient-bg">
+    <nav class="navbar navbar-expand-lg navbar-dark gradient-bg d-flex align-items-center" style="min-height: 48px;">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'index' %}">
-                <i class="fa-solid fa-trophy me-2"></i>
-                Torneos Deportivos
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}" style="gap:16px; min-height:48px;">
+                <img src="{% static 'img/logo.png' %}" alt="Logo" style="height:80px; width:auto; display:inline-block; object-fit:contain; margin-right:0px;">
+                
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -108,7 +172,7 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
+                            <a class="nav-link" href="{% url 'login' %}"><i class="fa-solid fa-user me-1"></i> Iniciar Sesión</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -131,16 +195,19 @@
     </main>
     
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
+    <footer class="gradient-bg py-4 mt-5" style="background: linear-gradient(120deg, #0a2342 0 2.5%, #39ff14 2.5% 5%, #00cfff 5% 7.5%, #ffffffff 7.5% 100%);">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>Sistema de Gestión de Torneos</h5>
-                    <p>Plataforma profesional para organizar y gestionar competiciones deportivas.</p>
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-footer">
+                        <h5 style="color: navy !important; margin: 0;">Sistema de Gestión de Torneos</h5>
+                    </div>
+                    <p style="color: navy !important;">Plataforma profesional para organizar y gestionar competiciones deportivas.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>&copy; 2025 - Todos los derechos reservados</p>
-                    <p>Desarrollado por Ing. Moisés Martínez Vázquez</p>
+                    <p style="color: navy !important;">&copy; 2025 - Todos los derechos reservados</p>
+                    <p style="color: navy !important;">Desarrollado por Ing. Moisés Martínez Vázquez</p>
                 </div>
             </div>
         </div>

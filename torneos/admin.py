@@ -1,5 +1,6 @@
 
 from django.contrib import admin
+from django.db import models
 from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Capitan, Partido, PartidoEliminatoria, Goleador
 from .forms import EquipoAdminForm
 
@@ -16,10 +17,216 @@ class TorneoAdmin(admin.ModelAdmin):
     search_fields = ('nombre', 'descripcion')
 
 @admin.register(Categoria)
+
 class CategoriaAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'torneo', 'max_equipos', 'tiene_eliminatorias')
+    def equipos_descansan_por_jornada(self, categoria):
+        from .models import Partido, Equipo
+        equipos = list(Equipo.objects.filter(categoria=categoria))
+        n = len(equipos)
+        if n % 2 == 0:
+            return "No hay descansos (número par de equipos)"
+        total_jornadas = n
+        partidos = list(Partido.objects.filter(grupo__categoria=categoria).order_by('jornada', 'id'))
+        equipos_existentes = equipos.copy()
+        descansos = []
+        for jornada in range(1, total_jornadas + 1):
+            equipos_en_jornada = set()
+            partidos_jornada = [p for p in partidos if p.jornada == jornada]
+            for p in partidos_jornada:
+                equipos_en_jornada.add(p.equipo_local)
+                equipos_en_jornada.add(p.equipo_visitante)
+            equipo_descanso = None
+            for eq in equipos_existentes:
+                if eq not in equipos_en_jornada:
+                    equipo_descanso = eq
+                    break
+            descansos.append((jornada, equipo_descanso.nombre if equipo_descanso else "N/A"))
+        return descansos
+
+    actions = ['generar_calendario_action', 'integrar_nuevo_equipo']
+    def integrar_nuevo_equipo(self, request, queryset):
+        from django.contrib import messages
+        from .models import Equipo, Grupo, Partido
+        from datetime import datetime
+        for categoria in queryset:
+            equipos = list(Equipo.objects.filter(categoria=categoria))
+            total_equipos = len(equipos)
+            if total_equipos < 2:
+                messages.warning(request, f"La categoría '{categoria.nombre}' necesita al menos 2 equipos.")
+                continue
+            # Detectar jornadas ya jugadas
+            partidos_jugados = Partido.objects.filter(grupo__categoria=categoria, jugado=True).count()
+            grupo, created = Grupo.objects.get_or_create(
+                categoria=categoria,
+                nombre="Grupo Único",
+                defaults={'descripcion': 'Grupo principal de la categoría'}
+            )
+            if partidos_jugados == 0:
+                n = total_equipos
+                equipos_existentes = equipos[:-1]  # Todos menos el nuevo
+                nuevo_equipo = equipos[-1]
+                partidos = list(Partido.objects.filter(grupo__categoria=categoria).order_by('jornada', 'id'))
+                if (n - 1) % 2 == 0 and n % 2 == 1:
+                    # Pasó de par a impar: modificar un partido por jornada para que uno descanse y el nuevo equipo juegue
+                    total_jornadas = n
+                    for jornada in range(1, total_jornadas):
+                        partidos_jornada = [p for p in partidos if p.jornada == jornada]
+                        if not partidos_jornada:
+                            continue
+                        if jornada == 1:
+                            # El nuevo equipo descansa en la primera jornada
+                            Partido.objects.create(
+                                grupo=partidos_jornada[0].grupo,
+                                jornada=1,
+                                equipo_local=nuevo_equipo,
+                                equipo_visitante=nuevo_equipo,
+                                campo='Descansa',
+                                fecha=None
+                            )
+                            continue
+                        partido_a_modificar = partidos_jornada[0]
+                        equipo_descansa = partido_a_modificar.equipo_local
+                        # El nuevo equipo toma el lugar de equipo_local
+                        partido_a_modificar.equipo_local = nuevo_equipo
+                        partido_a_modificar.campo = 'Por definir'
+                        partido_a_modificar.fecha = None
+                        partido_a_modificar.save()
+                        # Registrar el descanso
+                        Partido.objects.create(
+                            grupo=partido_a_modificar.grupo,
+                            jornada=jornada,
+                            equipo_local=equipo_descansa,
+                            equipo_visitante=equipo_descansa,
+                            campo='Descansa',
+                            fecha=None
+                        )
+                    messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente. En cada jornada, un equipo original descansa y el nuevo equipo juega en su lugar.")
+                else:
+                    # Lógica anterior para impar a par o generación normal
+                    total_jornadas = n - 1
+                    partidos_por_jornada_antes = (n - 1) // 2
+                    partidos_por_jornada_despues = n // 2
+                    equipos_descansaban = []
+                    for jornada in range(1, total_jornadas + 1):
+                        equipos_en_jornada = set()
+                        partidos_jornada = [p for p in partidos if p.jornada == jornada]
+                        for p in partidos_jornada:
+                            equipos_en_jornada.add(p.equipo_local)
+                            equipos_en_jornada.add(p.equipo_visitante)
+                        equipo_descanso = None
+                        for eq in equipos_existentes:
+                            if eq not in equipos_en_jornada:
+                                equipo_descanso = eq
+                                break
+                        equipos_descansaban.append(equipo_descanso)
+                    for jornada, equipo_descanso in enumerate(equipos_descansaban, start=1):
+                        if equipo_descanso is not None:
+                            Partido.objects.create(
+                                grupo=partidos[0].grupo if partidos else None,
+                                jornada=jornada,
+                                equipo_local=equipo_descanso,
+                                equipo_visitante=nuevo_equipo,
+                                campo='Por definir',
+                                fecha=None
+                            )
+                    messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente enfrentando al equipo que descansaba en cada jornada. El número de partidos por jornada aumentó.")
+            else:
+                # Hay partidos jugados, integrar solo en jornadas futuras
+                jornadas_jugadas = set(Partido.objects.filter(grupo__categoria=categoria, jugado=True).values_list('jornada', flat=True))
+                max_jornada = Partido.objects.filter(grupo__categoria=categoria).aggregate(maxj=models.Max('jornada'))['maxj'] or 0
+                nuevo_equipo = equipos[-1]  # Asume que el último equipo agregado es el nuevo
+                # Para cada jornada ya jugada, el nuevo equipo descansa
+                for jornada in jornadas_jugadas:
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=jornada,
+                        equipo_local=nuevo_equipo,
+                        equipo_visitante=None,
+                        campo='Descanso',
+                        fecha=None
+                    )
+                # Para jornadas futuras, recalcular round-robin con todos los equipos
+                n = total_equipos
+                if n % 2 == 1:
+                    equipos_rr = equipos.copy()
+                else:
+                    equipos_rr = equipos.copy()
+                    equipos_rr.append(None)  # Para round-robin impar
+                    n += 1
+                partidos_por_jornada = n // 2
+                total_jornadas = n - 1
+                for jornada in range(max_jornada + 1, total_jornadas + 1):
+                    for i in range(partidos_por_jornada):
+                        local = equipos_rr[i]
+                        visitante = equipos_rr[n - 1 - i]
+                        if local is not None and visitante is not None:
+                            Partido.objects.create(
+                                grupo=grupo,
+                                jornada=jornada,
+                                equipo_local=local,
+                                equipo_visitante=visitante,
+                                campo='Por definir',
+                                fecha=None
+                            )
+                    equipos_rr.insert(1, equipos_rr.pop())
+                messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado al calendario de '{categoria.nombre}'.")
+    integrar_nuevo_equipo.short_description = "Integrar nuevo equipo al calendario (respetando jornadas jugadas y descansos)"
+    def mostrar_descansos(self, obj):
+        descansos = self.equipos_descansan_por_jornada(obj)
+        if isinstance(descansos, str):
+            return descansos
+        return ", ".join([f"J{j}: {e}" for j, e in descansos])
+    mostrar_descansos.short_description = "Descansos por jornada (impar)"
+
+    list_display = ('nombre', 'torneo', 'max_equipos', 'tiene_eliminatorias', 'mostrar_descansos')
     list_filter = ('torneo', 'tiene_eliminatorias')
     search_fields = ('nombre', 'descripcion')
+
+    actions = ['generar_calendario_action', 'integrar_nuevo_equipo']
+
+    def generar_calendario_action(self, request, queryset):
+        from django.contrib import messages
+        from datetime import datetime
+        from .models import Equipo, Grupo, Partido
+        total = 0
+        for categoria in queryset:
+            equipos = list(Equipo.objects.filter(categoria=categoria))
+            if len(equipos) < 2:
+                messages.warning(request, f"La categoría '{categoria.nombre}' necesita al menos 2 equipos.")
+                continue
+            n = len(equipos)
+            if n % 2 == 1:
+                equipos.append(None)
+                n += 1
+            partidos_por_jornada = n // 2
+            total_jornadas = n - 1
+            grupo, created = Grupo.objects.get_or_create(
+                categoria=categoria,
+                nombre="Grupo Único",
+                defaults={'descripcion': 'Grupo principal de la categoría'}
+            )
+            Partido.objects.filter(grupo__categoria=categoria).delete()
+            for jornada in range(1, total_jornadas + 1):
+                for i in range(partidos_por_jornada):
+                    # Alternar local/visitante por jornada para equidad
+                    if jornada % 2 == 1:
+                        local = equipos[i]
+                        visitante = equipos[n - 1 - i]
+                    else:
+                        local = equipos[n - 1 - i]
+                        visitante = equipos[i]
+                    if local is not None and visitante is not None:
+                        Partido.objects.create(
+                            grupo=grupo,
+                            jornada=jornada,
+                            equipo_local=local,
+                            equipo_visitante=visitante,
+                            campo='Por definir'
+                        )
+                        total += 1
+                equipos.insert(1, equipos.pop())
+            messages.success(request, f"Calendario generado para '{categoria.nombre}' ({total_jornadas} jornadas, {total} partidos).")
+    generar_calendario_action.short_description = "Generar calendario de partidos para la categoría"
 
 @admin.register(Equipo)
 class EquipoAdmin(admin.ModelAdmin):
@@ -44,10 +251,105 @@ class CapitanAdmin(admin.ModelAdmin):
     search_fields = ('usuario__username', 'equipo__nombre')
 
 @admin.register(Partido)
+
 class PartidoAdmin(admin.ModelAdmin):
+    def mostrar_descansos(self, obj):
+        from .models import Partido, Equipo, Categoria
+        if not obj.grupo or not obj.grupo.categoria:
+            return "-"
+        categoria = obj.grupo.categoria
+        equipos = list(Equipo.objects.filter(categoria=categoria))
+        n = len(equipos)
+        if n % 2 == 0:
+            return "No hay descansos (par)"
+        total_jornadas = n
+        partidos = list(Partido.objects.filter(grupo__categoria=categoria).order_by('jornada', 'id'))
+        equipos_existentes = equipos.copy()
+        descansos = []
+        for jornada in range(1, total_jornadas + 1):
+            equipos_en_jornada = set()
+            partidos_jornada = [p for p in partidos if p.jornada == jornada]
+            for p in partidos_jornada:
+                equipos_en_jornada.add(p.equipo_local)
+                equipos_en_jornada.add(p.equipo_visitante)
+            equipo_descanso = None
+            for eq in equipos_existentes:
+                if eq not in equipos_en_jornada:
+                    equipo_descanso = eq
+                    break
+            descansos.append(f"J{jornada}: {equipo_descanso.nombre if equipo_descanso else 'N/A'}")
+        return ", ".join(descansos)
+
+    mostrar_descansos.short_description = "Descansos por jornada (impar)"
+
     list_display = ('equipo_local', 'equipo_visitante', 'jornada', 'goles_local', 'goles_visitante', 'jugado')
     list_filter = ('grupo', 'jornada', 'jugado')
     search_fields = ('equipo_local__nombre', 'equipo_visitante__nombre')
+
+    actions = ['generar_calendario_desde_partido', 'eliminar_calendario']
+
+    def eliminar_calendario(self, request, queryset):
+        from django.contrib import messages
+        from .models import Partido
+        categorias = set()
+        for partido in queryset:
+            if partido.grupo and partido.grupo.categoria:
+                categorias.add(partido.grupo.categoria)
+        if not categorias:
+            messages.warning(request, "No se encontraron categorías asociadas a los partidos seleccionados.")
+            return
+        total = 0
+        for categoria in categorias:
+            deleted, _ = Partido.objects.filter(grupo__categoria=categoria).delete()
+            total += deleted
+            messages.success(request, f"Se eliminaron {deleted} partidos del calendario de la categoría '{categoria.nombre}'.")
+    eliminar_calendario.short_description = "Eliminar todo el calendario de la categoría seleccionada"
+
+    def generar_calendario_desde_partido(self, request, queryset):
+        from django.contrib import messages
+        from datetime import datetime
+        from .models import Categoria, Equipo, Grupo, Partido
+        categorias = set()
+        for partido in queryset:
+            if partido.grupo and partido.grupo.categoria:
+                categorias.add(partido.grupo.categoria)
+        if not categorias:
+            messages.warning(request, "No se encontraron categorías asociadas a los partidos seleccionados.")
+            return
+        total = 0
+        for categoria in categorias:
+            equipos = list(Equipo.objects.filter(categoria=categoria))
+            if len(equipos) < 2:
+                messages.warning(request, f"La categoría '{categoria.nombre}' necesita al menos 2 equipos.")
+                continue
+            n = len(equipos)
+            if n % 2 == 1:
+                equipos.append(None)
+                n += 1
+            partidos_por_jornada = n // 2
+            total_jornadas = n - 1
+            grupo, created = Grupo.objects.get_or_create(
+                categoria=categoria,
+                nombre="Grupo Único",
+                defaults={'descripcion': 'Grupo principal de la categoría'}
+            )
+            Partido.objects.filter(grupo__categoria=categoria).delete()
+            for jornada in range(1, total_jornadas + 1):
+                for i in range(partidos_por_jornada):
+                    local = equipos[i]
+                    visitante = equipos[n - 1 - i]
+                    if local is not None and visitante is not None:
+                        Partido.objects.create(
+                            grupo=grupo,
+                            jornada=jornada,
+                            equipo_local=local,
+                            equipo_visitante=visitante,
+                            fecha=datetime.now()
+                        )
+                        total += 1
+                equipos.insert(1, equipos.pop())
+            messages.success(request, f"Calendario generado para '{categoria.nombre}' ({total_jornadas} jornadas, {total} partidos).")
+    generar_calendario_desde_partido.short_description = "Generar calendario de partidos para la categoría de los partidos seleccionados"
 
 @admin.register(PartidoEliminatoria)
 class PartidoEliminatoriaAdmin(admin.ModelAdmin):

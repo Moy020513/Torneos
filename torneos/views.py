@@ -1,3 +1,61 @@
+# Vista independiente para jugadores
+def jugadores_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = Equipo.objects.filter(categoria=categoria)
+    context = {
+        'categoria': categoria,
+        'equipos': equipos
+    }
+    return render(request, 'torneos/jugadores.html', context)
+# Vista independiente para resultados
+def resultados_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = Equipo.objects.filter(categoria=categoria)
+    partidos = Partido.objects.filter(
+        Q(grupo__categoria=categoria) |
+        Q(grupo=None, equipo_local__categoria=categoria) |
+        Q(grupo=None, equipo_visitante__categoria=categoria)
+    )
+    ultimos_resultados = partidos.filter(jugado=True).order_by('-fecha')[:50]
+    jornadas = sorted(set(p.jornada for p in ultimos_resultados))
+    context = {
+        'categoria': categoria,
+        'equipos': equipos,
+        'ultimos_resultados': ultimos_resultados,
+        'jornadas': jornadas
+    }
+    return render(request, 'torneos/resultados.html', context)
+# Vista de estadísticas solo para administradores
+from django.contrib.auth.decorators import user_passes_test
+
+@user_passes_test(lambda u: u.is_superuser)
+def estadisticas_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = Equipo.objects.filter(categoria=categoria)
+    partidos = Partido.objects.filter(
+        Q(grupo__categoria=categoria) |
+        Q(grupo=None, equipo_local__categoria=categoria) |
+        Q(grupo=None, equipo_visitante__categoria=categoria)
+    )
+    proximos_partidos = partidos.filter(jugado=False).order_by('fecha')[:10]
+    ultimos_resultados = partidos.filter(jugado=True).order_by('-fecha')[:10]
+    total_partidos = partidos.count()
+    partidos_jugados = partidos.filter(jugado=True).count()
+    partidos_pendientes = partidos.filter(jugado=False).count()
+    total_goles_local = partidos.filter(jugado=True).aggregate(Sum('goles_local'))['goles_local__sum'] or 0
+    total_goles_visitante = partidos.filter(jugado=True).aggregate(Sum('goles_visitante'))['goles_visitante__sum'] or 0
+    total_goles = total_goles_local + total_goles_visitante
+    context = {
+        'categoria': categoria,
+        'equipos': equipos,
+        'proximos_partidos': proximos_partidos,
+        'ultimos_resultados': ultimos_resultados,
+        'total_partidos': total_partidos,
+        'partidos_jugados': partidos_jugados,
+        'partidos_pendientes': partidos_pendientes,
+        'total_goles': total_goles
+    }
+    return render(request, 'torneos/estadisticas.html', context)
 # AJAX para filtrar categorías por torneo en el admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
@@ -53,71 +111,57 @@ def torneo_detalle(request, torneo_id):
     }
     return render(request, 'torneos/torneo_detalle.html', context)
 
+
 def categoria_detalle(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = Equipo.objects.filter(categoria=categoria)
-    
-    # Obtener todos los partidos de la categoría (con grupo o sin grupo)
     partidos = Partido.objects.filter(
         Q(grupo__categoria=categoria) |
         Q(grupo=None, equipo_local__categoria=categoria) |
         Q(grupo=None, equipo_visitante__categoria=categoria)
     )
-    
-    # Próximos enfrentamientos (no jugados, ordenados por fecha)
-    proximos_partidos = partidos.filter(jugado=False).order_by('fecha')[:10]
-    
+    # Próximos enfrentamientos (no jugados)
+    proximos_partidos = list(partidos.filter(jugado=False))
+    # Ordenar: primero por fecha si existe, si no por jornada
+    proximos_partidos.sort(key=lambda p: (p.fecha if p.fecha else datetime(9999, 12, 31), p.jornada))
     # Últimos resultados (jugados, ordenados por fecha más reciente)
     ultimos_resultados = partidos.filter(jugado=True).order_by('-fecha')[:10]
-    
     # Estadísticas generales
     total_partidos = partidos.count()
     partidos_jugados = partidos.filter(jugado=True).count()
     partidos_pendientes = partidos.filter(jugado=False).count()
-    
-    # Calcular goles totales
     total_goles_local = partidos.filter(jugado=True).aggregate(Sum('goles_local'))['goles_local__sum'] or 0
     total_goles_visitante = partidos.filter(jugado=True).aggregate(Sum('goles_visitante'))['goles_visitante__sum'] or 0
     total_goles = total_goles_local + total_goles_visitante
-    
     # Obtener estadísticas de equipos
     for equipo in equipos:
         partidos_jugados_eq = Partido.objects.filter(
             Q(equipo_local=equipo) | Q(equipo_visitante=equipo),
             jugado=True
         ).count()
-        
         partidos_ganados = Partido.objects.filter(
             Q(equipo_local=equipo, goles_local__gt=F('goles_visitante'), jugado=True) |
             Q(equipo_visitante=equipo, goles_visitante__gt=F('goles_local'), jugado=True)
         ).count()
-        
         partidos_empatados = Partido.objects.filter(
             Q(equipo_local=equipo, goles_local=F('goles_visitante'), jugado=True) |
             Q(equipo_visitante=equipo, goles_visitante=F('goles_local'), jugado=True)
         ).count()
-        
         partidos_perdidos = partidos_jugados_eq - partidos_ganados - partidos_empatados
-        
         goles_favor = Partido.objects.filter(
             Q(equipo_local=equipo, jugado=True)
         ).aggregate(total=Sum('goles_local'))['total'] or 0
-        
         goles_favor += Partido.objects.filter(
             Q(equipo_visitante=equipo, jugado=True)
         ).aggregate(total=Sum('goles_visitante'))['total'] or 0
-        
         goles_contra = Partido.objects.filter(
             Q(equipo_local=equipo, jugado=True)
         ).aggregate(total=Sum('goles_visitante'))['total'] or 0
-        
         goles_contra += Partido.objects.filter(
             Q(equipo_visitante=equipo, jugado=True)
         ).aggregate(total=Sum('goles_local'))['total'] or 0
-        
         diferencia_goles = goles_favor - goles_contra
         puntos = (partidos_ganados * 3) + partidos_empatados
-        
         equipo.partidos_jugados = partidos_jugados_eq
         equipo.partidos_ganados = partidos_ganados
         equipo.partidos_empatados = partidos_empatados
@@ -126,9 +170,9 @@ def categoria_detalle(request, categoria_id):
         equipo.goles_contra = goles_contra
         equipo.diferencia_goles = diferencia_goles
         equipo.puntos = puntos
-    
     equipos = sorted(equipos, key=lambda x: (-x.puntos, -x.diferencia_goles, -x.goles_favor))
-    
+    # Obtener jornadas únicas para el filtro
+    jornadas = sorted(set(p.jornada for p in proximos_partidos))
     context = {
         'categoria': categoria,
         'equipos': equipos,
@@ -137,7 +181,8 @@ def categoria_detalle(request, categoria_id):
         'total_partidos': total_partidos,
         'partidos_jugados': partidos_jugados,
         'partidos_pendientes': partidos_pendientes,
-        'total_goles': total_goles
+        'total_goles': total_goles,
+        'jornadas': jornadas
     }
     return render(request, 'torneos/categoria_detalle.html', context)
 @login_required
@@ -297,6 +342,64 @@ def generar_calendario(request, categoria_id):
     if len(equipos) < 2:
         messages.error(request, 'Se necesitan al menos 2 equipos para generar un calendario.')
         return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
+
+
+# Vista independiente para tabla de posiciones
+def tabla_posiciones_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = Equipo.objects.filter(categoria=categoria)
+    for equipo in equipos:
+        partidos_jugados_eq = Partido.objects.filter(
+            Q(equipo_local=equipo) | Q(equipo_visitante=equipo),
+            jugado=True
+        ).count()
+        partidos_ganados = Partido.objects.filter(
+            Q(equipo_local=equipo, goles_local__gt=F('goles_visitante'), jugado=True) |
+            Q(equipo_visitante=equipo, goles_visitante__gt=F('goles_local'), jugado=True)
+        ).count()
+        partidos_empatados = Partido.objects.filter(
+            Q(equipo_local=equipo, goles_local=F('goles_visitante'), jugado=True) |
+            Q(equipo_visitante=equipo, goles_visitante=F('goles_local'), jugado=True)
+        ).count()
+        partidos_perdidos = partidos_jugados_eq - partidos_ganados - partidos_empatados
+        goles_favor = Partido.objects.filter(
+            Q(equipo_local=equipo, jugado=True)
+        ).aggregate(total=Sum('goles_local'))['total'] or 0
+        goles_favor += Partido.objects.filter(
+            Q(equipo_visitante=equipo, jugado=True)
+        ).aggregate(total=Sum('goles_visitante'))['total'] or 0
+        goles_contra = Partido.objects.filter(
+            Q(equipo_local=equipo, jugado=True)
+        ).aggregate(total=Sum('goles_visitante'))['total'] or 0
+        goles_contra += Partido.objects.filter(
+            Q(equipo_visitante=equipo, jugado=True)
+        ).aggregate(total=Sum('goles_local'))['total'] or 0
+        diferencia_goles = goles_favor - goles_contra
+        puntos = (partidos_ganados * 3) + partidos_empatados
+        equipo.partidos_jugados = partidos_jugados_eq
+        equipo.partidos_ganados = partidos_ganados
+        equipo.partidos_empatados = partidos_empatados
+        equipo.partidos_perdidos = partidos_perdidos
+        equipo.goles_favor = goles_favor
+        equipo.goles_contra = goles_contra
+        equipo.diferencia_goles = diferencia_goles
+        equipo.puntos = puntos
+    equipos = sorted(equipos, key=lambda x: (-x.puntos, -x.diferencia_goles, -x.goles_favor))
+    context = {
+        'categoria': categoria,
+        'equipos': equipos
+    }
+    return render(request, 'torneos/tabla_posiciones.html', context)
+
+# Vista independiente para equipos
+def equipos_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = Equipo.objects.filter(categoria=categoria)
+    context = {
+        'categoria': categoria,
+        'equipos': equipos
+    }
+    return render(request, 'torneos/equipos.html', context)
     
     # Algoritmo round-robin para generar partidos
     n = len(equipos)

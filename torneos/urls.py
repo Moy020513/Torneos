@@ -7,6 +7,11 @@ urlpatterns = [
     path('categoria/<int:categoria_id>/', views.categoria_detalle, name='categoria_detalle'),
     path('categoria/<int:categoria_id>/eliminatorias/', views.eliminatorias_view, name='eliminatorias'),
     path('categoria/<int:categoria_id>/goleadores/', views.goleadores_view, name='goleadores'),
+    path('categoria/<int:categoria_id>/tabla-posiciones/', views.tabla_posiciones_view, name='tabla_posiciones'),
+    path('categoria/<int:categoria_id>/equipos/', views.equipos_view, name='equipos'),
+    path('categoria/<int:categoria_id>/estadisticas/', views.estadisticas_view, name='estadisticas'),
+    path('categoria/<int:categoria_id>/resultados/', views.resultados_view, name='resultados'),
+    path('categoria/<int:categoria_id>/jugadores/', views.jugadores_view, name='jugadores'),
     # AJAX para admin
     path('get_categorias/', views.get_categorias_by_torneo, name='get_categorias_by_torneo'),
     # URLs de administración

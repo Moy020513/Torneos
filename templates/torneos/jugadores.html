@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 style="color: #fff;" class="mb-0">
+            Jugadores - {{ categoria.nombre }}
+        </h2>
+        <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="equipoFiltro" class="form-label" style="color: white;">Filtrar por equipo:</label>
+            <select id="equipoFiltro" class="form-select">
+                <option value="">Todos</option>
+                {% for equipo in equipos %}
+                    <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="posicionFiltro" class="form-label" style="color: white;">Filtrar por posición:</label>
+            <select id="posicionFiltro" class="form-select">
+                <option value="">Todas</option>
+                <option value="Portero">Portero</option>
+                <option value="Defensa">Defensa</option>
+                <option value="Mediocampista">Mediocampista</option>
+                <option value="Delantero">Delantero</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="buscadorNombre" class="form-label" style="color: white;">Buscar por nombre:</label>
+            <input type="text" id="buscadorNombre" class="form-control" placeholder="Escribe el nombre del jugador...">
+        </div>
+    </div>
+    <div class="mb-3">
+        <p id="contadores" class="text-muted" style="color: white !important;">Total de jugadores: <span id="totalJugadores">0</span> | Jugadores mostrados: <span id="jugadoresMostrados">0</span></p>
+    </div>
+    <ul class="list-group" id="jugadoresLista">
+        {% for equipo in equipos %}
+            {% for jugador in equipo.jugador_set.all %}
+                <li class="list-group-item d-flex align-items-center jugador-item" data-equipo="{{ equipo.id }}" data-posicion="{{ jugador.get_posicion_display }}">
+                    {% if jugador.foto %}
+                        <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }}" style="width:64px; height:64px; object-fit:contain; border-radius:50%; margin-right:18px; image-rendering:auto;">
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <strong>{{ jugador.nombre }} {{ jugador.apellido }}</strong><br>
+                        <span class="text-muted">#{{ jugador.numero_camiseta }} | {{ jugador.get_posicion_display }} |
+                            <b>
+                                {% if equipo.logo %}
+                                    <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:48px; margin-right:10px; vertical-align:middle; object-fit:contain; image-rendering:auto;">
+                                {% endif %}
+                                {{ equipo.nombre }}
+                            </b>
+                        </span>
+                    </div>
+                </li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filtrarJugadores() {
+        var filtroEquipo = String(document.getElementById('equipoFiltro').value).trim();
+        var filtroPosicion = String(document.getElementById('posicionFiltro').value).trim();
+        var filtroNombre = document.getElementById('buscadorNombre').value.trim().toLowerCase();
+        var items = document.querySelectorAll('.jugador-item');
+        var totalJugadores = items.length;
+        var jugadoresMostrados = 0;
+        items.forEach(function(item) {
+            var equipoId = String(item.getAttribute('data-equipo') || '').trim();
+            var posicion = String(item.getAttribute('data-posicion') || '').trim();
+            var nombreElem = item.querySelector('strong');
+            var nombre = nombreElem ? nombreElem.textContent.trim().toLowerCase() : '';
+            // DEPURACIÓN
+            console.log('Filtro equipo:', filtroEquipo, 'EquipoId:', equipoId);
+            console.log('Filtro posicion:', filtroPosicion, 'Posicion:', posicion);
+            console.log('Filtro nombre:', filtroNombre, 'Nombre:', nombre);
+
+            var coincideEquipo = (filtroEquipo === '' || equipoId === filtroEquipo);
+            var coincidePosicion = (filtroPosicion === '' || posicion === filtroPosicion);
+            var coincideNombre = (filtroNombre === '' || nombre.includes(filtroNombre));
+
+            if (coincideEquipo && coincidePosicion && coincideNombre) {
+                item.classList.remove('d-none');
+                jugadoresMostrados++;
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+        // Actualizar contadores
+        document.getElementById('totalJugadores').textContent = totalJugadores;
+        document.getElementById('jugadoresMostrados').textContent = jugadoresMostrados;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        var equipoFiltro = document.getElementById('equipoFiltro');
+        var posicionFiltro = document.getElementById('posicionFiltro');
+        var buscadorNombre = document.getElementById('buscadorNombre');
+        if (equipoFiltro) {
+            equipoFiltro.addEventListener('change', filtrarJugadores);
+        }
+        if (posicionFiltro) {
+            posicionFiltro.addEventListener('change', filtrarJugadores);
+        }
+        if (buscadorNombre) {
+            buscadorNombre.addEventListener('input', filtrarJugadores);
+        }
+        filtrarJugadores();
+    });
+</script>
+{% endblock %}

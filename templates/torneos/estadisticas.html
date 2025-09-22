@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 style="color: #0dcaf0; text-shadow: 0 0 8px #0dcaf0, 0 0 2px #fff;" class="mb-0">
+            Estadísticas - {{ categoria.nombre }}
+        </h2>
+        <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-chart-simple"></i> Estadísticas Generales</h3>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-6 mb-3">
+                    <div class="stats-card">
+                        <h4>{{ total_partidos }}</h4>
+                        <p class="text-muted">Partidos</p>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="stats-card">
+                        <h4>{{ partidos_jugados }}</h4>
+                        <p class="text-muted">Jugados</p>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="stats-card">
+                        <h4>{{ partidos_pendientes }}</h4>
+                        <p class="text-muted">Pendientes</p>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="stats-card">
+                        <h4>{{ total_goles }}</h4>
+                        <p class="text-muted">Goles</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Gráfica de goles por jornada -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3><i class="fa-solid fa-chart-bar"></i> Goles por Jornada</h3>
+            <select id="equipoFiltro" class="form-select" style="max-width: 250px;">
+                <option value="todos">Todos los equipos</option>
+                {% for equipo in equipos %}
+                    <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="card-body">
+            <canvas id="golesJornadaChart" height="120"></canvas>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('golesJornadaChart').getContext('2d');
+        var equipoFiltro = document.getElementById('equipoFiltro');
+
+        // Datos de partidos por equipo
+        var partidos = [
+            {% for partido in ultimos_resultados %}
+            {
+                jornada: 'J{{ partido.jornada }}',
+                equipo_local_id: {{ partido.equipo_local.id }},
+                equipo_local_nombre: '{{ partido.equipo_local.nombre|escapejs }}',
+                goles_local: {{ partido.goles_local }},
+                equipo_visitante_id: {{ partido.equipo_visitante.id }},
+                equipo_visitante_nombre: '{{ partido.equipo_visitante.nombre|escapejs }}',
+                goles_visitante: {{ partido.goles_visitante }}
+            },
+            {% endfor %}
+        ];
+
+        function getGolesPorJornada(equipoId) {
+            var jornadas = [];
+            var golesPorJornada = [];
+            partidos.forEach(function(p) {
+                var goles = 0;
+                if (equipoId === 'todos') {
+                    goles = p.goles_local + p.goles_visitante;
+                } else if (String(p.equipo_local_id) === equipoId) {
+                    goles = p.goles_local;
+                } else if (String(p.equipo_visitante_id) === equipoId) {
+                    goles = p.goles_visitante;
+                } else {
+                    return;
+                }
+                var idx = jornadas.indexOf(p.jornada);
+                if (idx === -1) {
+                    jornadas.push(p.jornada);
+                    golesPorJornada.push(goles);
+                } else {
+                    golesPorJornada[idx] += goles;
+                }
+            });
+            return { jornadas, golesPorJornada };
+        }
+
+        var chartData = getGolesPorJornada('todos');
+        var chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.jornadas,
+                datasets: [{
+                    label: 'Goles por Jornada',
+                    data: chartData.golesPorJornada,
+                    backgroundColor: '#39ff14',
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        equipoFiltro.addEventListener('change', function() {
+            var equipoId = equipoFiltro.value;
+            var data = getGolesPorJornada(equipoId);
+            chart.data.labels = data.jornadas;
+            chart.data.datasets[0].data = data.golesPorJornada;
+            chart.data.datasets[0].label = equipoId === 'todos' ? 'Goles por Jornada' : 'Goles por Jornada (equipo)';
+            chart.update();
+        });
+    });
+    </script>
+</div>
+{% endblock %}
