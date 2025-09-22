@@ -14,12 +14,59 @@ class Torneo(models.Model):
         ('eliminatoria', 'Eliminatoria'),
         ('mixto', 'Mixto (Liga + Eliminatoria)')
     ])
+    logo = models.ImageField(
+        upload_to='torneos/logos/', 
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg', 'gif'])],
+        blank=True, 
+        null=True
+    )
+    color1 = models.CharField(max_length=7, blank=True, null=True)
+    color2 = models.CharField(max_length=7, blank=True, null=True)
+    color3 = models.CharField(max_length=7, blank=True, null=True)
     activo = models.BooleanField(default=True)
     creado_por = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.nombre
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.logo:
+            img = Image.open(self.logo.path)
+            if img.height > 300 or img.width > 300:
+                output_size = (300, 300)
+                img.thumbnail(output_size)
+            # Extraer colores principales únicos
+            img_rgb = img.convert('RGB')
+            img_quant = img_rgb.quantize(colors=256)
+            colors = img_quant.getcolors()
+            palette = img_quant.getpalette()
+            if colors and palette:
+                colors.sort(reverse=True, key=lambda x: x[0])
+                unique_colors = []
+                seen = set()
+                for count, index in colors:
+                    rgb = (palette[index*3], palette[index*3+1], palette[index*3+2])
+                    if rgb not in seen:
+                        unique_colors.append(rgb)
+                        seen.add(rgb)
+                    if len(unique_colors) == 3:
+                        break
+                color1 = '#%02x%02x%02x' % unique_colors[0] if len(unique_colors) >= 1 else None
+                color2 = '#%02x%02x%02x' % unique_colors[1] if len(unique_colors) >= 2 else (color1 if color1 else None)
+                color3 = '#%02x%02x%02x' % unique_colors[2] if len(unique_colors) >= 3 else color2
+            else:
+                color1 = color2 = color3 = None
+            # Comprimir la imagen
+            if img.format == 'JPEG':
+                img.save(self.logo.path, quality=85, optimize=True)
+            elif img.format == 'PNG':
+                img.save(self.logo.path, optimize=True)
+            else:
+                img.save(self.logo.path)
+            # Actualizar colores en la base de datos
+            self.__class__.objects.filter(pk=self.pk).update(color1=color1, color2=color2, color3=color3)
 
 class Categoria(models.Model):
     torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE)
@@ -56,6 +103,12 @@ class Equipo(models.Model):
             if img.height > 300 or img.width > 300:
                 output_size = (300, 300)
                 img.thumbnail(output_size)
+            # Comprimir la imagen
+            if img.format == 'JPEG':
+                img.save(self.logo.path, quality=85, optimize=True)
+            elif img.format == 'PNG':
+                img.save(self.logo.path, optimize=True)
+            else:
                 img.save(self.logo.path)
 
 class Jugador(models.Model):
@@ -89,6 +142,12 @@ class Jugador(models.Model):
             if img.height > 500 or img.width > 500:
                 output_size = (500, 500)
                 img.thumbnail(output_size)
+            # Comprimir la imagen
+            if img.format == 'JPEG':
+                img.save(self.foto.path, quality=85, optimize=True)
+            elif img.format == 'PNG':
+                img.save(self.foto.path, optimize=True)
+            else:
                 img.save(self.foto.path)
 
 class Capitan(models.Model):

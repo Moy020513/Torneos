@@ -9,7 +9,7 @@
         <div class="card gradient-bg text-white mb-4">
             <div class="card-body text-center">
                 <h1 class="display-4" style="color:#0a2342 !important;"><i class="fa-solid fa-trophy"></i> Sistema de Torneos</h1>
-                <p class="lead" style="color:#0a2342 !important;">Plataforma profesional para gestión de competiciones deportivas</p>
+                <p class="lead" style="color:#0a2342 !important;">Plataforma profesional para gestión de competiciones de fútbol</p>
             </div>
         </div>
     </div>
@@ -26,8 +26,13 @@
                     <div class="row">
                         {% for torneo in torneos %}
                         <div class="col-md-6 mb-3">
-                            <div class="card stats-card h-100">
+                            <div class="card stats-card h-100" style="{% if torneo.color1 and torneo.color2 and torneo.color3 %}border-right: 10px solid; border-image: linear-gradient(to bottom, {{ torneo.color1 }}, {{ torneo.color2 }}, {{ torneo.color3 }}) 1;{% else %}border-right: 10px solid; border-image: linear-gradient(to bottom, #0a2342, #39ff14, #00cfff) 1;{% endif %}">
                                 <div class="card-body">
+                                    {% if torneo.logo %}
+                                    <div class="text-center mb-2">
+                                        <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}" class="img-fluid" style="max-height: 100px; width: auto;">
+                                    </div>
+                                    {% endif %}
                                     <h5 class="card-title">{{ torneo.nombre }}</h5>
                                     <p class="card-text">{{ torneo.descripcion|truncatewords:20 }}</p>
                                     <p class="text-muted">
@@ -53,6 +58,7 @@
     </div>
 
     <div class="col-md-4">
+        {% if user.is_staff %}
         <div class="card card-gradient mb-4">
             <div class="card-header">
                 <h3><i class="fa-solid fa-chart-simple"></i> Estadísticas</h3>
@@ -104,6 +110,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

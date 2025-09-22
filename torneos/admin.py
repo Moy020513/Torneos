@@ -12,9 +12,81 @@ class EliminatoriaAdmin(admin.ModelAdmin):
 
 @admin.register(Torneo)
 class TorneoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'activo')
+    list_display = ('nombre', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'activo', 'logo')
     list_filter = ('activo', 'formato_torneo')
     search_fields = ('nombre', 'descripcion')
+    actions = ['delete_images', 'cleanup_orphaned_images']
+
+    def delete_images(self, request, queryset):
+        from django.contrib import messages
+        import os
+        from .models import Equipo, Jugador
+        total_deleted = 0
+        for torneo in queryset:
+            # Eliminar logo del torneo
+            if torneo.logo and os.path.exists(torneo.logo.path):
+                os.remove(torneo.logo.path)
+                torneo.logo = None
+                torneo.color1 = None
+                torneo.color2 = None
+                torneo.color3 = None
+                torneo.save(update_fields=['logo', 'color1', 'color2', 'color3'])
+                total_deleted += 1
+
+            # Eliminar logos de equipos
+            equipos = Equipo.objects.filter(categoria__torneo=torneo)
+            for equipo in equipos:
+                if equipo.logo and os.path.exists(equipo.logo.path):
+                    os.remove(equipo.logo.path)
+                    equipo.logo = None
+                    equipo.save(update_fields=['logo'])
+                    total_deleted += 1
+
+            # Eliminar fotos de jugadores
+            jugadores = Jugador.objects.filter(equipo__categoria__torneo=torneo)
+            for jugador in jugadores:
+                if jugador.foto and os.path.exists(jugador.foto.path):
+                    os.remove(jugador.foto.path)
+                    jugador.foto = None
+                    jugador.save(update_fields=['foto'])
+                    total_deleted += 1
+
+        messages.success(request, f'Se eliminaron {total_deleted} imágenes de {queryset.count()} torneos.')
+    
+    delete_images.short_description = "Eliminar todas las imágenes de los torneos seleccionados"
+
+    def cleanup_orphaned_images(self, request, queryset):
+        from django.contrib import messages
+        import os
+        from django.conf import settings
+        from .models import Torneo, Equipo, Jugador
+        media_root = settings.MEDIA_ROOT
+        total_deleted = 0
+
+        # Obtener paths de imágenes en DB
+        torneo_paths = set(Torneo.objects.exclude(logo='').values_list('logo', flat=True))
+        equipo_paths = set(Equipo.objects.exclude(logo='').values_list('logo', flat=True))
+        jugador_paths = set(Jugador.objects.exclude(foto='').values_list('foto', flat=True))
+
+        all_db_paths = torneo_paths | equipo_paths | jugador_paths
+
+        # Directorios a escanear
+        dirs_to_check = ['torneos/logos', 'equipos/logos', 'jugadores/fotos']
+
+        for dir_path in dirs_to_check:
+            full_dir = os.path.join(media_root, dir_path)
+            if os.path.exists(full_dir):
+                for file in os.listdir(full_dir):
+                    file_path = os.path.join(dir_path, file)
+                    if file_path not in all_db_paths:
+                        full_file_path = os.path.join(media_root, file_path)
+                        if os.path.isfile(full_file_path):
+                            os.remove(full_file_path)
+                            total_deleted += 1
+
+        messages.success(request, f'Se eliminaron {total_deleted} imágenes huérfanas.')
+    
+    cleanup_orphaned_images.short_description = "Limpiar imágenes huérfanas no asociadas"
 
 @admin.register(Categoria)
 
