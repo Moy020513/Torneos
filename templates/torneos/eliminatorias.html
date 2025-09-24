@@ -1,9 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'torneos/base.html' %}
 {% load static %}
 
 {% block title %}Eliminatorias - {{ categoria.nombre }}{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <style>
     .bracket-container {
         display: flex;
@@ -71,30 +72,7 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card gradient-bg text-white">
-            <div class="card-body text-center">
-                {% if categoria.torneo.logo %}
-                <div class="d-flex justify-content-center mb-2">
-                    <a class="header-logo has-image" href="{% url 'torneo_detalle' categoria.torneo.id %}">
-                        <img src="{{ categoria.torneo.logo.url }}" alt="{{ categoria.torneo.nombre }}">
-                    </a>
-                </div>
-                {% endif %}
-                <h1 class="display-5 text-navy"><i class="fa-solid fa-bracket"></i> Eliminatorias</h1>
-                <p class="lead text-navy">{{ categoria.nombre }} - Fase de Eliminación Directa</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
-            <i class="fa-solid fa-arrow-left"></i> Volver a la Categoría
-        </a>
-    
-<br>
+{% block categoria_content %}
 <div class="row">
     <div class="col-12">
         <div class="card card-gradient mb-4">

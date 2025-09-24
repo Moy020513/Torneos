@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if categoria %}{{ categoria.nombre }} - {% endif %}Sistema de Torneos{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Barra superior y navegación elegante con acento neón */
+  .torneos-header.card.gradient-bg{
+    border-radius: 16px;
+  }
+  .torneos-header .header-logo{
+    width:72px; height:72px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; box-shadow:none; margin:0 auto; border:none;
+  }
+  .torneos-header .header-logo img{ max-width:100%; max-height:100%; object-fit:contain; border:none; box-shadow:none; }
+
+  .torneos-nav{
+    background:#fff; border:1px solid rgba(8,247,254,.35); border-radius:12px; padding:8px; box-shadow:0 8px 20px rgba(0,0,0,.06); width:100%;
+  }
+  .torneos-nav .nav-link{
+    border-radius:10px; font-weight:700; color:#0a2342; border:1px solid transparent;
+  }
+  .torneos-nav .nav-link:hover{
+    background:rgba(8,247,254,.10); border-color:rgba(8,247,254,.35);
+  }
+  .torneos-nav .nav-link.active{
+    background:#0a2342; color:#eaf7ff; border-color:#0a2342; box-shadow:0 0 0 3px rgba(8,247,254,.18);
+  }
+  .torneos-nav .nav-link i{ color:#08F7FE; }
+
+  .torneos-actions{ gap:8px; }
+  .btn-navy{ background:#0a2342; border:1px solid #0a2342; color:#fff; }
+  .btn-navy:hover{ background:#0c2850; border-color:#0c2850; }
+</style>
+{% endblock %}
+
+{% block content %}
+  {% with url_name=request.resolver_match.url_name %}
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card gradient-bg text-white torneos-header">
+        <div class="card-body text-center">
+          {% if categoria and categoria.torneo.logo %}
+          <div class="d-flex justify-content-center mb-2">
+            <a class="header-logo has-image" href="{% url 'torneo_detalle' categoria.torneo.id %}">
+              <img src="{{ categoria.torneo.logo.url }}" alt="{{ categoria.torneo.nombre }}">
+            </a>
+          </div>
+          {% endif %}
+          {% if categoria %}
+            <h1 class="display-6 text-navy m-0">{{ categoria.nombre }}</h1>
+            <p class="lead text-navy">Panel de la categoría</p>
+            <div class="mt-2">
+              <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="btn btn-navy">
+                <i class="fa-solid fa-arrow-left"></i> Volver al Torneo
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if categoria %}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-center align-items-center flex-wrap" style="gap:12px;">
+        <ul class="nav nav-pills torneos-nav w-100 justify-content-center flex-wrap mx-auto">
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'categoria_detalle' %}active{% endif %}" href="{% url 'categoria_detalle' categoria.id %}"><i class="fa-solid fa-calendar-day"></i> Próximos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'resultados' %}active{% endif %}" href="{% url 'resultados' categoria.id %}"><i class="fa-solid fa-list-check"></i> Resultados</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'tabla_posiciones' %}active{% endif %}" href="{% url 'tabla_posiciones' categoria.id %}"><i class="fa-solid fa-table-list"></i> Clasificación</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'equipos' %}active{% endif %}" href="{% url 'equipos' categoria.id %}"><i class="fa-solid fa-people-group"></i> Equipos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'goleadores' %}active{% endif %}" href="{% url 'goleadores' categoria.id %}"><i class="fa-solid fa-bullseye"></i> Goleadores</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'jugadores' %}active{% endif %}" href="{% url 'jugadores' categoria.id %}"><i class="fa-solid fa-users"></i> Jugadores</a>
+          </li>
+          {% if categoria.tiene_eliminatorias %}
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'eliminatorias' %}active{% endif %}" href="{% url 'eliminatorias' categoria.id %}"><i class="fa-solid fa-bracket"></i> Eliminatorias</a>
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link {% if url_name == 'estadisticas' %}active{% endif %}" href="{% url 'estadisticas' categoria.id %}"><i class="fa-solid fa-chart-simple"></i> Estadísticas</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% block categoria_content %}{% endblock %}
+  {% endwith %}
+{% endblock %}

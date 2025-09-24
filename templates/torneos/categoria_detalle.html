@@ -1,9 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'torneos/base.html' %}
 {% load static %}
 
 {% block title %}{{ categoria.nombre }} - Sistema de Torneos{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <style>
     /* Card seccional con el mismo estilo que torneo_detalle */
     .section-card{ border:1px solid rgba(8,247,254,.35); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.08); }
@@ -45,7 +46,6 @@
         justify-content: center;
         width: 40px;
         height: 40px;
-        border-radius: 50%;
         border: 2px solid #08F7FE;
         color: #0a2342;
         background: #fff;
@@ -147,142 +147,90 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card gradient-bg text-white">
-            <div class="card-body text-center">
-                {% if categoria.torneo.logo %}
-                <div class="d-flex justify-content-center mb-2">
-                    <a class="header-logo has-image" href="{% url 'torneo_detalle' categoria.torneo.id %}">
-                        <img src="{{ categoria.torneo.logo.url }}" alt="{{ categoria.torneo.nombre }}">
-                    </a>
-                </div>
-                {% endif %}
-                <h1 class="display-5 text-navy">{{ categoria.nombre }}</h1>
-                <p class="lead text-navy">Panel de la categoría</p>
+{% block categoria_content %}
+    {% if proximos_partidos %}
+        <div class="card section-card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="m-0 text-navy"><i class="fa-solid fa-calendar-day"></i> Próximos Enfrentamientos</h3>
+                <select id="jornadaFiltro" class="form-select" style="max-width: 220px;">
+                    <option value="todos">Todas las jornadas</option>
+                    {% for j in jornadas %}
+                        <option value="{{ j }}">Jornada {{ j }}</option>
+                    {% endfor %}
+                </select>
             </div>
-        </div>
-        <div class="card gradient-bg text-white mt-3">
-            <div class="card-body">
-                <nav class="mb-4">
-                    <ul class="nav nav-pills justify-content-center">
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'tabla_posiciones' categoria.id %}">Tabla de Posiciones</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'resultados' categoria.id %}"><i class="fa-solid fa-list-check"></i> Resultados</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'equipos' categoria.id %}"><i class="fa-solid fa-people-group"></i> Equipos</a>
-                            </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'goleadores' categoria.id %}">Goleadores</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'jugadores' categoria.id %}"><i class="fa-solid fa-users"></i> Jugadores</a>
-                        </li>
-                        {% if categoria.tiene_eliminatorias %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'eliminatorias' categoria.id %}">Eliminatorias</a>
-                        </li>
-                        {% endif %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'estadisticas' categoria.id %}"><i class="fa-solid fa-chart-simple"></i> Estadísticas</a>
-                        </li>
-                        
-                        
-                    </ul>
-                    <div class="d-flex justify-content-end">
-                        <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="btn btn-secondary">
-                            <i class="fa-solid fa-arrow-left"></i> Volver al Torneo
-                        </a>
-                    </div>
-                </nav>
-                <!-- Sección de Próximos Enfrentamientos -->
-                {% if proximos_partidos %}
-                    <div class="card section-card mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3 class="m-0 text-navy"><i class="fa-solid fa-calendar-day"></i> Próximos Enfrentamientos</h3>
-                            <select id="jornadaFiltro" class="form-select" style="max-width: 220px;">
-                                <option value="todos">Todas las jornadas</option>
-                                {% for j in jornadas %}
-                                    <option value="{{ j }}">Jornada {{ j }}</option>
-                                {% endfor %}
-                            </select>
+            <div class="card-body" id="proximos-partidos-lista">
+                {% for partido in proximos_partidos %}
+                <div class="match-card proximo" data-jornada="{{ partido.jornada }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-1 d-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
+                            <span class="match-status status-proximo mb-2">J{{ partido.jornada }}</span>
                         </div>
-                        <div class="card-body" id="proximos-partidos-lista">
-                            {% for partido in proximos_partidos %}
-                            <div class="match-card proximo" data-jornada="{{ partido.jornada }}">
-                                <div class="row align-items-center">
-                                    <div class="col-md-1 d-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
-                                        <span class="match-status status-proximo mb-2">J{{ partido.jornada }}</span>
+                        <div class="col-md-7">
+                            <div class="team-rows">
+                                <div class="team-row">
+                                    <div class="team-info">
+                                        {% if partido.equipo_local.logo %}
+                                        <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
+                                        {% endif %}
+                                        <div class="team-name m-0">{{ partido.equipo_local.nombre }}</div>
                                     </div>
-                                    <div class="col-md-7">
-                                        <div class="team-rows">
-                                            <div class="team-row">
-                                                <div class="team-info">
-                                                    {% if partido.equipo_local.logo %}
-                                                    <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
-                                                    {% endif %}
-                                                    <div class="team-name m-0">{{ partido.equipo_local.nombre }}</div>
-                                                </div>
-                                            </div>
-                                            <div class="team-row">
-                                                <div class="team-info">
-                                                    {% if partido.equipo_visitante.logo %}
-                                                    <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small">
-                                                    {% endif %}
-                                                    <div class="team-name m-0">{{ partido.equipo_visitante.nombre }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 text-end">
-                                        <div class="mb-2">
-                                            <span class="match-date-chip">
-                                                <i class="fa-solid fa-calendar-day"></i>
-                                                {% if partido.fecha %}{{ partido.fecha|date:"d M Y" }}{% else %}Fecha por definir{% endif %}
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <span class="match-time-chip">
-                                                <i class="fa-solid fa-clock"></i>
-                                                {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Hora por definir{% endif %}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="match-loc">
-                                                <i class="fa-solid fa-location-dot"></i>
-                                                {% if partido.campo %}{{ partido.campo }}{% else %}Por definir{% endif %}
-                                            </span>
-                                        </div>
+                                </div>
+                                <div class="team-row">
+                                    <div class="team-info">
+                                        {% if partido.equipo_visitante.logo %}
+                                        <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small">
+                                        {% endif %}
+                                        <div class="team-name m-0">{{ partido.equipo_visitante.nombre }}</div>
                                     </div>
                                 </div>
                             </div>
-                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="mb-2">
+                                <span class="match-date-chip">
+                                    <i class="fa-solid fa-calendar-day"></i>
+                                    {% if partido.fecha %}{{ partido.fecha|date:"d M Y" }}{% else %}Por definir{% endif %}
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="match-time-chip">
+                                    <i class="fa-solid fa-clock"></i>
+                                    {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="match-loc">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    {% if partido.campo %}{{ partido.campo }}{% else %}Por definir{% endif %}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const jornadaFiltro = document.getElementById('jornadaFiltro');
-                        const partidos = document.querySelectorAll('#proximos-partidos-lista .match-card');
-                        jornadaFiltro.addEventListener('change', function() {
-                            const val = jornadaFiltro.value;
-                            partidos.forEach(function(card) {
-                                if (val === 'todos' || card.getAttribute('data-jornada') === val) {
-                                    card.style.display = '';
-                                } else {
-                                    card.style.display = 'none';
-                                }
-                            });
-                        });
-                    });
-                    </script>
-                {% else %}
-                    <div class="alert alert-info">
-                        <i class="fa-solid fa-info-circle"></i> 
-                        No hay próximos enfrentamientos programados.
-                    </div>
-                {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jornadaFiltro = document.getElementById('jornadaFiltro');
+            const partidos = document.querySelectorAll('#proximos-partidos-lista .match-card');
+            jornadaFiltro.addEventListener('change', function() {
+                const val = jornadaFiltro.value;
+                partidos.forEach(function(card) {
+                    if (val === 'todos' || card.getAttribute('data-jornada') === val) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        </script>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fa-solid fa-info-circle"></i> 
+            No hay próximos enfrentamientos programados.
+        </div>
+    {% endif %}
 {% endblock %}

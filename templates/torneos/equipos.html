@@ -1,30 +1,13 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mt-4">
+{% extends 'torneos/base.html' %}
+{% block categoria_content %}
     <div class="row mb-3">
         <div class="col-12">
-            <div class="card gradient-bg text-white">
-                <div class="card-body text-center">
-                    {% if categoria.torneo.logo %}
-                    <div class="d-flex justify-content-center mb-2">
-                        <a class="header-logo has-image" href="{% url 'torneo_detalle' categoria.torneo.id %}">
-                            <img src="{{ categoria.torneo.logo.url }}" alt="{{ categoria.torneo.nombre }}">
-                        </a>
-                    </div>
-                    {% endif %}
-                    <h1 class="display-5 text-navy">Equipos</h1>
-                    <p class="lead text-navy">{{ categoria.nombre }}</p>
-                </div>
-            </div>
             <div class="d-flex align-items-center justify-content-between mt-2">
                 <div class="text-light">
                     <strong>Total de equipos:</strong> <span id="total-equipos">{{ equipos|length }}</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <input type="text" id="buscador-equipos" class="form-control" placeholder="Buscar equipo..." style="max-width: 220px;">
-                    <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
-                        <i class="fa-solid fa-arrow-left"></i> Volver
-                    </a>
                 </div>
             </div>
         </div>
@@ -74,5 +57,4 @@
         });
     });
     </script>
-</div>
 {% endblock %}
