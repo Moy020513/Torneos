@@ -365,6 +365,25 @@ class PartidoAdmin(admin.ModelAdmin):
 
     actions = ['generar_calendario_desde_partido', 'eliminar_calendario']
 
+    def save_model(self, request, obj, form, change):
+        # Marcar automáticamente como jugado si se cargan goles (no cubre 0-0)
+        try:
+            goles_local = form.cleaned_data.get('goles_local', obj.goles_local)
+            goles_visitante = form.cleaned_data.get('goles_visitante', obj.goles_visitante)
+        except Exception:
+            goles_local = obj.goles_local
+            goles_visitante = obj.goles_visitante
+        if (goles_local or 0) > 0 or (goles_visitante or 0) > 0:
+            obj.jugado = True
+        super().save_model(request, obj, form, change)
+
+    @admin.action(description="Marcar seleccionados como jugados")
+    def marcar_como_jugados(self, request, queryset):
+        updated = queryset.update(jugado=True)
+        from django.contrib import messages
+        messages.success(request, f"{updated} partido(s) marcados como jugados.")
+    actions += ['marcar_como_jugados']
+
     def eliminar_calendario(self, request, queryset):
         from django.contrib import messages
         from .models import Partido
@@ -433,6 +452,25 @@ class PartidoEliminatoriaAdmin(admin.ModelAdmin):
     list_display = ('equipo_local', 'equipo_visitante', 'eliminatoria', 'goles_local', 'goles_visitante', 'jugado')
     list_filter = ('eliminatoria', 'jugado')
     search_fields = ('equipo_local__nombre', 'equipo_visitante__nombre')
+
+    def save_model(self, request, obj, form, change):
+        # Marcar automáticamente como jugado si se cargan goles (no cubre 0-0)
+        try:
+            goles_local = form.cleaned_data.get('goles_local', obj.goles_local)
+            goles_visitante = form.cleaned_data.get('goles_visitante', obj.goles_visitante)
+        except Exception:
+            goles_local = obj.goles_local
+            goles_visitante = obj.goles_visitante
+        if (goles_local or 0) > 0 or (goles_visitante or 0) > 0:
+            obj.jugado = True
+        super().save_model(request, obj, form, change)
+
+    @admin.action(description="Marcar seleccionados como jugados")
+    def marcar_como_jugados(self, request, queryset):
+        updated = queryset.update(jugado=True)
+        from django.contrib import messages
+        messages.success(request, f"{updated} partido(s) de eliminatoria marcados como jugados.")
+    actions = ['marcar_como_jugados']
 
 @admin.register(Goleador)
 class GoleadorAdmin(admin.ModelAdmin):

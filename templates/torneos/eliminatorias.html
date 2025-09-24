@@ -121,9 +121,7 @@
                                         <span class="{% if partido.jugado and partido.goles_local > partido.goles_visitante %}fw-bold text-success{% endif %}">
                                             {{ partido.equipo_local.nombre }}
                                         </span>
-                                        {% if partido.jugado %}
-                                        <span class="team-score ms-2">{{ partido.goles_local }}</span>
-                                        {% endif %}
+                                        <span class="team-score ms-2">{% if partido.jugado %}{{ partido.goles_local }}{% else %}&mdash;{% endif %}</span>
                                     </div>
                                     
                                     <div class="team-vs">VS</div>
@@ -135,9 +133,7 @@
                                         <span class="{% if partido.jugado and partido.goles_visitante > partido.goles_local %}fw-bold text-success{% endif %}">
                                             {{ partido.equipo_visitante.nombre }}
                                         </span>
-                                        {% if partido.jugado %}
-                                        <span class="team-score ms-2">{{ partido.goles_visitante }}</span>
-                                        {% endif %}
+                                        <span class="team-score ms-2">{% if partido.jugado %}{{ partido.goles_visitante }}{% else %}&mdash;{% endif %}</span>
                                     </div>
                                 </div>
                             </div>

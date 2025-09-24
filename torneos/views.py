@@ -16,7 +16,10 @@ def resultados_view(request, categoria_id):
         Q(grupo=None, equipo_local__categoria=categoria) |
         Q(grupo=None, equipo_visitante__categoria=categoria)
     )
-    ultimos_resultados = partidos.filter(jugado=True).order_by('-fecha')[:50]
+    # Incluir partidos con goles aunque jugado no esté marcado aún
+    ultimos_resultados = partidos.filter(
+        Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
+    ).order_by('-fecha')[:50]
     jornadas = sorted(set(p.jornada for p in ultimos_resultados))
     context = {
         'categoria': categoria,
@@ -119,8 +122,8 @@ def categoria_detalle(request, categoria_id):
         Q(grupo=None, equipo_local__categoria=categoria) |
         Q(grupo=None, equipo_visitante__categoria=categoria)
     )
-    # Próximos enfrentamientos (no jugados)
-    proximos_partidos = list(partidos.filter(jugado=False))
+    # Próximos enfrentamientos (no jugados y sin goles cargados)
+    proximos_partidos = list(partidos.filter(jugado=False, goles_local=0, goles_visitante=0))
     # Ordenar: primero por fecha si existe, si no por jornada
     proximos_partidos.sort(key=lambda p: (p.fecha if p.fecha else datetime(9999, 12, 31), p.jornada))
     # Últimos resultados (jugados, ordenados por fecha más reciente)
@@ -347,31 +350,36 @@ def generar_calendario(request, categoria_id):
 def tabla_posiciones_view(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = Equipo.objects.filter(categoria=categoria)
+    # Partidos válidos para la tabla: jugados o con goles cargados (>0)
+    partidos_validos = Partido.objects.filter(
+        Q(equipo_local__categoria=categoria) | Q(equipo_visitante__categoria=categoria)
+    ).filter(
+        Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
+    )
     for equipo in equipos:
-        partidos_jugados_eq = Partido.objects.filter(
-            Q(equipo_local=equipo) | Q(equipo_visitante=equipo),
-            jugado=True
+        partidos_jugados_eq = partidos_validos.filter(
+            Q(equipo_local=equipo) | Q(equipo_visitante=equipo)
         ).count()
-        partidos_ganados = Partido.objects.filter(
-            Q(equipo_local=equipo, goles_local__gt=F('goles_visitante'), jugado=True) |
-            Q(equipo_visitante=equipo, goles_visitante__gt=F('goles_local'), jugado=True)
+        partidos_ganados = partidos_validos.filter(
+            Q(equipo_local=equipo, goles_local__gt=F('goles_visitante')) |
+            Q(equipo_visitante=equipo, goles_visitante__gt=F('goles_local'))
         ).count()
-        partidos_empatados = Partido.objects.filter(
-            Q(equipo_local=equipo, goles_local=F('goles_visitante'), jugado=True) |
-            Q(equipo_visitante=equipo, goles_visitante=F('goles_local'), jugado=True)
+        partidos_empatados = partidos_validos.filter(
+            Q(equipo_local=equipo, goles_local=F('goles_visitante')) |
+            Q(equipo_visitante=equipo, goles_visitante=F('goles_local'))
         ).count()
         partidos_perdidos = partidos_jugados_eq - partidos_ganados - partidos_empatados
-        goles_favor = Partido.objects.filter(
-            Q(equipo_local=equipo, jugado=True)
+        goles_favor = partidos_validos.filter(
+            Q(equipo_local=equipo)
         ).aggregate(total=Sum('goles_local'))['total'] or 0
-        goles_favor += Partido.objects.filter(
-            Q(equipo_visitante=equipo, jugado=True)
+        goles_favor += partidos_validos.filter(
+            Q(equipo_visitante=equipo)
         ).aggregate(total=Sum('goles_visitante'))['total'] or 0
-        goles_contra = Partido.objects.filter(
-            Q(equipo_local=equipo, jugado=True)
+        goles_contra = partidos_validos.filter(
+            Q(equipo_local=equipo)
         ).aggregate(total=Sum('goles_visitante'))['total'] or 0
-        goles_contra += Partido.objects.filter(
-            Q(equipo_visitante=equipo, jugado=True)
+        goles_contra += partidos_validos.filter(
+            Q(equipo_visitante=equipo)
         ).aggregate(total=Sum('goles_local'))['total'] or 0
         diferencia_goles = goles_favor - goles_contra
         puntos = (partidos_ganados * 3) + partidos_empatados
