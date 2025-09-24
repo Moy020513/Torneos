@@ -5,64 +5,127 @@
 
 {% block extra_css %}
 <style>
+    /* Card seccional con el mismo estilo que torneo_detalle */
+    .section-card{ border:1px solid rgba(8,247,254,.35); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.08); }
+    .section-card .card-header{ background: linear-gradient(135deg, #f8fbff, #eaf2ff); border-bottom:1px solid rgba(8,247,254,.2); }
+    /* Fixture cards con estilo profesional y acento neón */
     .match-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 4px solid #0d6efd;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 14px;
+        border: 2px solid #08F7FE;
+        box-shadow: 0 0 0 4px rgba(8,247,254,.14), 0 10px 20px rgba(0,0,0,.10);
+        transition: transform .2s ease, box-shadow .2s ease;
     }
     .match-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        box-shadow: 0 0 0 6px rgba(8,247,254,.22), 0 16px 28px rgba(0,0,0,.14);
     }
     .match-card.jugado {
-        border-left: 4px solid #198754;
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border-color: rgba(8,247,254,.55);
+        background: linear-gradient(135deg, #f7fffb 0%, #e9fff6 100%);
     }
     .match-card.proximo {
-        border-left: 4px solid #ffc107;
-        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border-color: #08F7FE;
+        background: #ffffff;
     }
     .team-score {
-        font-size: 1.3em;
-        font-weight: bold;
-        color: #198754;
+        font-size: 1.2em;
+        font-weight: 800;
+        color: #0a2342;
     }
     .vs-text {
-        font-size: 0.9em;
-        color: #6c757d;
-        text-align: center;
-        margin: 5px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid #08F7FE;
+        color: #0a2342;
+        background: #fff;
+        font-weight: 900;
+        letter-spacing: .5px;
+        box-shadow: 0 0 0 4px rgba(8,247,254,.12);
+        margin: 0 auto 6px auto;
     }
     .match-date {
-        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-        color: white;
-        border-radius: 20px;
-        padding: 5px 12px;
+        background: #0a2342;
+        color: #eaf7ff;
+        border: 1px solid rgba(8,247,254,.45);
+        border-radius: 999px;
+        padding: 6px 12px;
         font-size: 0.8em;
-        font-weight: bold;
+        font-weight: 700;
+        box-shadow: 0 0 0 2px rgba(8,247,254,.12);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
     .match-status {
-        font-size: 0.8em;
-        font-weight: bold;
-        padding: 3px 10px;
-        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: 800;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(8,247,254,.45);
+        background: rgba(8,247,254,.08);
+        color: #0a2342;
+        white-space: nowrap;
     }
     .status-jugado {
-        background: #198754;
-        color: white;
+        background: rgba(25, 135, 84, .12);
+        border-color: rgba(25, 135, 84, .35);
+        color: #146c43;
     }
     .status-proximo {
-        background: #ffc107;
-        color: black;
+        background: rgba(8,247,254,.10);
+        color: #0a2342;
     }
     .team-logo-small {
-        width: 35px;
-        height: 35px;
+        width: 44px;
+        height: 44px;
         object-fit: contain;
+    }
+    .team-name{
+        font-weight: 800;
+        color:#0a2342;
+        margin-top: 2px;
+    }
+    .match-loc{
+        background: rgba(8,247,254,.08);
+        color: #0a2342;
+        border: 1px solid rgba(8,247,254,.35);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: .8em;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .match-loc i{ color:#0a2342; }
+    @media (max-width: 576px){
+        .team-logo-small{ width: 36px; height: 36px; }
+        .match-card{ padding: 12px; }
+        .vs-text{ width: 34px; height: 34px; }
+    }
+    /* Separadores sutiles en desktop para el bloque central */
+    @media (min-width: 768px){
+        .match-card .col-md-7{
+            position: relative;
+        }
+        .match-card .col-md-7:before,
+        .match-card .col-md-7:after{
+            content: "";
+            position: absolute;
+            top: 12px;
+            bottom: 12px;
+            width: 1px;
+            background: rgba(8,247,254,.25);
+        }
+        .match-card .col-md-7:before{ left: -8px; }
+        .match-card .col-md-7:after{ right: -8px; }
     }
 </style>
 {% endblock %}
@@ -91,6 +154,9 @@
                                 <a class="nav-link" href="{% url 'tabla_posiciones' categoria.id %}">Tabla de Posiciones</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" href="{% url 'resultados' categoria.id %}"><i class="fa-solid fa-list-check"></i> Resultados</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="{% url 'equipos' categoria.id %}"><i class="fa-solid fa-people-group"></i> Equipos</a>
                             </li>
                         <li class="nav-item">
@@ -107,11 +173,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'estadisticas' categoria.id %}"><i class="fa-solid fa-chart-simple"></i> Estadísticas</a>
                         </li>
-                        {% if request.user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'resultados' categoria.id %}"><i class="fa-solid fa-list-check"></i> Resultados</a>
-                        </li>
-                        {% endif %}
+                        
                         
                     </ul>
                     <div class="d-flex justify-content-end">
@@ -122,10 +184,10 @@
                 </nav>
                 <!-- Sección de Próximos Enfrentamientos -->
                 {% if proximos_partidos %}
-                    <div class="card card-gradient mb-4">
+                    <div class="card section-card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3><i class="fa-solid fa-calendar-day"></i> Próximos Enfrentamientos</h3>
-                            <select id="jornadaFiltro" class="form-select" style="max-width: 200px;">
+                            <h3 class="m-0 text-navy"><i class="fa-solid fa-calendar-day"></i> Próximos Enfrentamientos</h3>
+                            <select id="jornadaFiltro" class="form-select" style="max-width: 220px;">
                                 <option value="todos">Todas las jornadas</option>
                                 {% for j in jornadas %}
                                     <option value="{{ j }}">Jornada {{ j }}</option>
@@ -146,7 +208,7 @@
                                                     {% if partido.equipo_local.logo %}
                                                     <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small mb-1">
                                                     {% endif %}
-                                                    <div>{{ partido.equipo_local.nombre }}</div>
+                                                    <div class="team-name">{{ partido.equipo_local.nombre }}</div>
                                                 </div>
                                             </div>
                                             <div class="text-center mx-3">
@@ -161,16 +223,16 @@
                                                     {% if partido.equipo_visitante.logo %}
                                                     <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small mb-1">
                                                     {% endif %}
-                                                    <div>{{ partido.equipo_visitante.nombre }}</div>
+                                                    <div class="team-name">{{ partido.equipo_visitante.nombre }}</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4 text-center">
-                                        <small class="text-muted">
+                                        <span class="match-loc">
                                             <i class="fa-solid fa-location-dot"></i>
                                             {% if partido.campo %}{{ partido.campo }}{% else %}Por definir{% endif %}
-                                        </small>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

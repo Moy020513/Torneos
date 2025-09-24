@@ -1,4 +1,38 @@
 {% extends 'base.html' %}
+{% block extra_css %}
+<style>
+/* Card seccional y fixtures con acento neón */
+.section-card{ border:1px solid rgba(8,247,254,.35); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.08); }
+.section-card .card-header{ background: linear-gradient(135deg, #f8fbff, #eaf2ff); border-bottom:1px solid rgba(8,247,254,.2); }
+
+.match-card { background:#fff; border-radius:14px; padding:16px; margin-bottom:14px; border:2px solid #08F7FE; box-shadow:0 0 0 4px rgba(8,247,254,.14), 0 10px 20px rgba(0,0,0,.10); transition: transform .2s ease, box-shadow .2s ease; }
+.match-card:hover { transform: translateY(-2px); box-shadow:0 0 0 6px rgba(8,247,254,.22), 0 16px 28px rgba(0,0,0,.14); }
+.match-card.jugado { border-color: rgba(8,247,254,.55); background: linear-gradient(135deg, #f7fffb 0%, #e9fff6 100%); }
+
+.match-status { font-size: 0.75em; font-weight:800; padding:6px 10px; border-radius:999px; border:1px solid rgba(8,247,254,.45); background: rgba(8,247,254,.08); color:#0a2342; white-space:nowrap; }
+.status-jugado { background: rgba(25, 135, 84, .12); border-color: rgba(25, 135, 84, .35); color:#146c43; }
+
+.team-logo-small { width:44px; height:44px; object-fit:contain; }
+.team-name { font-weight:800; color:#0a2342; margin-top:2px; }
+
+.team-score { font-size:1.3em; font-weight:900; color:#0a2342; letter-spacing:.5px; }
+.match-date { background:#0a2342; color:#eaf7ff; border:1px solid rgba(8,247,254,.45); border-radius:999px; padding:6px 12px; font-size:.8em; font-weight:700; box-shadow:0 0 0 2px rgba(8,247,254,.12); display:inline-flex; align-items:center; gap:6px; margin-top:4px; }
+.match-loc { background: rgba(8,247,254,.08); color:#0a2342; border:1px solid rgba(8,247,254,.35); border-radius:999px; padding:6px 12px; font-size:.8em; font-weight:700; display:inline-flex; align-items:center; gap:6px; }
+.match-loc i{ color:#0a2342; }
+/* VS circular */
+.vs-text { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; border:2px solid #08F7FE; color:#0a2342; background:#fff; font-weight:900; letter-spacing:.5px; box-shadow:0 0 0 4px rgba(8,247,254,.12); margin:0 auto 6px auto; }
+
+/* Separadores sutiles en desktop para el bloque central */
+@media (min-width: 768px){
+    .match-card .col-md-7{ position: relative; }
+    .match-card .col-md-7:before,
+    .match-card .col-md-7:after{ content:""; position:absolute; top:12px; bottom:12px; width:1px; background: rgba(8,247,254,.25); }
+    .match-card .col-md-7:before{ left:-8px; }
+    .match-card .col-md-7:after{ right:-8px; }
+}
+@media (max-width: 576px){ .team-logo-small{ width:36px; height:36px; } .match-card{ padding:12px; } }
+</style>
+{% endblock %}
 {% block content %}
 <div class="container mt-4">
     <div class="row mb-3">
@@ -23,10 +57,10 @@
             </div>
         </div>
     </div>
-    <div class="card card-gradient mb-4">
+    <div class="card section-card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h3><i class="fa-solid fa-history"></i> Últimos Resultados</h3>
-            <select id="jornadaFiltroResultados" class="form-select" style="max-width: 200px;">
+            <h3 class="m-0 text-navy"><i class="fa-solid fa-history"></i> Últimos Resultados</h3>
+            <select id="jornadaFiltroResultados" class="form-select" style="max-width: 220px;">
                 <option value="todos">Todas las jornadas</option>
                 {% for j in jornadas %}
                     <option value="{{ j }}">Jornada {{ j }}</option>
@@ -48,32 +82,36 @@
                                         {% if partido.equipo_local.logo %}
                                         <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small mb-1">
                                         {% endif %}
-                                        <div class="{% if partido.goles_local > partido.goles_visitante %}fw-bold text-success{% endif %}">{{ partido.equipo_local.nombre }}</div>
+                                        <div class="team-name {% if partido.goles_local > partido.goles_visitante %}text-success{% endif %}">{{ partido.equipo_local.nombre }}</div>
                                     </div>
                                 </div>
                                 <div class="text-center mx-3">
-                                    <div class="team-score">
+                                    <div class="vs-text">VS</div>
+                                    {% if partido.fecha %}
+                                    <div class="match-date">
+                                        <i class="fa-solid fa-calendar-day"></i>
+                                        {{ partido.fecha|date:"d M H:i" }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="team-score mt-1">
                                         {{ partido.goles_local }} - {{ partido.goles_visitante }}
                                     </div>
-                                    <small class="text-muted">
-                                        {{ partido.fecha|date:"d M Y" }}
-                                    </small>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <div class="text-center">
                                         {% if partido.equipo_visitante.logo %}
                                         <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small mb-1">
                                         {% endif %}
-                                        <div class="{% if partido.goles_visitante > partido.goles_local %}fw-bold text-success{% endif %}">{{ partido.equipo_visitante.nombre }}</div>
+                                        <div class="team-name {% if partido.goles_visitante > partido.goles_local %}text-success{% endif %}">{{ partido.equipo_visitante.nombre }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4 text-center">
-                            <small class="text-muted">
+                            <span class="match-loc">
                                 <i class="fa-solid fa-location-dot"></i>
                                 {% if partido.campo %}{{ partido.campo }}{% else %}Sede neutral{% endif %}
-                            </small>
+                            </span>
                         </div>
                     </div>
                 </div>
