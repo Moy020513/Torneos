@@ -10,6 +10,11 @@ class EliminatoriaAdmin(admin.ModelAdmin):
     list_filter = ('categoria', 'nombre')
     search_fields = ('nombre',)
 
+# Branding del sitio de administración
+admin.site.site_header = "Panel de Torneos"
+admin.site.site_title = "Admin Torneos"
+admin.site.index_title = "Administración General"
+
 @admin.register(Torneo)
 class TorneoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'activo', 'logo')

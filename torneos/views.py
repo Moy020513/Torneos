@@ -28,7 +28,6 @@ def resultados_view(request, categoria_id):
 # Vista de estadísticas solo para administradores
 from django.contrib.auth.decorators import user_passes_test
 
-@user_passes_test(lambda u: u.is_superuser)
 def estadisticas_view(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = Equipo.objects.filter(categoria=categoria)

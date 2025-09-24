@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="app-index" style="display:grid; gap:16px; align-items:start;">
+  <div class="module" style="padding:16px;">
+    <h2 style="margin:0 0 8px 0;">{{ app_config.verbose_name }}</h2>
+    <p style="margin:0; color:var(--muted);">Modelos disponibles para esta aplicación.</p>
+  </div>
+  <div class="module" style="padding:14px;">
+    <ul class="model-list" style="list-style:none; margin:0; padding:0; display:grid; gap:8px;">
+      {% for model in app_list.models %}
+        <li style="display:flex; justify-content:space-between; gap:10px; align-items:center; background:var(--surface-2); border:1px solid rgba(8,247,254,.12); border-radius:8px; padding:8px 10px;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span style="width:8px; height:8px; border-radius:999px; background:var(--neon); box-shadow:0 0 8px rgba(8,247,254,.6)"></span>
+            <strong>{{ model.name }}</strong>
+          </div>
+          <div class="object-tools" style="display:flex; gap:6px;">
+            {% if model.add_url %}<a href="{{ model.add_url }}" class="button addlink">Añadir</a>{% endif %}
+            {% if model.admin_url %}<a href="{{ model.admin_url }}" class="button changelink">Ver</a>{% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

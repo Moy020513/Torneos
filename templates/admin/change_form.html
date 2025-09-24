@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="admin-page" style="display:grid; gap:16px;">
+  <div class="admin-header module" style="padding:14px; display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin:0;">{{ title }}</h2>
+    <div style="color:var(--muted); font-size:.9rem;">Formulario</div>
+  </div>
+  <div class="admin-card">
+    {{ block.super }}
+  </div>
+</div>
+{% endblock %}

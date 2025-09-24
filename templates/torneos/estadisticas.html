@@ -1,13 +1,27 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 style="color: #0dcaf0; text-shadow: 0 0 8px #0dcaf0, 0 0 2px #fff;" class="mb-0">
-            Estadísticas - {{ categoria.nombre }}
-        </h2>
-        <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
-            <i class="fa-solid fa-arrow-left"></i> Volver
-        </a>
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card gradient-bg text-white">
+                <div class="card-body text-center">
+                    {% if categoria.torneo.logo %}
+                    <div class="d-flex justify-content-center mb-2">
+                        <a class="header-logo has-image" href="{% url 'torneo_detalle' categoria.torneo.id %}">
+                            <img src="{{ categoria.torneo.logo.url }}" alt="{{ categoria.torneo.nombre }}">
+                        </a>
+                    </div>
+                    {% endif %}
+                    <h1 class="display-5 text-navy">Estadísticas</h1>
+                    <p class="lead text-navy">{{ categoria.nombre }}</p>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-2">
+                <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
     </div>
     <div class="card mb-4">
         <div class="card-header">
@@ -111,7 +125,7 @@
                 datasets: [{
                     label: 'Goles por Jornada',
                     data: chartData.golesPorJornada,
-                    backgroundColor: '#39ff14',
+                    backgroundColor: '#08F7FE',
                 }]
             },
             options: {

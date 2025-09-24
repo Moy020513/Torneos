@@ -26,7 +26,7 @@
                     <div class="row">
                         {% for torneo in torneos %}
                         <div class="col-md-6 mb-3">
-                            <div class="card stats-card h-100" style="{% if torneo.color1 and torneo.color2 and torneo.color3 %}border-right: 10px solid; border-image: linear-gradient(to bottom, {{ torneo.color1 }}, {{ torneo.color2 }}, {{ torneo.color3 }}) 1;{% else %}border-right: 10px solid; border-image: linear-gradient(to bottom, #0a2342, #39ff14, #00cfff) 1;{% endif %}">
+                            <div class="card stats-card h-100" style="{% if torneo.color1 and torneo.color2 and torneo.color3 %}border-right: 10px solid; border-image: linear-gradient(to bottom, {{ torneo.color1 }}, {{ torneo.color2 }}, {{ torneo.color3 }}) 1;{% else %}border-right: 10px solid; border-image: linear-gradient(to bottom, #0a2342, #08F7FE, #00cfff) 1;{% endif %}">
                                 <div class="card-body">
                                     {% if torneo.logo %}
                                     <div class="text-center mb-2">

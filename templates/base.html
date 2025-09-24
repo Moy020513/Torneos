@@ -80,7 +80,7 @@
             padding-bottom: 16px !important;
         }
         .gradient-bg {
-            background: linear-gradient(120deg, #0a2342 0 2.5%, #39ff14 2.5% 5%, #00cfff 5% 7.5%, #fff 7.5% 100%);
+            background: linear-gradient(120deg, #0a2342 0 2.5%, #08F7FE 2.5% 5%, #00cfff 5% 7.5%, #fff 7.5% 100%);
         }
         
         .card-gradient {
@@ -116,6 +116,12 @@
             object-fit: cover;
             border-radius: 50%;
         }
+        /* Utilidad: texto azul marino */
+        .text-navy { color: #0a2342 !important; }
+        /* Logo en encabezados */
+    .header-logo{ width:72px; height:72px; border-radius:12px; background:transparent; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:none; }
+        .header-logo img{ max-width:100%; max-height:100%; object-fit:contain; box-sizing:border-box; }
+    .header-logo.has-image img{ border:none; border-radius:10px; box-shadow:none; }
         
     </style>
     
@@ -137,7 +143,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'index' %}">Inicio</a>
+                        <a class="nav-link text-navy" href="{% url 'index' %}">Inicio</a>
                     </li>
                     
                     {% if user.is_authenticated %}
@@ -195,7 +201,7 @@
     </main>
     
     <!-- Footer -->
-    <footer class="gradient-bg py-4 mt-5" style="background: linear-gradient(120deg, #0a2342 0 2.5%, #39ff14 2.5% 5%, #00cfff 5% 7.5%, #ffffffff 7.5% 100%);">
+    <footer class="gradient-bg py-4 mt-5" style="background: linear-gradient(120deg, #0a2342 0 2.5%, #08F7FE 2.5% 5%, #00cfff 5% 7.5%, #ffffffff 7.5% 100%);">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">

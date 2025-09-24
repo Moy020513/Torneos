@@ -1,0 +1,86 @@
+/* Tema Admin Torneos - Azul marino y azul neón */
+:root{
+  --primary:#0b1d3a;
+  --primary-700:#0a1831;
+  --primary-600:#0d2245;
+  --neon:#08F7FE;
+  --neon-700:#06c3ca;
+  --bg:#0a0f1a;
+  --surface:#101826;
+  --surface-2:#0f1522;
+  --text:#e6eefc;
+  --muted:#a5b3cf;
+}
+
+/* (alto contraste eliminado) */
+
+/* Scrollbar sutil */
+*{ scrollbar-width:thin; scrollbar-color: var(--neon) transparent; }
+*::-webkit-scrollbar{ height:8px; width:8px; }
+*::-webkit-scrollbar-thumb{ background:linear-gradient(180deg,var(--neon),#7ef9ff); border-radius:10px; }
+
+
+/* Links y estados */
+a{ color:var(--neon); }
+a:hover{ color:#7ef9ff; }
+
+/* Paginación y filtros compactos */
+.paginator, .filters{ background:var(--surface); border:1px solid rgba(8,247,254,.15); border-radius:8px; padding:8px 12px; }
+.paginator a, .paginator .this-page{ color:var(--text); border:1px solid rgba(8,247,254,.25); padding:2px 8px; border-radius:6px; }
+/* Barra de búsqueda y acciones */
+.change-list .search-bar, .changelist-search{ background:var(--surface); border:1px solid rgba(8,247,254,.15); border-radius:8px; padding:8px 12px; margin-bottom:8px; }
+.change-list .actions select, .change-list .actions input[type=submit]{ margin-right:.4rem; }
+.admin-toolbar input[type=submit], .admin-toolbar .deletelink{ margin:0; }
+
+/* Acciones */
+.object-tools a{ border:1px solid var(--neon-700); border-radius:8px; }
+.object-tools a:hover{ background:var(--primary-600); }
+
+/* (variantes ghost/small removidas para simplificar) */
+
+/* Iconografía sutil en acciones comunes */
+.addlink:before{ content:"+"; margin-right:6px; color:var(--neon); text-shadow:0 0 6px rgba(8,247,254,.4); }
+.changelink:before{ content:"✎"; margin-right:6px; color:var(--neon); }
+.deletelink:before{ content:"🗑"; margin-right:6px; }
+.viewlink:before{ content:"👁"; margin-right:6px; }
+
+/* Result list */
+.change-list .actions{ background:var(--surface); border:1px solid rgba(8,247,254,.15); padding:8px; border-radius:8px; }
+.change-list .results{ border-radius:10px; overflow:hidden; }
+th, td{ padding:.45rem .6rem; }
+fieldset.module.aligned .form-row{ padding:.3rem 0; }
+.submit-row{ background:transparent; border-top:1px dashed rgba(8,247,254,.2); }
+.errornote, ul.errorlist{ background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.35); color:#fecaca; padding:8px 10px; border-radius:8px; }
+
+/* Column headers clicables */
+th a{ color:var(--text); }
+th.sorted a{ color:var(--neon); text-shadow:0 0 8px rgba(8,247,254,.2); }
+
+/* Footer */
+#footer{ background:transparent; color:var(--muted); border-top:1px solid rgba(8,247,254,.15); }
+
+/* Ocultar botón de modo oscuro de Django Admin (junto a Cerrar sesión) */
+#user-tools .theme-toggle,
+#user-tools .color-theme-toggle,
+#user-tools button[aria-label*="tema" i],
+#user-tools a[aria-label*="tema" i],
+#user-tools button[aria-label*="theme" i],
+#user-tools a[aria-label*="theme" i],
+#user-tools button[title*="tema" i],
+#user-tools a[title*="tema" i],
+#user-tools button[title*="theme" i],
+#user-tools a[title*="theme" i]{
+  display:none !important;
+}
+
+/* Header sticky en listados */
+.admin-header{ background:var(--surface); border:1px solid rgba(8,247,254,.15); border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.25); }
+.admin-card .module, .admin-card .results{ background:var(--surface); }
+.admin-page .module{ border:1px solid rgba(8,247,254,.15); border-radius:10px; }
+.admin-page .changelist-form .module{ padding:12px; }
+
+/* Filtros como tarjeta lateral si se usa sidebar */
+#changelist-filter{ background:var(--surface); border:1px solid rgba(8,247,254,.15); border-radius:10px; padding:10px; }
+#changelist-filter h2{ margin-top:0; color:var(--text); border-bottom:1px solid rgba(8,247,254,.15); padding-bottom:6px; }
+
+/* (toggle del alto contraste eliminado) */

@@ -3,56 +3,129 @@
 
 {% block title %}{{ torneo.nombre }} - Sistema de Torneos{% endblock %}
 
+{% block extra_css %}
+<style>
+        .hero-torneo{
+            background: #0a2342; /* azul marino */
+            color:#fff; border-radius:16px; padding:24px; 
+                border:2px solid #08F7FE; /* contorneo azul neón */
+            box-shadow:0 0 0 4px rgba(8,247,254,.15), 0 10px 24px rgba(0,0,0,.15);
+            position:relative; overflow:hidden;
+        }
+        .hero-torneo:after{ content:""; position:absolute; inset:auto -40px -40px auto; width:220px; height:220px; border-radius:50%; background: radial-gradient(circle at center, rgba(8,247,254,.35), rgba(8,247,254,0) 60%); filter:blur(2px); }
+    .hero-logo{ width:96px; height:96px; border-radius:14px; background:transparent; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:none; }
+    .hero-logo img{ max-width:100%; max-height:100%; object-fit:contain; box-sizing:border-box; }
+    .hero-logo.has-image img{ border:none; box-shadow:none; }
+    .hero-title{ margin:0; font-weight:800; letter-spacing:.2px; }
+    .hero-desc{ margin:4px 0 10px 0; opacity:.95; }
+    .meta-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+    .meta-chip{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.1); border:1px solid rgba(8,247,254,.35); color:#eaf7ff; font-weight:600; }
+            .meta-chip i{ color:#08F7FE; }
+        .section-card{ border:1px solid rgba(8,247,254,.35); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.08); }
+    .section-card .card-header{ background: linear-gradient(135deg, #f8fbff, #eaf2ff); border-bottom:1px solid rgba(8,247,254,.2); }
+    /* Cards de categoría con borde neón azul */
+    .category-card{
+        border:2px solid #08F7FE;
+        border-radius:12px;
+        box-shadow:0 0 0 4px rgba(8,247,254,.15), 0 10px 20px rgba(0,0,0,.10);
+        transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        background:#fff;
+    }
+    .category-card:hover{
+        transform:translateY(-3px);
+        box-shadow:0 0 0 6px rgba(8,247,254,.22), 0 16px 28px rgba(0,0,0,.14);
+        border-color:#08F7FE;
+    }
+    .badge-info-soft{ background:rgba(13,110,253,.1); color:#0d6efd; border:1px solid rgba(13,110,253,.25); }
+    .badge-elim{ background:rgba(255,193,7,.12); color:#c88a00; border:1px solid rgba(255,193,7,.35); }
+    .btn-navy{ background:#0a2342; border:1px solid #0a2342; color:#fff; }
+    .btn-navy:hover{ background:#0d2245; border-color:#0d2245; }
+            .btn-neon{ background:#08F7FE; border:1px solid #06c3ca; color:#0a2342; }
+        .btn-neon:hover{ background:#7ef9ff; border-color:#08F7FE; color:#08243f; }
+    .subtle{ color:#0a2342; opacity:.9; }
+    .text-navy{ color:#0a2342 !important; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card gradient-bg text-white">
-            <div class="card-body">
-                <h1 class="display-5" style="color:#0a2342 !important;">{{ torneo.nombre }}</h1>
-                <p class="lead" style="color:#0a2342 !important;">{{ torneo.descripcion }}</p>
-                <p class="mb-0" style="color:#0a2342 !important;">
-                    <i class="fa-solid fa-calendar"></i> 
-                    {{ torneo.fecha_inicio }} - {{ torneo.fecha_fin }} | 
-                    <i class="fa-solid fa-diagram-project"></i> 
-                    Formato: {{ torneo.get_formato_torneo_display }}
-                </p>
+        <div class="hero-torneo">
+            <div class="d-flex align-items-center" style="gap:16px;">
+                <div class="hero-logo {% if torneo.logo %}has-image{% endif %}">
+                    {% if torneo.logo %}
+                        <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}">
+                    {% else %}
+                        <img src="{% static 'img/logo.png' %}" alt="Logo">
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <h1 class="display-6 hero-title">{{ torneo.nombre }}</h1>
+                    {% if torneo.descripcion %}
+                        <p class="hero-desc mb-2">{{ torneo.descripcion }}</p>
+                    {% endif %}
+                    <div class="meta-chips">
+                        <span class="meta-chip">
+                            <i class="fa-solid fa-calendar"></i>
+                            {{ torneo.fecha_inicio }} - {{ torneo.fecha_fin }}
+                        </span>
+                        <span class="meta-chip">
+                            <i class="fa-solid fa-diagram-project"></i>
+                            {{ torneo.get_formato_torneo_display }}
+                        </span>
+                        {% if torneo.activo is not None %}
+                        <span class="meta-chip">
+                            <i class="fa-solid fa-circle-{% if torneo.activo %}check text-success{% else %}xmark text-danger{% endif %}"></i>
+                            {% if torneo.activo %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                        {% endif %}
+                        <span class="meta-chip">
+                            <i class="fa-solid fa-layer-group"></i>
+                            {{ categorias|length }} categorías
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+  
 </div>
 
 <div class="row">
     <div class="col-md-12">
-        <div class="card card-gradient mb-4">
-            <div class="card-header">
-                <h3><i class="fa-solid fa-layer-group"></i> Categorías del Torneo</h3>
+        <div class="card section-card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h3 class="m-0 text-navy"><i class="fa-solid fa-layer-group"></i> Categorías del Torneo</h3>
+                <span class="badge badge-info-soft">Total: {{ categorias|length }}</span>
             </div>
             <div class="card-body">
                 {% if categorias %}
                     <div class="row">
                         {% for categoria in categorias %}
                         <div class="col-md-4 mb-3">
-                            <div class="card stats-card h-100">
+                            <div class="card category-card h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ categoria.nombre }}</h5>
-                                    <p class="card-text">{{ categoria.descripcion|truncatewords:15 }}</p>
-                                    <div class="d-flex justify-content-between">
-                                        <span class="badge bg-info">
-                                            {{ categoria.equipo_set.count }} Equipos
-                                        </span>
+                                    <div class="d-flex align-items-start justify-content-between">
+                                      <h5 class="card-title text-navy m-0"><i class="fa-solid fa-medal me-1"></i> {{ categoria.nombre }}</h5>
+                                      <div class="d-flex" style="gap:6px;">
+                                        <span class="badge badge-info-soft">{{ categoria.equipo_set.count }} equipos</span>
                                         {% if categoria.tiene_eliminatorias %}
-                                        <span class="badge bg-warning">Eliminatorias</span>
+                                          <span class="badge badge-elim">Eliminatorias</span>
                                         {% endif %}
+                                      </div>
                                     </div>
-                                    <div class="mt-3">
-                                        <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-primary btn-sm">
-                                            Ver Categoría
+                                    {% if categoria.descripcion %}
+                                      <p class="card-text mt-2 subtle">{{ categoria.descripcion|truncatewords:18 }}</p>
+                                    {% endif %}
+                                    <div class="mt-2 d-flex" style="gap:8px;">
+                                      <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-navy btn-sm">
+                                        Ver categoría
+                                      </a>
+                                      {% if categoria.tiene_eliminatorias %}
+                                        <a href="{% url 'eliminatorias' categoria.id %}" class="btn btn-neon btn-sm">
+                                          Eliminatorias
                                         </a>
-                                        {% if categoria.tiene_eliminatorias %}
-                                        <a href="{% url 'eliminatorias' categoria.id %}" class="btn btn-success btn-sm ms-1">
-                                            Eliminatorias
-                                        </a>
-                                        {% endif %}
+                                      {% endif %}
                                     </div>
                                 </div>
                             </div>

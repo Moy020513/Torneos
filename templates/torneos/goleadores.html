@@ -66,13 +66,20 @@
     <div class="col-12">
         <div class="card gradient-bg text-white">
             <div class="card-body text-center">
-            <h1 class="display-5" style="color: navy !important;"><i class="fa-solid fa-futbol"></i> Tabla de Goleadores</h1>
-            <p class="lead" style="color: navy !important;">Los mejores anotadores de la categoría {{ categoria.nombre }}</p>
+                {% if categoria.torneo.logo %}
+                <div class="d-flex justify-content-center mb-2">
+                    <a class="header-logo has-image" href="{% url 'torneo_detalle' categoria.torneo.id %}">
+                        <img src="{{ categoria.torneo.logo.url }}" alt="{{ categoria.torneo.nombre }}">
+                    </a>
+                </div>
+                {% endif %}
+                <h1 class="display-5 text-navy"><i class="fa-solid fa-futbol"></i> Tabla de Goleadores</h1>
+                <p class="lead text-navy">Los mejores anotadores de la categoría {{ categoria.nombre }}</p>
             </div>
         </div>
-        <div class="d-flex justify-content-end">
+        <div class="d-flex justify-content-end mt-2">
             <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-secondary">
-            <i class="fa-solid fa-arrow-left"></i> Volver a la Categoría
+                <i class="fa-solid fa-arrow-left"></i> Volver a la Categoría
             </a>
         </div>
     </div>

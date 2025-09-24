@@ -1,0 +1,24 @@
+{% load i18n admin_urls %}
+<div class="submit-row admin-toolbar" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; align-items:center;">
+  {% if show_delete_link %}
+    <p class="deletelink-box" style="margin:0;">
+      <a href="{{ delete_url }}" class="deletelink button">{% trans "Eliminar" %}</a>
+    </p>
+  {% endif %}
+
+  {% if show_save_as_new %}
+    <input type="submit" value="{% trans 'Guardar como nuevo' %}" name="_saveasnew" class="button">
+  {% endif %}
+
+  {% if show_save_and_add_another %}
+    <input type="submit" value="{% trans 'Guardar y agregar otro' %}" name="_addanother" class="button">
+  {% endif %}
+
+  {% if show_save_and_continue %}
+    <input type="submit" value="{% trans 'Guardar y continuar' %}" name="_continue" class="button">
+  {% endif %}
+
+  {% if show_save %}
+    <input type="submit" value="{% trans 'Guardar' %}" class="default button" name="_save">
+  {% endif %}
+</div>
