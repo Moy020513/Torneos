@@ -78,6 +78,8 @@ from .models import *
 from .forms import *
 import json
 from datetime import datetime
+from django.utils import timezone
+from django.conf import settings
 
 def is_admin(user):
     return user.is_superuser
@@ -125,7 +127,21 @@ def categoria_detalle(request, categoria_id):
     # Próximos enfrentamientos (no jugados y sin goles cargados)
     proximos_partidos = list(partidos.filter(jugado=False, goles_local=0, goles_visitante=0))
     # Ordenar: primero por fecha si existe, si no por jornada
-    proximos_partidos.sort(key=lambda p: (p.fecha if p.fecha else datetime(9999, 12, 31), p.jornada))
+    def _proximo_sort_key(p):
+        dt = p.fecha
+        if settings.USE_TZ:
+            if dt is None:
+                dt_use = timezone.make_aware(datetime(9999, 12, 31, 0, 0, 0))
+            else:
+                dt_use = dt if timezone.is_aware(dt) else timezone.make_aware(dt)
+        else:
+            if dt is None:
+                dt_use = datetime(9999, 12, 31, 0, 0, 0)
+            else:
+                dt_use = dt if timezone.is_naive(dt) else timezone.make_naive(dt)
+        return (dt_use, p.jornada or 9999)
+
+    proximos_partidos.sort(key=_proximo_sort_key)
     # Últimos resultados (jugados, ordenados por fecha más reciente)
     ultimos_resultados = partidos.filter(jugado=True).order_by('-fecha')[:10]
     # Estadísticas generales
