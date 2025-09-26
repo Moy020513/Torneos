@@ -12,14 +12,14 @@
             </div>
         </div>
     </div>
-    <div class="row" id="equipos-lista">
+    <div class="d-flex flex-wrap justify-content-center gap-3" id="equipos-lista">
         {% for equipo in equipos %}
-        <div class="col-md-4 mb-3 equipo-item">
-            <div class="card h-100">
+        <div class="equipo-item">
+            <div class="card" style="width: max-content; min-width: 200px; max-width: 300px;">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-2">
+                    <div class="d-flex flex-column align-items-center mb-2">
                         {% if equipo.logo %}
-                            <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width:40px; height:40px; object-fit:contain; margin-right:10px;">
+                            <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width:40px; height:40px; object-fit:contain; margin-bottom:10px;">
                         {% endif %}
                         <h5 class="card-title mb-0 nombre-equipo">{{ equipo.nombre }}</h5>
                     </div>

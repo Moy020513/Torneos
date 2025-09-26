@@ -6,11 +6,29 @@
 {% block extra_css %}
 <style>
   /* Barra superior y navegación elegante con acento neón */
-  .torneos-header.card.gradient-bg{
+  .torneos-header.card{
     border-radius: 16px;
+    border: 2px solid #ffffffff;
+    box-shadow: 0 0 12px 4px #08F7FE, 0 2px 24px rgba(8,247,254,0.18);
   }
+  
+  /* Layout con logo a la izquierda, texto centro, franjas derecha */
+  .torneos-header-layout {
+    background: linear-gradient(120deg, #0a2342 0 2.5%, #08F7FE 2.5% 5%, #00cfff 5% 7.5%, #fff 7.5% 100%);
+  }
+  
+  .torneos-header .card-body {
+    padding: 1rem; /* Mantener padding original */
+    min-height: 100px; /* Asegurar altura mínima */
+  }
+  
+  .torneos-header .header-left {
+    flex-shrink: 0;
+    width: 80px;
+  }
+  
   .torneos-header .header-logo{
-    width:72px; height:72px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; box-shadow:none; margin:0 auto; border:none;
+    width:80px; height:80px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; box-shadow:none; border:none;
   }
   .torneos-header .header-logo img{ max-width:100%; max-height:100%; object-fit:contain; border:none; box-shadow:none; }
 
@@ -38,24 +56,26 @@
   {% with url_name=request.resolver_match.url_name %}
   <div class="row mb-3">
     <div class="col-12">
-      <div class="card gradient-bg text-white torneos-header">
-        <div class="card-body text-center">
-          {% if categoria and categoria.torneo.logo %}
-          <div class="d-flex justify-content-center mb-2">
+      <div class="card torneos-header torneos-header-layout text-white">
+        <div class="card-body d-flex align-items-center justify-content-center position-relative">
+          <div class="header-left position-absolute" style="left: 1.25rem;">
+            {% if categoria and categoria.torneo.logo %}
             <a class="header-logo has-image" href="{% url 'torneo_detalle' categoria.torneo.id %}">
               <img src="{{ categoria.torneo.logo.url }}" alt="{{ categoria.torneo.nombre }}">
             </a>
+            {% endif %}
           </div>
-          {% endif %}
-          {% if categoria %}
-            <h1 class="display-6 text-navy m-0">{{ categoria.nombre }}</h1>
-            <p class="lead text-navy">Panel de la categoría</p>
+          
+          <div class="header-center text-center" style="margin-left: -40px;">
+            {% if categoria %}
+            <h2 class="h4 text-navy m-0">Categoría: {{ categoria.nombre }}</h2>
             <div class="mt-2">
-              <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="btn btn-navy">
-                <i class="fa-solid fa-arrow-left"></i> Volver al Torneo
+              <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="btn btn-navy btn-sm">
+              <i class="fa-solid fa-arrow-left"></i> Volver al Torneo
               </a>
             </div>
-          {% endif %}
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>

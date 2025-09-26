@@ -1,4 +1,5 @@
 {% extends 'torneos/base.html' %}
+{% load custom_filters %}
 {% block categoria_content %}
     <!-- Encabezado/nav heredados desde torneos/base.html -->
     <div class="row mb-3">
@@ -38,14 +39,19 @@
                     {% endif %}
                     <div class="flex-grow-1">
                         <strong>{{ jugador.nombre }} {{ jugador.apellido }}</strong><br>
-                        <span class="text-muted">#{{ jugador.numero_camiseta }} | {{ jugador.get_posicion_display }} |
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="text-muted">#{{ jugador.numero_camiseta }} | {{ jugador.get_posicion_display }} | {{ jugador.fecha_nacimiento|calcular_edad }} años |</span>
                             <b>
                                 {% if equipo.logo %}
-                                    <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:48px; margin-right:10px; vertical-align:middle; object-fit:contain; image-rendering:auto;">
+                                    <div style="display: inline-block; text-align: center;">
+                                        <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:32px; display:block; margin:0 auto 2px auto; object-fit:contain; image-rendering:auto;">
+                                        <span style="display:block; line-height:1; font-size:0.85em;">{{ equipo.nombre }}</span>
+                                    </div>
+                                {% else %}
+                                    {{ equipo.nombre }}
                                 {% endif %}
-                                {{ equipo.nombre }}
                             </b>
-                        </span>
+                        </div>
                     </div>
                 </li>
             {% endfor %}
