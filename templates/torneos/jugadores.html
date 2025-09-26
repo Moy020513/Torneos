@@ -35,7 +35,9 @@
             {% for jugador in equipo.jugador_set.all %}
                 <li class="list-group-item d-flex align-items-center jugador-item" data-equipo="{{ equipo.id }}" data-posicion="{{ jugador.get_posicion_display }}">
                     {% if jugador.foto %}
-                        <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }}" style="width:64px; height:64px; object-fit:contain; border-radius:50%; margin-right:18px; image-rendering:auto;">
+                        <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }}" 
+                             style="width:64px; height:64px; object-fit:contain; border-radius:50%; margin-right:18px; image-rendering:auto; cursor:pointer;" 
+                             onclick="expandirFoto('{{ jugador.foto.url }}', '{{ jugador.nombre }} {{ jugador.apellido }}')">
                     {% endif %}
                     <div class="flex-grow-1">
                         <strong>{{ jugador.nombre }} {{ jugador.apellido }}</strong><br>
@@ -43,9 +45,9 @@
                             <span class="text-muted">#{{ jugador.numero_camiseta }} | {{ jugador.get_posicion_display }} | {{ jugador.fecha_nacimiento|calcular_edad }} años |</span>
                             <b>
                                 {% if equipo.logo %}
-                                    <div style="display: inline-block; text-align: center;">
-                                        <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:32px; display:block; margin:0 auto 2px auto; object-fit:contain; image-rendering:auto;">
-                                        <span style="display:block; line-height:1; font-size:0.85em;">{{ equipo.nombre }}</span>
+                                    <div style="display: inline-block; text-align: center; width: fit-content;">
+                                        <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:42px; display:block; margin:0 auto 2px auto; object-fit:contain; image-rendering:auto;">
+                                        <span style="display:block; line-height:1; font-size:0.85em; white-space: nowrap;">{{ equipo.nombre }}</span>
                                     </div>
                                 {% else %}
                                     {{ equipo.nombre }}
@@ -57,10 +59,34 @@
             {% endfor %}
         {% endfor %}
     </ul>
+
+    <!-- Modal para expandir foto -->
+    <div class="modal fade" id="fotoModal" tabindex="-1" aria-labelledby="fotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="background: linear-gradient(135deg, #0a2342 0%, #1a365d 100%); border: 2px solid #08F7FE;">
+                <div class="modal-header border-bottom" style="border-color: #08F7FE !important;">
+                    <h5 class="modal-title text-white" id="fotoModalLabel">Foto del Jugador</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="fotoExpandida" src="" alt="" class="img-fluid rounded" style="max-height: 70vh; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    // Función para expandir foto
+    function expandirFoto(urlFoto, nombreJugador) {
+        document.getElementById('fotoExpandida').src = urlFoto;
+        document.getElementById('fotoExpandida').alt = nombreJugador;
+        document.getElementById('fotoModalLabel').textContent = nombreJugador;
+        var modal = new bootstrap.Modal(document.getElementById('fotoModal'));
+        modal.show();
+    }
+
     function filtrarJugadores() {
         var filtroEquipo = String(document.getElementById('equipoFiltro').value).trim();
         var filtroPosicion = String(document.getElementById('posicionFiltro').value).trim();
