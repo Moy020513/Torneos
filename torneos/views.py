@@ -39,13 +39,18 @@ def estadisticas_view(request, categoria_id):
         Q(grupo=None, equipo_local__categoria=categoria) |
         Q(grupo=None, equipo_visitante__categoria=categoria)
     )
-    proximos_partidos = partidos.filter(jugado=False).order_by('fecha')[:10]
-    ultimos_resultados = partidos.filter(jugado=True).order_by('-fecha')[:10]
+    # Partidos válidos como jugados: jugado=True o con goles cargados
+    partidos_jugados_query = partidos.filter(
+        Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
+    )
+    # Próximos partidos: no jugados y sin goles
+    proximos_partidos = partidos.filter(jugado=False, goles_local=0, goles_visitante=0).order_by('fecha')[:10]
+    ultimos_resultados = partidos_jugados_query.order_by('-fecha')[:10]
     total_partidos = partidos.count()
-    partidos_jugados = partidos.filter(jugado=True).count()
-    partidos_pendientes = partidos.filter(jugado=False).count()
-    total_goles_local = partidos.filter(jugado=True).aggregate(Sum('goles_local'))['goles_local__sum'] or 0
-    total_goles_visitante = partidos.filter(jugado=True).aggregate(Sum('goles_visitante'))['goles_visitante__sum'] or 0
+    partidos_jugados = partidos_jugados_query.count()
+    partidos_pendientes = partidos.filter(jugado=False, goles_local=0, goles_visitante=0).count()
+    total_goles_local = partidos_jugados_query.aggregate(Sum('goles_local'))['goles_local__sum'] or 0
+    total_goles_visitante = partidos_jugados_query.aggregate(Sum('goles_visitante'))['goles_visitante__sum'] or 0
     total_goles = total_goles_local + total_goles_visitante
     context = {
         'categoria': categoria,
@@ -142,42 +147,65 @@ def categoria_detalle(request, categoria_id):
         return (dt_use, p.jornada or 9999)
 
     proximos_partidos.sort(key=_proximo_sort_key)
-    # Últimos resultados (jugados, ordenados por fecha más reciente)
-    ultimos_resultados = partidos.filter(jugado=True).order_by('-fecha')[:10]
+    # Últimos resultados (partidos con goles cargados o marcados como jugados)
+    partidos_jugados_query = partidos.filter(
+        Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
+    )
+    ultimos_resultados = partidos_jugados_query.order_by('-fecha')[:10]
     # Estadísticas generales
     total_partidos = partidos.count()
-    partidos_jugados = partidos.filter(jugado=True).count()
-    partidos_pendientes = partidos.filter(jugado=False).count()
-    total_goles_local = partidos.filter(jugado=True).aggregate(Sum('goles_local'))['goles_local__sum'] or 0
-    total_goles_visitante = partidos.filter(jugado=True).aggregate(Sum('goles_visitante'))['goles_visitante__sum'] or 0
+    partidos_jugados = partidos_jugados_query.count()
+    partidos_pendientes = partidos.filter(jugado=False, goles_local=0, goles_visitante=0).count()
+    total_goles_local = partidos_jugados_query.aggregate(Sum('goles_local'))['goles_local__sum'] or 0
+    total_goles_visitante = partidos_jugados_query.aggregate(Sum('goles_visitante'))['goles_visitante__sum'] or 0
     total_goles = total_goles_local + total_goles_visitante
     # Obtener estadísticas de equipos
     for equipo in equipos:
+        # Usar la misma lógica: partidos con jugado=True o con goles > 0
         partidos_jugados_eq = Partido.objects.filter(
-            Q(equipo_local=equipo) | Q(equipo_visitante=equipo),
-            jugado=True
+            Q(equipo_local=equipo) | Q(equipo_visitante=equipo)
+        ).filter(
+            Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
         ).count()
+        
         partidos_ganados = Partido.objects.filter(
-            Q(equipo_local=equipo, goles_local__gt=F('goles_visitante'), jugado=True) |
-            Q(equipo_visitante=equipo, goles_visitante__gt=F('goles_local'), jugado=True)
+            Q(equipo_local=equipo, goles_local__gt=F('goles_visitante')) |
+            Q(equipo_visitante=equipo, goles_visitante__gt=F('goles_local'))
+        ).filter(
+            Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
         ).count()
+        
         partidos_empatados = Partido.objects.filter(
-            Q(equipo_local=equipo, goles_local=F('goles_visitante'), jugado=True) |
-            Q(equipo_visitante=equipo, goles_visitante=F('goles_local'), jugado=True)
+            Q(equipo_local=equipo, goles_local=F('goles_visitante')) |
+            Q(equipo_visitante=equipo, goles_visitante=F('goles_local'))
+        ).filter(
+            Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
         ).count()
+        
         partidos_perdidos = partidos_jugados_eq - partidos_ganados - partidos_empatados
+        
         goles_favor = Partido.objects.filter(
-            Q(equipo_local=equipo, jugado=True)
+            Q(equipo_local=equipo)
+        ).filter(
+            Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
         ).aggregate(total=Sum('goles_local'))['total'] or 0
         goles_favor += Partido.objects.filter(
-            Q(equipo_visitante=equipo, jugado=True)
+            Q(equipo_visitante=equipo)
+        ).filter(
+            Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
         ).aggregate(total=Sum('goles_visitante'))['total'] or 0
+        
         goles_contra = Partido.objects.filter(
-            Q(equipo_local=equipo, jugado=True)
+            Q(equipo_local=equipo)
+        ).filter(
+            Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
         ).aggregate(total=Sum('goles_visitante'))['total'] or 0
         goles_contra += Partido.objects.filter(
-            Q(equipo_visitante=equipo, jugado=True)
+            Q(equipo_visitante=equipo)
+        ).filter(
+            Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
         ).aggregate(total=Sum('goles_local'))['total'] or 0
+        
         diferencia_goles = goles_favor - goles_contra
         puntos = (partidos_ganados * 3) + partidos_empatados
         equipo.partidos_jugados = partidos_jugados_eq
