@@ -30,35 +30,38 @@
     <div class="mb-3">
         <p id="contadores" class="text-muted" style="color: white !important;">Total de jugadores: <span id="totalJugadores">0</span> | Jugadores mostrados: <span id="jugadoresMostrados">0</span></p>
     </div>
-    <ul class="list-group" id="jugadoresLista">
+    <div class="d-flex flex-wrap gap-3 justify-content-center" id="jugadoresLista">
         {% for equipo in equipos %}
             {% for jugador in equipo.jugador_set.all %}
-                <li class="list-group-item d-flex align-items-center jugador-item" data-equipo="{{ equipo.id }}" data-posicion="{{ jugador.get_posicion_display }}">
-                    {% if jugador.foto %}
-                        <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }}" 
-                             style="width:64px; height:64px; object-fit:contain; border-radius:50%; margin-right:18px; image-rendering:auto; cursor:pointer;" 
-                             onclick="expandirFoto('{{ jugador.foto.url }}', '{{ jugador.nombre }} {{ jugador.apellido }}')">
-                    {% endif %}
-                    <div class="flex-grow-1">
-                        <strong>{{ jugador.nombre }} {{ jugador.apellido }}</strong><br>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="text-muted">#{{ jugador.numero_camiseta }} | {{ jugador.get_posicion_display }} | {{ jugador.fecha_nacimiento|calcular_edad }} años |</span>
-                            <b>
-                                {% if equipo.logo %}
-                                    <div style="display: inline-block; text-align: center; width: fit-content;">
-                                        <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:42px; display:block; margin:0 auto 2px auto; object-fit:contain; image-rendering:auto;">
-                                        <span style="display:block; line-height:1; font-size:0.85em; white-space: nowrap;">{{ equipo.nombre }}</span>
-                                    </div>
-                                {% else %}
-                                    {{ equipo.nombre }}
-                                {% endif %}
-                            </b>
+                <div class="card jugador-item" data-equipo="{{ equipo.id }}" data-posicion="{{ jugador.get_posicion_display }}" 
+                     style="background: rgba(10, 35, 66, 0.9); border: 1px solid #08F7FE; border-radius: 12px; padding: 16px; width: max-content; min-width: 300px; max-width: 500px;">
+                    <div class="d-flex align-items-center">
+                        {% if jugador.foto %}
+                            <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }}" 
+                                 style="width:64px; height:64px; object-fit:contain; border-radius:50%; margin-right:18px; image-rendering:auto; cursor:pointer;" 
+                                 onclick="expandirFoto('{{ jugador.foto.url }}', '{{ jugador.nombre }} {{ jugador.apellido }}')">
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <strong class="text-white">{{ jugador.nombre }} {{ jugador.apellido }}</strong><br>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="text-white">#{{ jugador.numero_camiseta }} | {{ jugador.get_posicion_display }} | {{ jugador.fecha_nacimiento|calcular_edad }} años |</span>
+                                <b>
+                                    {% if equipo.logo %}
+                                        <div style="display: inline-block; text-align: center; width: fit-content;">
+                                            <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:42px; display:block; margin:0 auto 2px auto; object-fit:contain; image-rendering:auto;">
+                                            <span style="display:block; line-height:1; font-size:0.85em; white-space: nowrap; color: white;">{{ equipo.nombre }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-white">{{ equipo.nombre }}</span>
+                                    {% endif %}
+                                </b>
+                            </div>
                         </div>
                     </div>
-                </li>
+                </div>
             {% endfor %}
         {% endfor %}
-    </ul>
+    </div>
 
     <!-- Modal para expandir foto -->
     <div class="modal fade" id="fotoModal" tabindex="-1" aria-labelledby="fotoModalLabel" aria-hidden="true">
@@ -99,20 +102,16 @@
             var posicion = String(item.getAttribute('data-posicion') || '').trim();
             var nombreElem = item.querySelector('strong');
             var nombre = nombreElem ? nombreElem.textContent.trim().toLowerCase() : '';
-            // DEPURACIÓN
-            console.log('Filtro equipo:', filtroEquipo, 'EquipoId:', equipoId);
-            console.log('Filtro posicion:', filtroPosicion, 'Posicion:', posicion);
-            console.log('Filtro nombre:', filtroNombre, 'Nombre:', nombre);
 
             var coincideEquipo = (filtroEquipo === '' || equipoId === filtroEquipo);
             var coincidePosicion = (filtroPosicion === '' || posicion === filtroPosicion);
             var coincideNombre = (filtroNombre === '' || nombre.includes(filtroNombre));
 
             if (coincideEquipo && coincidePosicion && coincideNombre) {
-                item.classList.remove('d-none');
+                item.style.display = 'block';
                 jugadoresMostrados++;
             } else {
-                item.classList.add('d-none');
+                item.style.display = 'none';
             }
         });
         // Actualizar contadores
