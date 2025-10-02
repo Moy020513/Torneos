@@ -23,18 +23,35 @@
             .meta-chip i{ color:#08F7FE; }
         .section-card{ border:1px solid rgba(8,247,254,.35); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.08); }
     .section-card .card-header{ background: linear-gradient(135deg, #f8fbff, #eaf2ff); border-bottom:1px solid rgba(8,247,254,.2); }
-    /* Cards de categoría con borde neón azul */
+    /* Cards de categoría elegantes y profesionales */
     .category-card{
-        border:2px solid #08F7FE;
-        border-radius:12px;
-        box-shadow:0 0 0 4px rgba(8,247,254,.15), 0 10px 20px rgba(0,0,0,.10);
-        transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-        background:#fff;
+        background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,251,255,0.98) 100%);
+        border: 1px solid rgba(8,247,254,.25);
+        border-radius:16px;
+        box-shadow: 0 8px 32px rgba(10, 35, 66, 0.08), 0 4px 16px rgba(8, 247, 254, 0.12);
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    .category-card::before{
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0a2342 0%, #08F7FE 50%, #00cfff 100%);
+        opacity: 0.8;
     }
     .category-card:hover{
-        transform:translateY(-3px);
-        box-shadow:0 0 0 6px rgba(8,247,254,.22), 0 16px 28px rgba(0,0,0,.14);
-        border-color:#08F7FE;
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(10, 35, 66, 0.15), 0 8px 32px rgba(8, 247, 254, 0.25);
+        border-color: rgba(8,247,254,.4);
+    }
+    .category-card:hover::before{
+        opacity: 1;
+        height: 5px;
     }
     .badge-info-soft{ background:rgba(13,110,253,.1); color:#0d6efd; border:1px solid rgba(13,110,253,.25); }
     .badge-elim{ background:rgba(255,193,7,.12); color:#c88a00; border:1px solid rgba(255,193,7,.35); }
@@ -100,27 +117,75 @@
             </div>
             <div class="card-body">
                 {% if categorias %}
-                    <div class="row">
+                    <div class="row g-4">
                         {% for categoria in categorias %}
-                        <div class="col-md-4 mb-3">
+                        <div class="col-lg-4 col-md-6 mb-2">
                             <div class="card category-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-start justify-content-between">
-                                      <h5 class="card-title text-navy m-0"><i class="fa-solid fa-medal me-1"></i> {{ categoria.nombre }}</h5>
-                                      <div class="d-flex" style="gap:6px;">
-                                        <span class="badge badge-info-soft">{{ categoria.equipo_set.count }} equipos</span>
-                                        {% if categoria.tiene_eliminatorias %}
-                                          <span class="badge badge-elim">Eliminatorias</span>
-                                        {% endif %}
-                                      </div>
+                                <div class="card-body p-4 position-relative">
+                                    <!-- Icono decorativo de fondo -->
+                                    <div class="position-absolute top-0 end-0 mt-3 me-3" 
+                                         style="opacity: 0.08; font-size: 3rem;">
+                                        <i class="fa-solid fa-trophy"></i>
                                     </div>
+
+                                    <!-- Header de la categoría -->
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="me-3">
+                                            <div class="d-flex align-items-center justify-content-center rounded-circle" 
+                                                 style="width: 48px; height: 48px; 
+                                                        background: linear-gradient(135deg, #0a2342 0%, #08F7FE 100%);
+                                                        box-shadow: 0 4px 12px rgba(8, 247, 254, 0.3);">
+                                                <i class="fa-solid fa-medal text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title text-navy mb-1 fw-bold" style="font-size: 1.2rem;">
+                                                {{ categoria.nombre }}
+                                            </h5>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <span class="badge rounded-pill" 
+                                                      style="background: linear-gradient(45deg, rgba(13,110,253,0.1), rgba(8,247,254,0.1)); 
+                                                             color: #0d6efd; border: 1px solid rgba(13,110,253,0.2);
+                                                             font-size: 0.75rem; padding: 4px 8px;">
+                                                    <i class="fa-solid fa-users me-1"></i>{{ categoria.equipo_set.count }} equipos
+                                                </span>
+                                                {% if categoria.tiene_eliminatorias %}
+                                                <span class="badge rounded-pill" 
+                                                      style="background: linear-gradient(45deg, rgba(255,193,7,0.15), rgba(255,150,0,0.15)); 
+                                                             color: #b8860b; border: 1px solid rgba(255,193,7,0.3);
+                                                             font-size: 0.75rem; padding: 4px 8px;">
+                                                    <i class="fa-solid fa-crown me-1"></i>Eliminatorias
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Descripción -->
                                     {% if categoria.descripcion %}
-                                      <p class="card-text mt-2 subtle">{{ categoria.descripcion|truncatewords:18 }}</p>
+                                    <div class="mb-4">
+                                        <p class="text-muted mb-0" style="line-height: 1.5; font-size: 0.9rem;">
+                                            {{ categoria.descripcion|truncatewords:15 }}
+                                        </p>
+                                    </div>
                                     {% endif %}
-                                    <div class="mt-2 d-flex" style="gap:8px;">
-                                      <a href="{% url 'categoria_detalle' categoria.id %}" class="btn btn-navy btn-sm">
-                                        Ver categoría
-                                      </a>
+
+                                    <!-- Botón de acción mejorado -->
+                                    <div class="d-grid">
+                                        <a href="{% url 'categoria_detalle' categoria.id %}" 
+                                           class="btn btn-lg fw-bold text-white border-0 position-relative overflow-hidden"
+                                           style="background: linear-gradient(135deg, #0a2342 0%, #08F7FE 100%); 
+                                                  border-radius: 12px; 
+                                                  box-shadow: 0 4px 16px rgba(8, 247, 254, 0.25);
+                                                  transition: all 0.3s ease;"
+                                           onmouseover="this.style.transform='scale(1.02)'; 
+                                                        this.style.boxShadow='0 6px 24px rgba(8, 247, 254, 0.35)';"
+                                           onmouseout="this.style.transform='scale(1)'; 
+                                                       this.style.boxShadow='0 4px 16px rgba(8, 247, 254, 0.25)';">
+                                            <span class="position-relative">
+                                                <i class="fa-solid fa-arrow-right me-2"></i>Explorar Categoría
+                                            </span>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
