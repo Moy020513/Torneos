@@ -200,24 +200,88 @@
         {% block content %}{% endblock %}
     </main>
     
-    <!-- Footer -->
-    <footer class="gradient-bg py-4 mt-5" style="background: linear-gradient(120deg, #0a2342 0 2.5%, #08F7FE 2.5% 5%, #00cfff 5% 7.5%, #ffffffff 7.5% 100%);">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-footer">
-                        <h5 style="color: navy !important; margin: 0;">Sistema de Gestión de Torneos</h5>
+    <<!-- Footer -->
+<footer class="gradient-bg py-4 mt-5" style="background: linear-gradient(120deg, #0a2342 0 2.5%, #08F7FE 2.5% 5%, #00cfff 5% 7.5%, #ffffff 7.5% 100%);">
+    <div class="container">
+        <!-- Logo Central -->
+        <div class="row mb-2">
+            <div class="col-12 text-center">
+                <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-footer" style="width: auto; height: 100px; object-fit: contain; margin-bottom: 0rem;">
+                <h5 class="mb-1 fw-bold" style="color: #0a2342;">Sistema de Gestión de Torneos</h5>
+                <p class="mb-0 small" style="color: #0a2342; opacity: 0.85;">
+                    Plataforma profesional para organizar y gestionar competiciones deportivas.
+                </p>
+            </div>
+        </div>
+
+        <!-- Línea Decorativa -->
+        <div class="row my-2">
+            <div class="col-12">
+                <hr class="my-2" style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0a2342, transparent); opacity: 0.3;">
+            </div>
+        </div>
+
+        <!-- Información Legal en una sola línea -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <!-- Desarrollador -->
+                    <p class="mb-1 mb-md-0 small" style="color: #0a2342; opacity: 0.85;">
+                        <i class="bi bi-code-slash me-1"></i>
+                        Desarrollado por <span class="fw-semibold">Ing. Moisés Martínez Vázquez</span>
+                    </p>
+
+                    <!-- Copyright y Redes -->
+                    <div class="d-flex align-items-center gap-3">
+                        <p class="mb-0 small" style="color: #0a2342;">
+                            <i class="bi bi-c-circle me-1"></i>
+                            2025 - Todos los derechos reservados
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="#" class="text-decoration-none" style="color: #0a2342; opacity: 0.7; transition: opacity 0.3s;" 
+                               onmouseover="this.style.opacity='1'" 
+                               onmouseout="this.style.opacity='0.7'"
+                               title="Email">
+                                <i class="bi bi-envelope-fill"></i>
+                            </a>
+                            <a href="#" class="text-decoration-none" style="color: #0a2342; opacity: 0.7; transition: opacity 0.3s;"
+                               onmouseover="this.style.opacity='1'" 
+                               onmouseout="this.style.opacity='0.7'"
+                               title="LinkedIn">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                            <a href="#" class="text-decoration-none" style="color: #0a2342; opacity: 0.7; transition: opacity 0.3s;"
+                               onmouseover="this.style.opacity='1'" 
+                               onmouseout="this.style.opacity='0.7'"
+                               title="GitHub">
+                                <i class="bi bi-github"></i>
+                            </a>
+                        </div>
                     </div>
-                    <p style="color: navy !important;">Plataforma profesional para organizar y gestionar competiciones deportivas.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p style="color: navy !important;">&copy; 2025 - Todos los derechos reservados</p>
-                    <p style="color: navy !important;">Desarrollado por Ing. Moisés Martínez Vázquez</p>
                 </div>
             </div>
         </div>
-    </footer>
+    </div>
+</footer>
+
+<!-- Estilos adicionales -->
+<style>
+    .logo-footer {
+        transition: transform 0.3s ease, filter 0.3s ease;
+        filter: drop-shadow(0 4px 6px rgba(10, 35, 66, 0.1));
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
+    
+    .logo-footer:hover {
+        transform: scale(1.1) rotate(5deg);
+        filter: drop-shadow(0 6px 12px rgba(10, 35, 66, 0.2));
+    }
+
+    footer a i {
+        font-size: 0rem;
+    }
+</style>
     
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
