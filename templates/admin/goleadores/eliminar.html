@@ -1,0 +1,231 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Eliminar Goleador - Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="admin-title text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Eliminar Registro de Goleador
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'admin_goleadores' %}">Goleadores</a>
+                    </li>
+                    <li class="breadcrumb-item active">Eliminar</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'admin_goleadores' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Volver a la Lista
+        </a>
+    </div>
+
+    <!-- Confirmación de Eliminación -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="admin-card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmación de Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-2">¡Atención! Esta acción es irreversible</h6>
+                            <p class="mb-0">
+                                Estás a punto de eliminar permanentemente este registro de goleador. 
+                                Los datos se perderán y no podrán ser recuperados.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Información del Goleador -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6 class="text-muted mb-3">Información del registro a eliminar:</h6>
+                            
+                            <div class="goleador-info">
+                                <!-- Jugador -->
+                                <div class="info-section mb-4">
+                                    <div class="d-flex align-items-center mb-3">
+                                        {% if goleador.jugador.foto %}
+                                            <img src="{{ goleador.jugador.foto.url }}" 
+                                                 alt="{{ goleador.jugador.nombre }}"
+                                                 class="player-photo-large me-3">
+                                        {% endif %}
+                                        <div>
+                                            <h4 class="text-primary mb-1">{{ goleador.jugador.nombre }}</h4>
+                                            <div class="d-flex align-items-center">
+                                                {% if goleador.jugador.equipo.logo %}
+                                                    <img src="{{ goleador.jugador.equipo.logo.url }}" 
+                                                         alt="{{ goleador.jugador.equipo.nombre }}"
+                                                         class="team-logo me-2">
+                                                {% endif %}
+                                                <span class="fw-bold">{{ goleador.jugador.equipo.nombre }}</span>
+                                            </div>
+                                            <small class="text-muted">{{ goleador.jugador.posicion }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Goles -->
+                                <div class="info-section mb-4 text-center">
+                                    <div class="goal-display">
+                                        <i class="fas fa-futbol fa-4x text-success mb-3"></i>
+                                        <h2 class="display-4 text-success fw-bold">{{ goleador.goles }}</h2>
+                                        <p class="fs-5 text-muted">Gol{{ goleador.goles|pluralize:"es" }} Anotado{{ goleador.goles|pluralize:"s" }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Detalles -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="detail-item">
+                                            <i class="fas fa-tags text-primary me-2"></i>
+                                            <strong>Categoría:</strong> {{ goleador.categoria.nombre }}
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-trophy text-warning me-2"></i>
+                                            <strong>Torneo:</strong> {{ goleador.categoria.torneo.nombre }}
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-calendar text-info me-2"></i>
+                                            <strong>Fecha:</strong> {{ goleador.fecha_creacion|date:"d/m/Y H:i" }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if goleador.partido %}
+                                            <div class="detail-item">
+                                                <i class="fas fa-futbol text-info me-2"></i>
+                                                <strong>Tipo:</strong> Partido Regular
+                                            </div>
+                                            <div class="detail-item">
+                                                <i class="fas fa-vs text-muted me-2"></i>
+                                                <strong>Partido:</strong> 
+                                                {{ goleador.partido.equipo_local.nombre }} vs {{ goleador.partido.equipo_visitante.nombre }}
+                                            </div>
+                                            <div class="detail-item">
+                                                <i class="fas fa-calendar-day text-success me-2"></i>
+                                                <strong>Jornada:</strong> {{ goleador.partido.jornada }}
+                                            </div>
+                                        {% elif goleador.partido_eliminatoria %}
+                                            <div class="detail-item">
+                                                <i class="fas fa-fire text-danger me-2"></i>
+                                                <strong>Tipo:</strong> Partido Eliminatoria
+                                            </div>
+                                            <div class="detail-item">
+                                                <i class="fas fa-vs text-muted me-2"></i>
+                                                <strong>Partido:</strong> 
+                                                {{ goleador.partido_eliminatoria.equipo_local.nombre }} vs {{ goleador.partido_eliminatoria.equipo_visitante.nombre }}
+                                            </div>
+                                            <div class="detail-item">
+                                                <i class="fas fa-trophy text-warning me-2"></i>
+                                                <strong>Eliminatoria:</strong> {{ goleador.partido_eliminatoria.eliminatoria.nombre }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Confirmación -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'admin_goleadores' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="confirmDelete">
+                                <i class="fas fa-trash me-2"></i>
+                                Sí, Eliminar Registro
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButton = document.getElementById('confirmDelete');
+    
+    deleteButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Confirmación adicional
+        if (confirm('¿Estás absolutamente seguro de que quieres eliminar este registro de goleador? Esta acción no se puede deshacer.')) {
+            // Mostrar loading
+            deleteButton.disabled = true;
+            deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Eliminando...';
+            
+            // Enviar formulario
+            deleteButton.closest('form').submit();
+        }
+    });
+});
+</script>
+
+<style>
+.goleador-info {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 1rem 0;
+}
+
+.player-photo-large {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,0.2);
+}
+
+.team-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.detail-item {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.goal-display {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+    border: 2px solid rgba(40, 167, 69, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 1rem 0;
+}
+
+.info-section {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 1rem;
+}
+
+.info-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+</style>
+{% endblock %}

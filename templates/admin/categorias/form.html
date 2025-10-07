@@ -1,0 +1,250 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ action }} Categoría{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ action }} Categoría</h2>
+        <p class="text-muted mb-0">
+            {% if action == "Crear" %}
+                Complete la información para crear una nueva categoría
+            {% else %}
+                Modifique la información de la categoría "{{ categoria.nombre }}"
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_categorias' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-tags me-2"></i>
+                    Información de la Categoría
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Torneo -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.torneo.id_for_label }}">
+                            {{ form.torneo.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.torneo }}
+                        {% if form.torneo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.torneo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Seleccione el torneo al que pertenece esta categoría</div>
+                    </div>
+                    
+                    <!-- Nombre de la categoría -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.nombre.id_for_label }}">
+                            {{ form.nombre.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.nombre.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.descripcion.id_for_label }}">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.descripcion.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Descripción opcional de la categoría</div>
+                    </div>
+                    
+                    <!-- Límite de equipos -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.max_equipos.id_for_label }}">
+                            {{ form.max_equipos.label }}
+                        </label>
+                        {{ form.max_equipos }}
+                        {% if form.max_equipos.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.max_equipos.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Máximo número de equipos permitidos (0 = sin límite)</div>
+                    </div>
+                    
+                    <!-- Eliminatorias -->
+                    <div class="admin-form-group">
+                        <div class="form-check">
+                            {{ form.tiene_eliminatorias }}
+                            <label class="form-check-label" for="{{ form.tiene_eliminatorias.id_for_label }}">
+                                {{ form.tiene_eliminatorias.label }}
+                            </label>
+                        </div>
+                        {% if form.tiene_eliminatorias.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.tiene_eliminatorias.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Marque si esta categoría incluye fase eliminatoria</div>
+                    </div>
+                    
+                    <!-- Número de equipos para eliminatorias -->
+                    <div class="admin-form-group" id="eliminatorias-config" style="display: none;">
+                        <label class="admin-form-label" for="{{ form.num_equipos_eliminatoria.id_for_label }}">
+                            {{ form.num_equipos_eliminatoria.label }}
+                        </label>
+                        {{ form.num_equipos_eliminatoria }}
+                        {% if form.num_equipos_eliminatoria.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.num_equipos_eliminatoria.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Número de equipos que pasan a la fase eliminatoria</div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <a href="{% url 'admin_categorias' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-admin">
+                            <i class="fas fa-save me-2"></i>{{ action }} Categoría
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Adicional
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                {% if action == "Editar" and categoria %}
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Estadísticas</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Equipos:</span>
+                            <span class="fw-semibold">{{ categoria.equipo_set.count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Jugadores:</span>
+                            <span class="fw-semibold">
+                                {% with categoria.equipo_set.all as equipos %}
+                                    {% if equipos %}
+                                        {{ equipos.0.jugador_set.count|add:equipos.1.jugador_set.count|default:0 }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Partidos:</span>
+                            <span class="fw-semibold">
+                                {% with categoria.grupo_set.all as grupos %}
+                                    {% if grupos %}
+                                        {{ grupos.0.partido_set.count|default:0 }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Tipos de Eliminatorias</h6>
+                    <div class="small text-muted">
+                        <div class="mb-2">
+                            <strong>4 equipos:</strong> Semifinal y Final
+                        </div>
+                        <div class="mb-2">
+                            <strong>8 equipos:</strong> Cuartos, Semifinal y Final
+                        </div>
+                        <div class="mb-2">
+                            <strong>16 equipos:</strong> Octavos, Cuartos, Semifinal y Final
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1);">
+                    <div class="d-flex">
+                        <i class="fas fa-lightbulb text-info me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Consejo:</strong> 
+                            Las eliminatorias se generan automáticamente según el número de equipos configurado. 
+                            Asegúrese de que coincida con el formato deseado.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tieneEliminatorias = document.getElementById('{{ form.tiene_eliminatorias.id_for_label }}');
+    const eliminatoriasConfig = document.getElementById('eliminatorias-config');
+    
+    function toggleEliminatorias() {
+        if (tieneEliminatorias.checked) {
+            eliminatoriasConfig.style.display = 'block';
+        } else {
+            eliminatoriasConfig.style.display = 'none';
+        }
+    }
+    
+    // Estado inicial
+    toggleEliminatorias();
+    
+    // Escuchar cambios
+    tieneEliminatorias.addEventListener('change', toggleEliminatorias);
+});
+</script>
+{% endblock %}

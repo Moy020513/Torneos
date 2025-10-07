@@ -1,0 +1,183 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<!-- Header Actions -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Usuarios</h2>
+        <p class="text-muted mb-0">Administra todos los usuarios del sistema</p>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="GET" class="row align-items-end">
+            <div class="col-md-8">
+                <label class="admin-form-label">Buscar Usuarios</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="search" 
+                           class="admin-form-control border-start-0" 
+                           placeholder="Buscar por nombre de usuario, nombre, apellido o email..."
+                           value="{{ search|default:'' }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-admin">
+                        <i class="fas fa-filter me-2"></i>Buscar
+                    </button>
+                    {% if search %}
+                        <a href="{% url 'admin_usuarios' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users List -->
+<div class="admin-card">
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h3><i class="fas fa-users me-2"></i>Lista de Usuarios</h3>
+        <span class="badge badge-admin">{{ usuarios.paginator.count }} usuario{{ usuarios.paginator.count|pluralize }}</span>
+    </div>
+    <div class="admin-card-body p-0">
+        {% if usuarios %}
+            <div class="admin-table">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Permisos</th>
+                            <th>Estado</th>
+                            <th>Último acceso</th>
+                            <th>Registro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <span class="text-white fw-bold">{{ usuario.username|slice:":1"|upper }}</span>
+                                    </div>
+                                    <span class="fw-semibold">{{ usuario.username }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-semibold">{{ usuario.get_full_name|default:"-" }}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ usuario.email|default:"-" }}</small>
+                            </td>
+                            <td>
+                                {% if usuario.is_superuser %}
+                                    <span class="badge badge-danger">Superusuario</span>
+                                {% elif usuario.is_staff %}
+                                    <span class="badge badge-warning">Staff</span>
+                                {% else %}
+                                    <span class="badge badge-admin">Usuario</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if usuario.is_active %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check me-1"></i>Activo
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-ban me-1"></i>Inactivo
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {% if usuario.last_login %}
+                                        {{ usuario.last_login|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        Nunca
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ usuario.date_joined|date:"d/m/Y" }}
+                                </small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h4 class="text-muted mt-3">No se encontraron usuarios</h4>
+                {% if search %}
+                    <p class="text-muted">No hay usuarios que coincidan con "{{ search }}"</p>
+                    <a href="{% url 'admin_usuarios' %}" class="btn btn-outline-admin">Ver todos los usuarios</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if usuarios.has_other_pages %}
+<nav aria-label="Paginación" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if usuarios.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ usuarios.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        {% for num in usuarios.paginator.page_range %}
+            {% if num == usuarios.number %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > usuarios.number|add:'-3' and num < usuarios.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if usuarios.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ usuarios.next_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ usuarios.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

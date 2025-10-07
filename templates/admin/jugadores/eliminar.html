@@ -1,0 +1,269 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Eliminar Jugador{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1 text-danger">
+            <i class="fas fa-trash-alt me-2"></i>
+            Eliminar Jugador
+        </h2>
+        <p class="text-muted mb-0">
+            Confirme la eliminación del jugador "{{ jugador.nombre }} {{ jugador.apellido }}"
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-warning border-0 mb-4" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%); border-left: 4px solid #ffc107 !important;">
+    <div class="d-flex align-items-start">
+        <i class="fas fa-exclamation-triangle text-warning me-3 mt-1"></i>
+        <div>
+            <h6 class="alert-heading fw-semibold mb-2">¡Atención! Esta acción es irreversible</h6>
+            <p class="mb-0">
+                Al eliminar este jugador se eliminarán también todos los datos relacionados, incluyendo:
+            </p>
+            <ul class="mb-0 mt-2">
+                <li>Goles registrados</li>
+                <li>Participaciones en partidos</li>
+                <li>Tarjetas recibidas</li>
+                <li>Historial estadístico</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Player Info Card -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card border-danger" style="border-width: 2px !important;">
+            <div class="admin-card-header" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);">
+                <h3 class="text-danger">
+                    <i class="fas fa-user-times me-2"></i>
+                    Información del Jugador a Eliminar
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <div class="row">
+                    <!-- Foto del jugador -->
+                    {% if jugador.foto %}
+                    <div class="col-md-3 text-center mb-3">
+                        <img src="{{ jugador.foto.url }}" 
+                             class="img-fluid rounded-circle border" 
+                             style="max-width: 120px; max-height: 120px; object-fit: cover;">
+                    </div>
+                    <div class="col-md-9">
+                    {% else %}
+                    <div class="col-md-12">
+                    {% endif %}
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">NOMBRE COMPLETO</h6>
+                                <p class="fw-semibold mb-0 fs-5">{{ jugador.nombre }} {{ jugador.apellido }}</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">NÚMERO DE CAMISETA</h6>
+                                <p class="fw-semibold mb-0 fs-5">#{{ jugador.numero_camiseta }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">EQUIPO</h6>
+                                <p class="fw-semibold mb-0">{{ jugador.equipo.nombre }}</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">CATEGORÍA</h6>
+                                <p class="fw-semibold mb-0">{{ jugador.equipo.categoria.nombre }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">POSICIÓN</h6>
+                                <p class="fw-semibold mb-0">{{ jugador.get_posicion_display }}</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">EDAD</h6>
+                                <p class="fw-semibold mb-0">
+                                    {% if jugador.fecha_nacimiento %}
+                                        {{ jugador.edad }} años
+                                    {% else %}
+                                        No especificada
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">ESTADO</h6>
+                                <p class="mb-0">
+                                    {% if jugador.activo %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-sm-6">
+                                <h6 class="text-muted small mb-1">REGISTRADO</h6>
+                                <p class="fw-semibold mb-0">{{ jugador.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas relacionadas -->
+                <div class="border-top pt-3 mt-3">
+                    <h6 class="fw-semibold mb-3">Datos que se eliminarán:</h6>
+                    <div class="row text-center">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded" style="background: rgba(220, 53, 69, 0.1);">
+                                <i class="fas fa-futbol text-danger fs-4 mb-2"></i>
+                                <div class="fw-semibold">{{ jugador.goleador_set.count }}</div>
+                                <small class="text-muted">Goles</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded" style="background: rgba(220, 53, 69, 0.1);">
+                                <i class="fas fa-play text-danger fs-4 mb-2"></i>
+                                <div class="fw-semibold">0</div>
+                                <small class="text-muted">Partidos</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded" style="background: rgba(220, 53, 69, 0.1);">
+                                <i class="fas fa-square text-warning fs-4 mb-2"></i>
+                                <div class="fw-semibold">0</div>
+                                <small class="text-muted">Tarjetas</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded" style="background: rgba(220, 53, 69, 0.1);">
+                                <i class="fas fa-chart-line text-danger fs-4 mb-2"></i>
+                                <div class="fw-semibold">Total</div>
+                                <small class="text-muted">Historial</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Confirmation form -->
+                <div class="border-top pt-4 mt-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Confirmación -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                <strong>Confirmo que deseo eliminar permanentemente este jugador y todos sus datos relacionados</strong>
+                            </label>
+                        </div>
+                        
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="fas fa-trash-alt me-2"></i>Eliminar Jugador
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Safety Tips -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Recomendaciones
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2 text-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Alternativas a la Eliminación
+                    </h6>
+                    <div class="small text-muted">
+                        Considere estas opciones antes de eliminar:
+                        <ul class="mt-2">
+                            <li>Marcar como inactivo para mantener historial</li>
+                            <li>Transferir a otro equipo</li>
+                            <li>Archivar temporalmente</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2 text-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Consecuencias
+                    </h6>
+                    <div class="small text-muted">
+                        Al eliminar este jugador:
+                        <ul class="mt-2">
+                            <li>Se perderán todas las estadísticas</li>
+                            <li>No aparecerá en reportes históricos</li>
+                            <li>Los partidos pasados mostrarán datos incompletos</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger border-0 p-3" style="background: rgba(220, 53, 69, 0.1);">
+                    <div class="d-flex">
+                        <i class="fas fa-ban text-danger me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Importante:</strong> 
+                            Esta acción no se puede deshacer. Una vez eliminado, será necesario volver a registrar toda la información.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheck = document.getElementById('confirmDelete');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    // Habilitar/deshabilitar botón según checkbox
+    confirmCheck.addEventListener('change', function() {
+        deleteBtn.disabled = !this.checked;
+    });
+    
+    // Confirmación adicional al enviar
+    deleteBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const playerName = '{{ jugador.nombre }} {{ jugador.apellido }}';
+        const confirmMessage = `¿Está completamente seguro de eliminar al jugador "${playerName}"?\n\nEsta acción es IRREVERSIBLE y se eliminarán todos los datos relacionados.`;
+        
+        if (confirm(confirmMessage)) {
+            this.closest('form').submit();
+        }
+    });
+});
+</script>
+{% endblock %}

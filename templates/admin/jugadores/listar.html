@@ -1,0 +1,182 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Jugadores{% endblock %}
+
+{% block content %}
+<!-- Header Actions -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Jugadores</h2>
+        <p class="text-muted mb-0">Administra todos los jugadores del sistema</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_crear_jugador' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Crear Jugador
+        </a>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="GET" class="row align-items-end">
+            <div class="col-md-3">
+                <label class="admin-form-label">Equipo</label>
+                <select name="equipo" class="admin-form-control form-select">
+                    <option value="">Todos los equipos</option>
+                    {% for equipo in equipos %}
+                        <option value="{{ equipo.id }}" {% if equipo_id == equipo.id|slugify %}selected{% endif %}>
+                            {{ equipo.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="admin-form-label">Categoría</label>
+                <select name="categoria" class="admin-form-control form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if categoria_id == categoria.id|slugify %}selected{% endif %}>
+                            {{ categoria.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="admin-form-label">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="search" 
+                           class="admin-form-control border-start-0" 
+                           placeholder="Buscar por nombre, apellido o equipo..."
+                           value="{{ search|default:'' }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-admin">
+                        <i class="fas fa-filter me-2"></i>Filtrar
+                    </button>
+                    {% if search or categoria_id or equipo_id %}
+                        <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Players List -->
+<div class="admin-card">
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h3><i class="fas fa-user me-2"></i>Lista de Jugadores</h3>
+        <span class="badge badge-admin">{{ jugadores.paginator.count }} jugador{{ jugadores.paginator.count|pluralize:"es" }}</span>
+    </div>
+    <div class="admin-card-body p-0">
+        {% if jugadores %}
+            <div class="admin-table">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Nombre</th>
+                            <th>Equipo</th>
+                            <th>Número</th>
+                            <th>Posición</th>
+                            <th>Edad</th>
+                            <th>Estado</th>
+                            <th width="120">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for jugador in jugadores %}
+                        <tr>
+                            <td>
+                                {% if jugador.foto %}
+                                    <img src="{{ jugador.foto.url }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">{{ jugador.nombre }} {{ jugador.apellido }}</h6>
+                                    <small class="text-muted">{{ jugador.fecha_nacimiento|date:"d/m/Y" }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if jugador.equipo.logo %}
+                                        <img src="{{ jugador.equipo.logo.url }}" class="rounded me-2" width="24" height="24" style="object-fit: cover;">
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-semibold">{{ jugador.equipo.nombre }}</span><br>
+                                        <small class="text-muted">{{ jugador.equipo.categoria.nombre }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-admin fs-6">#{{ jugador.numero_camiseta }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-success">{{ jugador.get_posicion_display }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ jugador.edad }} años</span>
+                            </td>
+                            <td>
+                                {% if jugador.activo %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check me-1"></i>Activo
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-pause me-1"></i>Inactivo
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'admin_editar_jugador' jugador.id %}" 
+                                       class="btn btn-outline-primary btn-sm" 
+                                       title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'admin_eliminar_jugador' jugador.id %}" 
+                                       class="btn btn-outline-danger btn-sm" 
+                                       title="Eliminar"
+                                       onclick="return confirm('¿Está seguro de que desea eliminar este jugador?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-user text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h4 class="text-muted mt-3">No se encontraron jugadores</h4>
+                {% if search or categoria_id or equipo_id %}
+                    <p class="text-muted">No hay jugadores que coincidan con los filtros aplicados</p>
+                    <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-admin">Ver todos los jugadores</a>
+                {% else %}
+                    <p class="text-muted">No hay jugadores registrados en el sistema</p>
+                    <a href="{% url 'admin_crear_jugador' %}" class="btn btn-admin">Registrar Primer Jugador</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

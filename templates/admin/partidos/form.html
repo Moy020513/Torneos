@@ -1,0 +1,317 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ action }} Partido{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ action }} Partido</h2>
+        <p class="text-muted mb-0">
+            {% if action == "Crear" %}
+                Complete la información para crear un nuevo partido
+            {% else %}
+                Modifique la información del partido
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_partidos' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-futbol me-2"></i>
+                    Información del Partido
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Grupo/Categoría -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.grupo.id_for_label }}">
+                            {{ form.grupo.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.grupo }}
+                        {% if form.grupo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.grupo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Seleccione el grupo o categoría del partido</div>
+                    </div>
+                    
+                    <!-- Jornada -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.jornada.id_for_label }}">
+                            {{ form.jornada.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.jornada }}
+                        {% if form.jornada.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.jornada.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Equipos -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.equipo_local.id_for_label }}">
+                                    {{ form.equipo_local.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.equipo_local }}
+                                {% if form.equipo_local.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.equipo_local.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.equipo_visitante.id_for_label }}">
+                                    {{ form.equipo_visitante.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.equipo_visitante }}
+                                {% if form.equipo_visitante.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.equipo_visitante.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Fecha y Hora -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.fecha.id_for_label }}">
+                            {{ form.fecha.label }}
+                        </label>
+                        {{ form.fecha }}
+                        {% if form.fecha.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.fecha.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Fecha y hora del partido (opcional)</div>
+                    </div>
+                    
+                    <!-- Resultados -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.goles_local.id_for_label }}">
+                                    {{ form.goles_local.label }}
+                                </label>
+                                {{ form.goles_local }}
+                                {% if form.goles_local.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.goles_local.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.goles_visitante.id_for_label }}">
+                                    {{ form.goles_visitante.label }}
+                                </label>
+                                {{ form.goles_visitante }}
+                                {% if form.goles_visitante.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.goles_visitante.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo de juego -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.campo.id_for_label }}">
+                            {{ form.campo.label }}
+                        </label>
+                        {{ form.campo }}
+                        {% if form.campo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.campo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Lugar donde se juega el partido</div>
+                    </div>
+                    
+                    <!-- Estado del partido -->
+                    <div class="admin-form-group">
+                        <div class="form-check">
+                            {{ form.jugado }}
+                            <label class="form-check-label" for="{{ form.jugado.id_for_label }}">
+                                {{ form.jugado.label }}
+                            </label>
+                        </div>
+                        {% if form.jugado.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.jugado.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Marque si el partido ya fue finalizado</div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <a href="{% url 'admin_partidos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-admin">
+                            <i class="fas fa-save me-2"></i>{{ action }} Partido
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Adicional
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                {% if action == "Editar" and partido %}
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-2">Detalles del Partido</h6>
+                        <div class="small">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Creado:</span>
+                                <span class="fw-semibold">{{ partido.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Estado actual:</span>
+                                <span class="fw-semibold">
+                                    {% if partido.jugado %}
+                                        <span class="badge badge-success">Finalizado</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Pendiente</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Estados del Partido</h6>
+                    <div class="small text-muted">
+                        <div class="mb-2">
+                            <span class="badge badge-warning me-2">Pendiente</span>
+                            Partido programado sin resultado
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge badge-info me-2">Con resultado</span>
+                            Resultado cargado, no marcado como finalizado
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge badge-success me-2">Finalizado</span>
+                            Partido completado oficialmente
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1);">
+                    <div class="d-flex">
+                        <i class="fas fa-lightbulb text-info me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Consejo:</strong> 
+                            Puede cargar el resultado sin marcar el partido como finalizado. 
+                            Esto es útil para resultados parciales o en proceso de verificación.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación de equipos diferentes
+    const equipoLocal = document.getElementById('{{ form.equipo_local.id_for_label }}');
+    const equipoVisitante = document.getElementById('{{ form.equipo_visitante.id_for_label }}');
+    
+    function validarEquipos() {
+        if (equipoLocal.value && equipoVisitante.value && equipoLocal.value === equipoVisitante.value) {
+            equipoVisitante.setCustomValidity('Debe seleccionar equipos diferentes');
+        } else {
+            equipoVisitante.setCustomValidity('');
+        }
+    }
+    
+    equipoLocal.addEventListener('change', validarEquipos);
+    equipoVisitante.addEventListener('change', validarEquipos);
+    
+    // Auto-marcar como jugado si hay goles
+    const golesLocal = document.getElementById('{{ form.goles_local.id_for_label }}');
+    const golesVisitante = document.getElementById('{{ form.goles_visitante.id_for_label }}');
+    const jugado = document.getElementById('{{ form.jugado.id_for_label }}');
+    
+    function autoMarcarJugado() {
+        const localVal = parseInt(golesLocal.value) || 0;
+        const visitanteVal = parseInt(golesVisitante.value) || 0;
+        
+        if (localVal > 0 || visitanteVal > 0) {
+            // Sugerir marcar como jugado si hay goles
+            if (!jugado.checked) {
+                // Mostrar sugerencia visual
+                jugado.parentElement.style.background = 'rgba(16, 185, 129, 0.1)';
+                jugado.parentElement.style.borderRadius = '8px';
+                jugado.parentElement.style.padding = '8px';
+            }
+        } else {
+            // Quitar sugerencia visual
+            jugado.parentElement.style.background = '';
+            jugado.parentElement.style.borderRadius = '';
+            jugado.parentElement.style.padding = '';
+        }
+    }
+    
+    golesLocal.addEventListener('input', autoMarcarJugado);
+    golesVisitante.addEventListener('input', autoMarcarJugado);
+});
+</script>
+{% endblock %}

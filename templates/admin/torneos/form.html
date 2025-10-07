@@ -1,0 +1,300 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ action }} Torneo{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ action }} Torneo</h2>
+        <p class="text-muted mb-0">
+            {% if action == "Crear" %}
+                Complete la información para crear un nuevo torneo
+            {% else %}
+                Modifique la información del torneo "{{ torneo.nombre }}"
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_torneos' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-trophy me-2"></i>
+                    Información del Torneo
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Nombre del torneo -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.nombre.id_for_label }}">
+                            {{ form.nombre.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.nombre.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.descripcion.id_for_label }}">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.descripcion.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Descripción opcional del torneo</div>
+                    </div>
+                    
+                    <!-- Fechas -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.fecha_inicio.id_for_label }}">
+                                    {{ form.fecha_inicio.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.fecha_inicio }}
+                                {% if form.fecha_inicio.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.fecha_inicio.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.fecha_fin.id_for_label }}">
+                                    {{ form.fecha_fin.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.fecha_fin }}
+                                {% if form.fecha_fin.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.fecha_fin.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formato del torneo -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.formato_torneo.id_for_label }}">
+                            {{ form.formato_torneo.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.formato_torneo }}
+                        {% if form.formato_torneo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.formato_torneo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Seleccione el formato del torneo</div>
+                    </div>
+                    
+                    <!-- Logo -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.logo.id_for_label }}">
+                            {{ form.logo.label }}
+                        </label>
+                        {{ form.logo }}
+                        {% if form.logo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.logo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Logo del torneo (opcional). Formatos: PNG, JPG, JPEG, GIF</div>
+                    </div>
+                    
+                    <!-- Estado activo -->
+                    <div class="admin-form-group">
+                        <div class="form-check">
+                            {{ form.activo }}
+                            <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                {{ form.activo.label }}
+                            </label>
+                        </div>
+                        {% if form.activo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.activo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Los torneos inactivos no aparecerán en la página principal</div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <a href="{% url 'admin_torneos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-admin">
+                            <i class="fas fa-save me-2"></i>{{ action }} Torneo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview/Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Adicional
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Formatos de Torneo</h6>
+                    <div class="small text-muted">
+                        <div class="mb-2">
+                            <strong>Liga:</strong> Todos contra todos
+                        </div>
+                        <div class="mb-2">
+                            <strong>Eliminatoria:</strong> Sistema de eliminación directa
+                        </div>
+                        <div class="mb-2">
+                            <strong>Mixto:</strong> Liga seguida de eliminatorias
+                        </div>
+                    </div>
+                </div>
+                
+                {% if torneo and torneo.logo %}
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Logo Actual</h6>
+                    <div class="text-center">
+                        <img src="{{ torneo.logo.url }}" 
+                             class="img-fluid rounded border" 
+                             style="max-width: 150px; max-height: 150px; object-fit: contain;">
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if action == "Editar" and torneo %}
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Estadísticas</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Categorías:</span>
+                            <span class="fw-semibold">{{ torneo.categoria_set.count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Equipos:</span>
+                            <span class="fw-semibold">
+                                {% with torneo.categoria_set.all as categorias %}
+                                    {% if categorias %}
+                                        {{ categorias.0.equipo_set.count|add:categorias.1.equipo_set.count|default:0 }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Creado:</span>
+                            <span class="fw-semibold">{{ torneo.fecha_creacion|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1);">
+                    <div class="d-flex">
+                        <i class="fas fa-lightbulb text-info me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Consejo:</strong> 
+                            Puede cambiar el estado del torneo en cualquier momento. 
+                            Los torneos inactivos seguirán siendo accesibles pero no aparecerán en la lista principal.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación de fechas
+    const fechaInicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
+    const fechaFin = document.getElementById('{{ form.fecha_fin.id_for_label }}');
+    
+    function validarFechas() {
+        if (fechaInicio.value && fechaFin.value) {
+            if (new Date(fechaInicio.value) > new Date(fechaFin.value)) {
+                fechaFin.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
+            } else {
+                fechaFin.setCustomValidity('');
+            }
+        }
+    }
+    
+    fechaInicio.addEventListener('change', validarFechas);
+    fechaFin.addEventListener('change', validarFechas);
+    
+    // Preview del logo
+    const logoInput = document.getElementById('{{ form.logo.id_for_label }}');
+    if (logoInput) {
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Crear preview si no existe
+                    let preview = document.getElementById('logo-preview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.id = 'logo-preview';
+                        preview.className = 'mt-2 text-center';
+                        logoInput.parentNode.appendChild(preview);
+                    }
+                    
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" 
+                             class="img-fluid rounded border" 
+                             style="max-width: 150px; max-height: 150px; object-fit: contain;">
+                        <div class="small text-muted mt-1">Vista previa</div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

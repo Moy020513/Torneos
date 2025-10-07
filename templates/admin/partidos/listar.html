@@ -1,0 +1,320 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Partidos{% endblock %}
+
+{% block content %}
+<!-- Header Actions -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Partidos</h2>
+        <p class="text-muted mb-0">Administra todos los partidos del sistema</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_crear_partido' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Crear Partido
+        </a>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="GET" class="row align-items-end">
+            <div class="col-md-4">
+                <label class="admin-form-label">Categoría</label>
+                <select name="categoria" class="admin-form-control form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if categoria_id == cat.id|slugify %}selected{% endif %}>
+                            {{ cat.torneo.nombre }} - {{ cat.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="admin-form-label">Estado</label>
+                <select name="estado" class="admin-form-control form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="jugado" {% if estado == 'jugado' %}selected{% endif %}>Jugados</option>
+                    <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendientes</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="admin-form-label">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="search" 
+                           class="admin-form-control border-start-0" 
+                           placeholder="Buscar equipos..."
+                           value="{{ search|default:'' }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-admin">
+                        <i class="fas fa-filter me-2"></i>Filtrar
+                    </button>
+                    {% if search or categoria_id or estado %}
+                        <a href="{% url 'admin_partidos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Matches List -->
+<div class="admin-card">
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h3><i class="fas fa-futbol me-2"></i>Lista de Partidos</h3>
+        <span class="badge badge-admin">{{ partidos.paginator.count }} partido{{ partidos.paginator.count|pluralize }}</span>
+    </div>
+    <div class="admin-card-body p-0">
+        {% if partidos %}
+            <div class="table-responsive">
+                <table class="table table-hover admin-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Jornada</th>
+                            <th>Equipo Local</th>
+                            <th>Resultado</th>
+                            <th>Equipo Visitante</th>
+                            <th>Categoría</th>
+                            <th>Campo</th>
+                            <th>Estado</th>
+                            <th width="120">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for partido in partidos %}
+                        <tr>
+                            <td>
+                                <small class="text-muted">
+                                    {% if partido.fecha %}
+                                        {{ partido.fecha|date:"d/m/Y" }}<br>
+                                        <strong>{{ partido.fecha|time:"H:i" }}</strong>
+                                    {% elif partido.jugado or partido.goles_local > 0 or partido.goles_visitante > 0 %}
+                                        <span class="text-info"><i class="fas fa-exclamation-triangle me-1"></i>Sin fecha registrada</span>
+                                    {% else %}
+                                        <span class="text-warning"><i class="fas fa-calendar-plus me-1"></i>Por programar</span>
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge badge-admin">J{{ partido.jornada }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if partido.equipo_local.logo %}
+                                        <img src="{{ partido.equipo_local.logo.url }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                    {% endif %}
+                                    <span class="fw-semibold">{{ partido.equipo_local.nombre }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if partido.goles_local is not None and partido.goles_visitante is not None and partido.goles_local >= 0 and partido.goles_visitante >= 0 %}
+                                    {% if partido.jugado %}
+                                        <span class="badge badge-success fs-6">
+                                            {{ partido.goles_local }} - {{ partido.goles_visitante }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-warning fs-6">
+                                            {{ partido.goles_local }} - {{ partido.goles_visitante }}
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-secondary">
+                                        vs
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if partido.equipo_visitante.logo %}
+                                        <img src="{{ partido.equipo_visitante.logo.url }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                    {% endif %}
+                                    <span class="fw-semibold">{{ partido.equipo_visitante.nombre }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ partido.grupo.categoria.torneo.nombre|truncatechars:15 }}<br>
+                                    <strong>{{ partido.grupo.categoria.nombre }}</strong>
+                                </small>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ partido.campo|default:"No asignado" }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if partido.jugado %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check me-1"></i>Finalizado
+                                    </span>
+                                {% elif partido.goles_local is not None and partido.goles_visitante is not None and partido.goles_local >= 0 and partido.goles_visitante >= 0 and not partido.jugado %}
+                                    {% if not partido.fecha %}
+                                        <span class="badge badge-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Resultado sin fecha
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-clock me-1"></i>Con resultado
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-secondary">
+                                        <i class="fas fa-hourglass-half me-1"></i>Pendiente
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'admin_editar_partido' partido.id %}" 
+                                       class="btn btn-outline-primary btn-sm" 
+                                       title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'admin_eliminar_partido' partido.id %}" 
+                                       class="btn btn-outline-danger btn-sm" 
+                                       title="Eliminar"
+                                       onclick="return confirm('¿Está seguro de que desea eliminar este partido?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-futbol text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h4 class="text-muted mt-3">No se encontraron partidos</h4>
+                {% if search or categoria_id or estado %}
+                    <p class="text-muted">No hay partidos que coincidan con los filtros aplicados</p>
+                    <a href="{% url 'admin_partidos' %}" class="btn btn-outline-admin">Ver todos los partidos</a>
+                {% else %}
+                    <p class="text-muted">No hay partidos registrados en el sistema</p>
+                    <a href="{% url 'admin_crear_partido' %}" class="btn btn-admin">Crear Primer Partido</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if partidos.has_other_pages %}
+<nav aria-label="Paginación" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if partidos.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ partidos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        {% for num in partidos.paginator.page_range %}
+            {% if num == partidos.number %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > partidos.number|add:'-3' and num < partidos.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if partidos.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ partidos.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ partidos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<style>
+/* Mejorar scroll horizontal en tablas */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0.375rem;
+}
+
+.admin-table {
+    min-width: 1200px; /* Ancho mínimo para forzar scroll si es necesario */
+}
+
+.admin-table th,
+.admin-table td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Hacer que ciertas columnas sean más anchas */
+.admin-table th:nth-child(3),
+.admin-table td:nth-child(3),
+.admin-table th:nth-child(5),
+.admin-table td:nth-child(5) {
+    min-width: 150px; /* Equipos */
+}
+
+.admin-table th:nth-child(6),
+.admin-table td:nth-child(6) {
+    min-width: 120px; /* Categoría */
+}
+
+.admin-table th:nth-child(7),
+.admin-table td:nth-child(7) {
+    min-width: 100px; /* Campo */
+}
+
+.admin-table th:nth-child(9),
+.admin-table td:nth-child(9) {
+    min-width: 120px; /* Acciones */
+}
+
+/* Scroll bar personalizada */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+</style>
+
+{% endblock %}

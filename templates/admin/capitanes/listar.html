@@ -1,0 +1,210 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Capitanes{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Gestión de Capitanes</h2>
+        <p class="text-muted mb-0">Administre los capitanes de los equipos</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_crear_capitan' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Nuevo Capitán
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Buscar</label>
+                <input type="text" class="admin-form-control form-control" name="search" 
+                       value="{{ search }}" placeholder="Usuario o equipo">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Categoría</label>
+                <select name="categoria" class="admin-form-control form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_id %}selected{% endif %}>
+                            {{ categoria.torneo.nombre }} - {{ categoria.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select name="activo" class="admin-form-control form-select">
+                    <option value="">Todos</option>
+                    <option value="true" {% if activo == 'true' %}selected{% endif %}>Activos</option>
+                    <option value="false" {% if activo == 'false' %}selected{% endif %}>Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-outline-admin">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-number">{{ total_capitanes }}</div>
+            <div class="stat-label">Total Capitanes</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number">{{ capitanes_activos }}</div>
+            <div class="stat-label">Capitanes Activos</div>
+        </div>
+    </div>
+</div>
+
+<!-- Captains Table -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3>
+            <i class="fas fa-user-tie me-2"></i>
+            Listado de Capitanes
+        </h3>
+    </div>
+    <div class="admin-card-body">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Capitán</th>
+                            <th>Equipo</th>
+                            <th>Categoría</th>
+                            <th>Torneo</th>
+                            <th>Estado</th>
+                            <th>Asignado</th>
+                            <th width="120">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for capitan in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ capitan.usuario.username }}</div>
+                                        {% if capitan.usuario.first_name or capitan.usuario.last_name %}
+                                            <small class="text-muted">{{ capitan.usuario.first_name }} {{ capitan.usuario.last_name }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ capitan.equipo.nombre }}</div>
+                                <small class="text-muted">{{ capitan.equipo.jugador_set.count }} jugadores</small>
+                            </td>
+                            <td>{{ capitan.equipo.categoria.nombre }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ capitan.equipo.categoria.torneo.nombre }}</span>
+                            </td>
+                            <td>
+                                {% if capitan.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ capitan.fecha_creacion|date:"d/m/Y" }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'admin_editar_capitan' capitan.id %}" 
+                                       class="btn btn-outline-secondary btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'admin_eliminar_capitan' capitan.id %}" 
+                                       class="btn btn-outline-danger btn-sm" title="Remover">
+                                        <i class="fas fa-user-minus"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} capitanes
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">Siguiente</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-user-tie text-muted" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="text-muted">No hay capitanes asignados</h5>
+                <p class="text-muted mb-4">Comience asignando capitanes a los equipos</p>
+                <a href="{% url 'admin_crear_capitan' %}" class="btn btn-admin">
+                    <i class="fas fa-plus me-2"></i>Asignar Primer Capitán
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

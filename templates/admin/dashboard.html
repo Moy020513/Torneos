@@ -1,0 +1,377 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Dashboard Principal{% endblock %}
+
+{% block content %}
+<!-- Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-number">{{ total_torneos }}</div>
+            <div class="stat-label">Torneos Activos</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ total_equipos }}</div>
+            <div class="stat-label">Equipos Registrados</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="stat-number">{{ total_jugadores }}</div>
+            <div class="stat-label">Jugadores Activos</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="fas fa-futbol"></i>
+            </div>
+            <div class="stat-number">{{ total_partidos }}</div>
+            <div class="stat-label">Partidos Totales</div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="stat-number">{{ total_grupos }}</div>
+            <div class="stat-label">Grupos</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <div class="stat-number">{{ total_usuarios }}</div>
+            <div class="stat-label">Usuarios</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-number">{{ capitanes_activos }}</div>
+            <div class="stat-label">Capitanes Activos</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-number">{{ total_eliminatorias }}</div>
+            <div class="stat-label">Eliminatorias</div>
+        </div>
+    </div>
+</div>
+
+<!-- Elimination Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-number">{{ total_partidos_eliminatoria }}</div>
+            <div class="stat-label">Partidos Eliminatoria</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number">{{ partidos_eliminatoria_jugados }}</div>
+            <div class="stat-label">Eliminatorias Jugadas</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-number">{{ partidos_eliminatoria_pendientes }}</div>
+            <div class="stat-label">Eliminatorias Pendientes</div>
+        </div>
+    </div>
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-number">{{ porcentaje_eliminatorias_completadas }}%</div>
+                <div class="stat-label">% Completadas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goleadores Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <div class="stat-number">{{ total_goleadores }}</div>
+                <div class="stat-label">Goleadores Registrados</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-futbol"></i>
+                </div>
+                <div class="stat-number">{{ total_goles_sistema }}</div>
+                <div class="stat-label">Goles en el Sistema</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon danger">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="stat-number">{{ max_goles_jugador }}</div>
+                <div class="stat-label">Máximo Goles por Jugador</div>
+            </div>
+        </div>
+    </div><!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3><i class="fas fa-bolt me-2"></i>Acciones Rápidas</h3>
+            </div>
+            <div class="admin-card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_torneo' %}" class="btn btn-admin w-100">
+                            <i class="fas fa-plus me-2"></i>Crear Torneo
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_equipo' %}" class="btn btn-outline-admin w-100">
+                            <i class="fas fa-users me-2"></i>Agregar Equipo
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_jugador' %}" class="btn btn-outline-admin w-100">
+                            <i class="fas fa-user-plus me-2"></i>Registrar Jugador
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_grupo' %}" class="btn btn-outline-admin w-100">
+                            <i class="fas fa-layer-group me-2"></i>Crear Grupo
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_usuario' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-user-cog me-2"></i>Nuevo Usuario
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_capitan' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-user-tie me-2"></i>Asignar Capitán
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_eliminatoria' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-trophy me-2"></i>Nueva Eliminatoria
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_crear_partido' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-futbol me-2"></i>Programar Partido
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity and Management -->
+<div class="row">
+    <!-- Recent Tournaments -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3><i class="fas fa-clock me-2"></i>Torneos Recientes</h3>
+            </div>
+            <div class="admin-card-body">
+                {% if torneos_recientes %}
+                    <div class="list-group list-group-flush">
+                        {% for torneo in torneos_recientes %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                            <div>
+                                <h6 class="mb-1 fw-semibold">{{ torneo.nombre }}</h6>
+                                <p class="mb-0 text-muted small">
+                                    <i class="far fa-calendar me-1"></i>
+                                    {{ torneo.fecha_inicio|date:"d M Y" }} - {{ torneo.fecha_fin|date:"d M Y" }}
+                                </p>
+                            </div>
+                            <div>
+                                {% if torneo.activo %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Inactivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'admin_torneos' %}" class="btn btn-outline-admin btn-sm">
+                            Ver Todos los Torneos
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-trophy text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="text-muted mt-3">No hay torneos creados aún</p>
+                        <a href="{% url 'admin_crear_torneo' %}" class="btn btn-admin">Crear Primer Torneo</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3><i class="fas fa-chart-line me-2"></i>Estado del Sistema</h3>
+            </div>
+            <div class="admin-card-body">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Partidos Jugados</span>
+                        <span class="fw-semibold">{{ partidos_jugados }}/{{ total_partidos }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: {{ porcentaje_partidos_jugados }}%; background: linear-gradient(135deg, var(--navy-accent), var(--navy-light));"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Equipos Completos</span>
+                        <span class="fw-semibold">{{ equipos_completos }}/{{ total_equipos }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ porcentaje_equipos_completos }}%;"></div>
+                    </div>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <div class="h4 mb-0 text-primary">{{ usuarios_activos }}</div>
+                            <small class="text-muted">Usuarios Activos</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="h4 mb-0 text-success">{{ goles_totales }}</div>
+                        <small class="text-muted">Goles Marcados</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Matches -->
+<div class="row">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-futbol me-2"></i>Últimos Resultados</h3>
+                <a href="{% url 'admin_partidos' %}" class="btn btn-outline-light btn-sm">Ver Todos</a>
+            </div>
+            <div class="admin-card-body">
+                {% if ultimos_resultados %}
+                    <div class="admin-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Equipo Local</th>
+                                    <th>Resultado</th>
+                                    <th>Equipo Visitante</th>
+                                    <th>Categoría</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for partido in ultimos_resultados %}
+                                <tr>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ partido.fecha|date:"d/m/Y H:i"|default:"Por definir" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if partido.equipo_local.logo %}
+                                                <img src="{{ partido.equipo_local.logo.url }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                            {% endif %}
+                                            <span class="fw-semibold">{{ partido.equipo_local.nombre }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-admin">
+                                            {{ partido.goles_local }} - {{ partido.goles_visitante }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if partido.equipo_visitante.logo %}
+                                                <img src="{{ partido.equipo_visitante.logo.url }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                            {% endif %}
+                                            <span class="fw-semibold">{{ partido.equipo_visitante.nombre }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ partido.grupo.categoria.nombre|default:"Sin categoría" }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'admin_editar_partido' partido.id %}" class="btn btn-outline-admin btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-futbol text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="text-muted mt-3">No hay partidos jugados aún</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

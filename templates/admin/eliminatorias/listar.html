@@ -1,0 +1,215 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Eliminatorias{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Gestión de Eliminatorias</h2>
+        <p class="text-muted mb-0">Administre las fases eliminatorias de los torneos</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_crear_eliminatoria' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Nueva Eliminatoria
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Buscar</label>
+                <input type="text" class="admin-form-control form-control" name="search" 
+                       value="{{ search }}" placeholder="Nombre de fase o categoría">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Categoría</label>
+                <select name="categoria" class="admin-form-control form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_id %}selected{% endif %}>
+                            {{ categoria.torneo.nombre }} - {{ categoria.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-outline-admin">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-number">{{ total_eliminatorias }}</div>
+            <div class="stat-label">Total Eliminatorias</div>
+        </div>
+    </div>
+</div>
+
+<!-- Eliminations Table -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3>
+            <i class="fas fa-trophy me-2"></i>
+            Listado de Eliminatorias
+        </h3>
+    </div>
+    <div class="admin-card-body">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fase</th>
+                            <th>Categoría</th>
+                            <th>Torneo</th>
+                            <th>Orden</th>
+                            <th>Partidos</th>
+                            <th>Completado</th>
+                            <th width="120">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eliminatoria in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if eliminatoria.nombre == 'final' %}
+                                            <i class="fas fa-crown text-warning fs-4"></i>
+                                        {% elif eliminatoria.nombre == 'semifinal' %}
+                                            <i class="fas fa-medal text-info fs-4"></i>
+                                        {% elif eliminatoria.nombre == 'cuartos' %}
+                                            <i class="fas fa-trophy text-primary fs-4"></i>
+                                        {% elif eliminatoria.nombre == 'octavos' %}
+                                            <i class="fas fa-award text-success fs-4"></i>
+                                        {% else %}
+                                            <i class="fas fa-trophy text-secondary fs-4"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ eliminatoria.get_nombre_display }}</div>
+                                        <small class="text-muted">{{ eliminatoria.nombre }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ eliminatoria.categoria.nombre }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ eliminatoria.categoria.torneo.nombre }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ eliminatoria.orden }}°</span>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div>{{ eliminatoria.partidos_count }} total</div>
+                                    {% if eliminatoria.partidos_jugados > 0 %}
+                                        <div class="text-success">{{ eliminatoria.partidos_jugados }} jugados</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if eliminatoria.partidos_count > 0 %}
+                                    {% widthratio eliminatoria.partidos_jugados eliminatoria.partidos_count 100 as progress %}
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if progress == 100 %}bg-success{% else %}bg-primary{% endif %}" 
+                                             style="width: {{ progress }}%"></div>
+                                    </div>
+                                    <small class="text-muted">{{ progress }}%</small>
+                                {% else %}
+                                    <small class="text-muted">Sin partidos</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'admin_editar_eliminatoria' eliminatoria.id %}" 
+                                       class="btn btn-outline-secondary btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'admin_eliminar_eliminatoria' eliminatoria.id %}" 
+                                       class="btn btn-outline-danger btn-sm" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} eliminatorias
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}">Siguiente</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-trophy text-muted" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="text-muted">No hay eliminatorias configuradas</h5>
+                <p class="text-muted mb-4">Comience creando las fases eliminatorias para sus torneos</p>
+                <a href="{% url 'admin_crear_eliminatoria' %}" class="btn btn-admin">
+                    <i class="fas fa-plus me-2"></i>Crear Primera Eliminatoria
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.progress {
+    border-radius: 10px;
+}
+</style>
+{% endblock %}

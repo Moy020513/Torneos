@@ -1,0 +1,247 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Eliminar Usuario{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1 text-danger">
+            <i class="fas fa-trash-alt me-2"></i>
+            Eliminar Usuario
+        </h2>
+        <p class="text-muted mb-0">
+            Confirme la eliminación del usuario "{{ usuario.username }}"
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_usuarios' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-danger border-0 mb-4" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%); border-left: 4px solid #dc3545 !important;">
+    <div class="d-flex align-items-start">
+        <i class="fas fa-exclamation-triangle text-danger me-3 mt-1"></i>
+        <div>
+            <h6 class="alert-heading fw-semibold mb-2">¡Acción Irreversible!</h6>
+            <p class="mb-0">
+                Al eliminar este usuario se eliminarán permanentemente:
+            </p>
+            <ul class="mb-0 mt-2">
+                <li>Cuenta de usuario y credenciales</li>
+                <li>Historial de actividad</li>
+                <li>Relaciones como capitán (si aplica)</li>
+                <li>Configuraciones personales</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- User Info Card -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card border-danger" style="border-width: 2px !important;">
+            <div class="admin-card-header" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);">
+                <h3 class="text-danger">
+                    <i class="fas fa-user-times me-2"></i>
+                    Información del Usuario a Eliminar
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <!-- Información básica -->
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <h6 class="text-muted small mb-1">NOMBRE DE USUARIO</h6>
+                        <p class="fw-semibold mb-0 fs-5">{{ usuario.username }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6 class="text-muted small mb-1">NOMBRE COMPLETO</h6>
+                        <p class="fw-semibold mb-0 fs-5">
+                            {% if usuario.first_name or usuario.last_name %}
+                                {{ usuario.first_name }} {{ usuario.last_name }}
+                            {% else %}
+                                <small class="text-muted">Sin especificar</small>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <h6 class="text-muted small mb-1">EMAIL</h6>
+                        <p class="fw-semibold mb-0">
+                            {% if usuario.email %}
+                                {{ usuario.email }}
+                            {% else %}
+                                <small class="text-muted">Sin email</small>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6 class="text-muted small mb-1">TIPO DE USUARIO</h6>
+                        <p class="mb-0">
+                            {% if usuario.is_superuser %}
+                                <span class="badge bg-danger fs-6">Superusuario</span>
+                            {% elif usuario.is_staff %}
+                                <span class="badge bg-warning fs-6">Administrador</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">Usuario Regular</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <h6 class="text-muted small mb-1">ESTADO</h6>
+                        <p class="mb-0">
+                            {% if usuario.is_active %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6 class="text-muted small mb-1">REGISTRADO</h6>
+                        <p class="fw-semibold mb-0">{{ usuario.date_joined|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                {% if usuario.last_login %}
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <h6 class="text-muted small mb-1">ÚLTIMO ACCESO</h6>
+                        <p class="fw-semibold mb-0">{{ usuario.last_login|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Información adicional si es capitán -->
+                {% if usuario.capitan %}
+                <div class="border-top pt-3 mt-3">
+                    <h6 class="fw-semibold mb-3 text-warning">
+                        <i class="fas fa-user-tie me-1"></i>
+                        Este usuario es Capitán
+                    </h6>
+                    <div class="alert alert-warning">
+                        <strong>Equipo:</strong> {{ usuario.capitan.equipo.nombre }}<br>
+                        <strong>Categoría:</strong> {{ usuario.capitan.equipo.categoria.nombre }}<br>
+                        <small class="text-muted">Al eliminar este usuario, el equipo quedará sin capitán</small>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Confirmation form -->
+                <div class="border-top pt-4 mt-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Confirmación -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                <strong>Confirmo que deseo eliminar permanentemente este usuario y todos sus datos relacionados</strong>
+                            </label>
+                        </div>
+                        
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin_usuarios' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="fas fa-trash-alt me-2"></i>Eliminar Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Safety Tips -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Consideraciones de Seguridad
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2 text-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Antes de Eliminar
+                    </h6>
+                    <div class="small text-muted">
+                        Verifique que:
+                        <ul class="mt-2">
+                            <li>No es el único administrador del sistema</li>
+                            <li>No tiene datos importantes asociados</li>
+                            <li>No está siendo usado por otros sistemas</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2 text-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Restricciones
+                    </h6>
+                    <div class="small text-muted">
+                        No se puede eliminar:
+                        <ul class="mt-2">
+                            <li>Superusuarios (por seguridad)</li>
+                            <li>Su propia cuenta de usuario</li>
+                            <li>Usuarios con datos críticos</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger border-0 p-3" style="background: rgba(220, 53, 69, 0.1);">
+                    <div class="d-flex">
+                        <i class="fas fa-ban text-danger me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Importante:</strong> 
+                            Una vez eliminado, no será posible recuperar la cuenta ni los datos asociados.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheck = document.getElementById('confirmDelete');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    // Habilitar/deshabilitar botón según checkbox
+    confirmCheck.addEventListener('change', function() {
+        deleteBtn.disabled = !this.checked;
+    });
+    
+    // Confirmación adicional al enviar
+    deleteBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const username = '{{ usuario.username }}';
+        const confirmMessage = `¿Está COMPLETAMENTE SEGURO de eliminar al usuario "${username}"?\n\nEsta acción es IRREVERSIBLE y eliminará permanentemente:\n- La cuenta de usuario\n- Todo el historial de actividad\n- Las relaciones como capitán (si aplica)\n- Todas las configuraciones\n\n¿Continuar?`;
+        
+        if (confirm(confirmMessage)) {
+            this.closest('form').submit();
+        }
+    });
+});
+</script>
+{% endblock %}

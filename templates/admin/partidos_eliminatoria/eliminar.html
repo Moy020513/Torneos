@@ -1,0 +1,236 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Eliminar Partido Eliminatoria - Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="admin-title text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Eliminar Partido Eliminatoria
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'admin_partidos_eliminatoria' %}">Partidos Eliminatoria</a>
+                    </li>
+                    <li class="breadcrumb-item active">Eliminar</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'admin_partidos_eliminatoria' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Volver a la Lista
+        </a>
+    </div>
+
+    <!-- Confirmación de Eliminación -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="admin-card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmación de Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-2">¡Atención! Esta acción es irreversible</h6>
+                            <p class="mb-0">
+                                Estás a punto de eliminar permanentemente este partido eliminatoria. 
+                                Todos los datos relacionados se perderán y no podrán ser recuperados.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Información del Partido -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6 class="text-muted mb-3">Información del partido a eliminar:</h6>
+                            
+                            <div class="elimination-match-info">
+                                <div class="match-header mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="text-primary mb-0">{{ partido.eliminatoria.nombre }}</h5>
+                                        <span class="badge bg-{% if partido.jugado %}success{% else %}warning{% endif %}">
+                                            {% if partido.jugado %}
+                                                <i class="fas fa-check me-1"></i>Jugado
+                                            {% else %}
+                                                <i class="fas fa-clock me-1"></i>Pendiente
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">{{ partido.eliminatoria.torneo.nombre }}</small>
+                                </div>
+
+                                <div class="teams-info mb-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-5">
+                                            <div class="team-info text-end">
+                                                <div class="d-flex align-items-center justify-content-end">
+                                                    {% if partido.equipo_local.logo %}
+                                                        <img src="{{ partido.equipo_local.logo.url }}" 
+                                                             alt="{{ partido.equipo_local.nombre }}"
+                                                             class="team-logo me-2">
+                                                    {% endif %}
+                                                    <span class="fw-bold">{{ partido.equipo_local.nombre }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-2 text-center">
+                                            <span class="vs-text">VS</span>
+                                        </div>
+                                        <div class="col-5">
+                                            <div class="team-info">
+                                                <div class="d-flex align-items-center">
+                                                    {% if partido.equipo_visitante.logo %}
+                                                        <img src="{{ partido.equipo_visitante.logo.url }}" 
+                                                             alt="{{ partido.equipo_visitante.nombre }}"
+                                                             class="team-logo me-2">
+                                                    {% endif %}
+                                                    <span class="fw-bold">{{ partido.equipo_visitante.nombre }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="match-details">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="detail-item">
+                                                <i class="fas fa-calendar text-primary me-2"></i>
+                                                <strong>Fecha:</strong> {{ partido.fecha|date:"d/m/Y H:i" }}
+                                            </div>
+                                            {% if partido.campo %}
+                                                <div class="detail-item">
+                                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                                    <strong>Campo:</strong> {{ partido.campo }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {% if partido.jugado %}
+                                                <div class="results-section">
+                                                    <div class="detail-item">
+                                                        <i class="fas fa-futbol text-success me-2"></i>
+                                                        <strong>Resultado Ida:</strong> 
+                                                        {% if partido.goles_local is not None and partido.goles_visitante is not None %}
+                                                            {{ partido.goles_local }} - {{ partido.goles_visitante }}
+                                                        {% else %}
+                                                            No registrado
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if partido.goles_local_vuelta is not None or partido.goles_visitante_vuelta is not None %}
+                                                        <div class="detail-item">
+                                                            <i class="fas fa-redo text-info me-2"></i>
+                                                            <strong>Resultado Vuelta:</strong> 
+                                                            {{ partido.goles_local_vuelta|default:"0" }} - {{ partido.goles_visitante_vuelta|default:"0" }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Confirmación -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'admin_partidos_eliminatoria' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="confirmDelete">
+                                <i class="fas fa-trash me-2"></i>
+                                Sí, Eliminar Partido
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButton = document.getElementById('confirmDelete');
+    
+    deleteButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Confirmación adicional
+        if (confirm('¿Estás absolutamente seguro de que quieres eliminar este partido eliminatoria? Esta acción no se puede deshacer.')) {
+            // Mostrar loading
+            deleteButton.disabled = true;
+            deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Eliminando...';
+            
+            // Enviar formulario
+            deleteButton.closest('form').submit();
+        }
+    });
+});
+</script>
+
+<style>
+.elimination-match-info {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.team-logo {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.vs-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #6c757d;
+    background: rgba(255,255,255,0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+}
+
+.detail-item {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.results-section {
+    background: rgba(0,255,0,0.1);
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 4px solid #28a745;
+}
+
+.match-header {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 1rem;
+}
+
+.teams-info {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 1rem;
+}
+</style>
+{% endblock %}

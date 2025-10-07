@@ -1,0 +1,280 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Torneos{% endblock %}
+
+{% block content %}
+<!-- Header Actions -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Torneos</h2>
+        <p class="text-muted mb-0">Administra todos los torneos del sistema</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_crear_torneo' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Crear Torneo
+        </a>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="GET" class="row align-items-end">
+            <div class="col-md-8">
+                <label class="admin-form-label">Buscar Torneos</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="search" 
+                           class="admin-form-control border-start-0" 
+                           placeholder="Buscar por nombre o descripción..."
+                           value="{{ search|default:'' }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-admin">
+                        <i class="fas fa-filter me-2"></i>Filtrar
+                    </button>
+                    {% if search %}
+                        <a href="{% url 'admin_torneos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tournaments List -->
+<div class="admin-card">
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h3><i class="fas fa-trophy me-2"></i>Lista de Torneos</h3>
+        <span class="badge badge-admin">{{ torneos.paginator.count }} torneo{{ torneos.paginator.count|pluralize }}</span>
+    </div>
+    <div class="admin-card-body p-0">
+        {% if torneos %}
+            <div class="table-responsive admin-table" style="overflow-x: auto;">
+                <table class="table table-hover mb-0" style="min-width: 1200px;">
+                    <thead>
+                        <tr>
+                            <th>Logo</th>
+                            <th>Nombre</th>
+                            <th>Fechas</th>
+                            <th>Formato</th>
+                            <th>Estado</th>
+                            <th>Categorías</th>
+                            <th>Creado</th>
+                            <th width="180" style="min-width: 180px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for torneo in torneos %}
+                        <tr>
+                            <td>
+                                {% if torneo.logo %}
+                                    <img src="{{ torneo.logo.url }}" class="rounded" width="40" height="40" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-trophy text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">{{ torneo.nombre }}</h6>
+                                    {% if torneo.descripcion %}
+                                        <p class="mb-0 text-muted small">{{ torneo.descripcion|truncatechars:50 }}</p>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    <i class="far fa-calendar me-1"></i>
+                                    {{ torneo.fecha_inicio|date:"d/m/Y" }} - {{ torneo.fecha_fin|date:"d/m/Y" }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge badge-admin">{{ torneo.get_formato_torneo_display }}</span>
+                            </td>
+                            <td>
+                                {% if torneo.activo %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check me-1"></i>Activo
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-pause me-1"></i>Inactivo
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ torneo.categoria_set.count }} categoría{{ torneo.categoria_set.count|pluralize }}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ torneo.fecha_creacion|date:"d/m/Y" }}<br>
+                                    <span class="text-muted">{{ torneo.creado_por.get_full_name|default:torneo.creado_por.username }}</span>
+                                </small>
+                            </td>
+                            <td style="white-space: nowrap; min-width: 180px;">
+                                <div class="btn-group" role="group" aria-label="Acciones del torneo">
+                                    <a href="{% url 'admin_editar_torneo' torneo.id %}" 
+                                       class="btn btn-outline-primary btn-sm" 
+                                       title="Editar Torneo"
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top"
+                                       style="border-radius: 4px 0 0 4px;">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'torneo_detalle' torneo.id %}" 
+                                       class="btn btn-outline-info btn-sm" 
+                                       title="Ver Detalles"
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top"
+                                       style="border-radius: 0; margin-left: -1px;">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'admin_eliminar_torneo' torneo.id %}" 
+                                       class="btn btn-outline-danger btn-sm" 
+                                       title="Eliminar Torneo"
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top"
+                                       style="border-radius: 0 4px 4px 0; margin-left: -1px;"
+                                       onclick="return confirm('¿Está seguro de que desea eliminar este torneo?\\n\\nEsta acción no se puede deshacer.')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-trophy text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h4 class="text-muted mt-3">No se encontraron torneos</h4>
+                {% if search %}
+                    <p class="text-muted">No hay torneos que coincidan con "{{ search }}"</p>
+                    <a href="{% url 'admin_torneos' %}" class="btn btn-outline-admin">Ver todos los torneos</a>
+                {% else %}
+                    <p class="text-muted">Comience creando su primer torneo</p>
+                    <a href="{% url 'admin_crear_torneo' %}" class="btn btn-admin">Crear Primer Torneo</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if torneos.has_other_pages %}
+<nav aria-label="Paginación" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if torneos.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ torneos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        {% for num in torneos.paginator.page_range %}
+            {% if num == torneos.number %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > torneos.number|add:'-3' and num < torneos.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if torneos.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ torneos.next_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ torneos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mejorar el scroll horizontal de la tabla */
+.table-responsive {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #0c2340;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #1e3a5f;
+}
+
+/* Asegurar que los botones de acción sean visibles */
+.btn-group .btn {
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tooltips de Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Auto-scroll para mostrar acciones en pantallas pequeñas
+    const tableContainer = document.querySelector('.table-responsive');
+    if (tableContainer && tableContainer.scrollWidth > tableContainer.clientWidth) {
+        tableContainer.addEventListener('mouseenter', function() {
+            this.scrollTo({ left: this.scrollWidth - this.clientWidth, behavior: 'smooth' });
+        });
+    }
+});
+</script>
+{% endblock %}

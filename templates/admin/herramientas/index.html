@@ -1,0 +1,258 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Herramientas Administrativas - Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="admin-title">
+            <i class="fas fa-tools me-2"></i>
+            Herramientas Administrativas
+        </h1>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Detección de Inconsistencias -->
+    <div class="admin-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Detección de Inconsistencias en Partidos
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Partidos sin fecha con resultado -->
+                <div class="col-md-4 mb-3">
+                    <div class="inconsistency-card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-times fa-2x text-warning mb-2"></i>
+                            <h4 class="text-warning">{{ partidos_sin_fecha_con_resultado.count }}</h4>
+                            <p class="mb-0">Partidos con resultado<br>pero sin fecha</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partidos jugados sin fecha -->
+                <div class="col-md-4 mb-3">
+                    <div class="inconsistency-card border-danger">
+                        <div class="card-body text-center">
+                            <i class="fas fa-flag-checkered fa-2x text-danger mb-2"></i>
+                            <h4 class="text-danger">{{ partidos_jugados_sin_fecha.count }}</h4>
+                            <p class="mb-0">Partidos finalizados<br>sin fecha</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partidos con resultado no jugados -->
+                <div class="col-md-4 mb-3">
+                    <div class="inconsistency-card border-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-question-circle fa-2x text-info mb-2"></i>
+                            <h4 class="text-info">{{ partidos_con_resultado_no_jugados.count }}</h4>
+                            <p class="mb-0">Partidos con resultado<br>pero no marcados como jugados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones de Corrección -->
+    <div class="admin-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-wrench me-2"></i>
+                Acciones de Corrección Automática
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="action-card">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Marcar como Jugados
+                            </h6>
+                            <p class="card-text small">
+                                Marca automáticamente como "jugados" todos los partidos que tienen resultado registrado.
+                            </p>
+                            <form method="post" action="{% url 'admin_corregir_inconsistencias' %}" 
+                                  onsubmit="return confirm('¿Está seguro de marcar como jugados todos los partidos con resultado?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="marcar_jugados">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-check me-1"></i>
+                                    Ejecutar ({{ partidos_con_resultado_no_jugados.count }} partidos)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="action-card">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-calendar-plus text-primary me-2"></i>
+                                Asignar Fechas
+                            </h6>
+                            <p class="card-text small">
+                                Asigna la fecha actual a todos los partidos finalizados que no tienen fecha registrada.
+                            </p>
+                            <form method="post" action="{% url 'admin_corregir_inconsistencias' %}" 
+                                  onsubmit="return confirm('¿Está seguro de asignar la fecha actual a los partidos sin fecha?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="asignar_fechas">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-calendar-plus me-1"></i>
+                                    Ejecutar ({{ partidos_sin_fecha_con_resultado.count }} partidos)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="action-card">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-undo text-warning me-2"></i>
+                                Resetear Resultados
+                            </h6>
+                            <p class="card-text small">
+                                Resetea a 0-0 los resultados de partidos que no están marcados como jugados.
+                            </p>
+                            <form method="post" action="{% url 'admin_corregir_inconsistencias' %}" 
+                                  onsubmit="return confirm('¡ATENCIÓN! Esto borrará los resultados. ¿Está seguro?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resetear_resultados">
+                                <button type="submit" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-undo me-1"></i>
+                                    Ejecutar ({{ partidos_con_resultado_no_jugados.count }} partidos)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles de Partidos Problemáticos -->
+    {% if partidos_sin_fecha_con_resultado %}
+    <div class="admin-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Partidos con Resultado pero sin Fecha
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Partido</th>
+                            <th>Jornada</th>
+                            <th>Resultado</th>
+                            <th>Estado</th>
+                            <th>Categoría</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for partido in partidos_sin_fecha_con_resultado %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if partido.equipo_local.logo %}
+                                        <img src="{{ partido.equipo_local.logo.url }}" class="team-logo-tiny me-1">
+                                    {% endif %}
+                                    <span class="small fw-bold">{{ partido.equipo_local.nombre }}</span>
+                                    <span class="mx-2 text-muted">vs</span>
+                                    {% if partido.equipo_visitante.logo %}
+                                        <img src="{{ partido.equipo_visitante.logo.url }}" class="team-logo-tiny me-1">
+                                    {% endif %}
+                                    <span class="small fw-bold">{{ partido.equipo_visitante.nombre }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">J{{ partido.jornada }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    {{ partido.goles_local }} - {{ partido.goles_visitante }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if partido.jugado %}
+                                    <span class="badge bg-success">Jugado</span>
+                                {% else %}
+                                    <span class="badge bg-danger">No jugado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ partido.grupo.categoria.nombre }}</small>
+                            </td>
+                            <td>
+                                <a href="{% url 'admin_editar_partido' partido.id %}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.inconsistency-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.inconsistency-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.action-card {
+    background: var(--navy-card);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 15px;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.team-logo-tiny {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+</style>
+{% endblock %}

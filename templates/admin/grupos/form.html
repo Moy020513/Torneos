@@ -1,0 +1,153 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ action }} Grupo{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ action }} Grupo</h2>
+        <p class="text-muted mb-0">
+            {% if action == "Crear" %}
+                Complete la información para crear un nuevo grupo
+            {% else %}
+                Modifique la información del grupo "{{ grupo.nombre }}"
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_grupos' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-layer-group me-2"></i>
+                    Información del Grupo
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Categoría -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.categoria.id_for_label }}">
+                            {{ form.categoria.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.categoria }}
+                        {% if form.categoria.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.categoria.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Seleccione la categoría a la que pertenece este grupo</div>
+                    </div>
+                    
+                    <!-- Nombre -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.nombre.id_for_label }}">
+                            {{ form.nombre.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.nombre.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Por ejemplo: "Grupo A", "Grupo B", "Zona Norte", etc.</div>
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.descripcion.id_for_label }}">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.descripcion.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Descripción opcional del grupo (opcional)</div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <a href="{% url 'admin_grupos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-admin">
+                            <i class="fas fa-save me-2"></i>{{ action }} Grupo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Adicional
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                {% if action == "Editar" and grupo %}
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Información del Grupo</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Categoría:</span>
+                            <span class="fw-semibold">{{ grupo.categoria.nombre }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Torneo:</span>
+                            <span class="fw-semibold">{{ grupo.categoria.torneo.nombre }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Equipos:</span>
+                            <span class="fw-semibold">0</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">¿Qué son los Grupos?</h6>
+                    <div class="small text-muted">
+                        Los grupos organizan los equipos dentro de una categoría para la fase de liga. Cada grupo compete internamente y los mejores equipos avanzan a las eliminatorias.
+                    </div>
+                </div>
+                
+                <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1);">
+                    <div class="d-flex">
+                        <i class="fas fa-lightbulb text-info me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Consejo:</strong> 
+                            Use nombres descriptivos para los grupos que sean fáciles de identificar para los equipos y espectadores.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

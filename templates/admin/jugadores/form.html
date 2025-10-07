@@ -1,0 +1,328 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ action }} Jugador{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ action }} Jugador</h2>
+        <p class="text-muted mb-0">
+            {% if action == "Crear" %}
+                Complete la información para registrar un nuevo jugador
+            {% else %}
+                Modifique la información del jugador "{{ jugador.nombre }} {{ jugador.apellido }}"
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-user me-2"></i>
+                    Información del Jugador
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Equipo -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.equipo.id_for_label }}">
+                            {{ form.equipo.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.equipo }}
+                        {% if form.equipo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.equipo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Seleccione el equipo al que pertenece el jugador</div>
+                    </div>
+                    
+                    <!-- Datos personales -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.nombre.id_for_label }}">
+                                    {{ form.nombre.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.nombre.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.apellido.id_for_label }}">
+                                    {{ form.apellido.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.apellido }}
+                                {% if form.apellido.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.apellido.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Foto del jugador -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.foto.id_for_label }}">
+                            {{ form.foto.label }}
+                        </label>
+                        {{ form.foto }}
+                        {% if form.foto.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.foto.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Foto del jugador (opcional). Formatos: PNG, JPG, JPEG, GIF</div>
+                    </div>
+                    
+                    <!-- Fecha de nacimiento -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.fecha_nacimiento.id_for_label }}">
+                            {{ form.fecha_nacimiento.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.fecha_nacimiento }}
+                        {% if form.fecha_nacimiento.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.fecha_nacimiento.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Número y posición -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.numero_camiseta.id_for_label }}">
+                                    {{ form.numero_camiseta.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.numero_camiseta }}
+                                {% if form.numero_camiseta.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.numero_camiseta.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Número de la camiseta (1-99)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label" for="{{ form.posicion.id_for_label }}">
+                                    {{ form.posicion.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.posicion }}
+                                {% if form.posicion.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.posicion.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Estado activo -->
+                    <div class="admin-form-group">
+                        <div class="form-check">
+                            {{ form.activo }}
+                            <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                {{ form.activo.label }}
+                            </label>
+                        </div>
+                        {% if form.activo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.activo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Los jugadores inactivos no aparecerán en las listas</div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-admin">
+                            <i class="fas fa-save me-2"></i>{{ action }} Jugador
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview/Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Adicional
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                {% if jugador and jugador.foto %}
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Foto Actual</h6>
+                    <div class="text-center">
+                        <img src="{{ jugador.foto.url }}" 
+                             class="img-fluid rounded-circle border" 
+                             style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if action == "Editar" and jugador %}
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Información del Jugador</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Equipo:</span>
+                            <span class="fw-semibold">{{ jugador.equipo.nombre }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Categoría:</span>
+                            <span class="fw-semibold">{{ jugador.equipo.categoria.nombre }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Edad:</span>
+                            <span class="fw-semibold">
+                                {% if jugador.fecha_nacimiento %}
+                                    {% now "Y" as current_year %}
+                                    {{ jugador.fecha_nacimiento|timesince|truncatewords:1 }}
+                                {% else %}
+                                    No especificada
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Registrado:</span>
+                            <span class="fw-semibold">{{ jugador.fecha_creacion|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">Posiciones</h6>
+                    <div class="small text-muted">
+                        <div class="mb-1"><strong>Portero:</strong> Guardameta</div>
+                        <div class="mb-1"><strong>Defensa:</strong> Defensor</div>
+                        <div class="mb-1"><strong>Mediocampista:</strong> Volante/Medio</div>
+                        <div class="mb-1"><strong>Delantero:</strong> Atacante</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1);">
+                    <div class="d-flex">
+                        <i class="fas fa-lightbulb text-info me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Consejo:</strong> 
+                            Asegúrese de que el número de camiseta no esté siendo usado por otro jugador del mismo equipo.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview de la foto
+    const fotoInput = document.getElementById('{{ form.foto.id_for_label }}');
+    if (fotoInput) {
+        fotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Crear preview si no existe
+                    let preview = document.getElementById('foto-preview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.id = 'foto-preview';
+                        preview.className = 'mt-2 text-center';
+                        fotoInput.parentNode.appendChild(preview);
+                    }
+                    
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" 
+                             class="img-fluid rounded-circle border" 
+                             style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                        <div class="small text-muted mt-1">Vista previa</div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Validación de edad
+    const fechaNacimiento = document.getElementById('{{ form.fecha_nacimiento.id_for_label }}');
+    if (fechaNacimiento) {
+        fechaNacimiento.addEventListener('change', function() {
+            const today = new Date();
+            const birthDate = new Date(this.value);
+            const age = today.getFullYear() - birthDate.getFullYear();
+            
+            if (age < 16 || age > 50) {
+                this.setCustomValidity('La edad debe estar entre 16 y 50 años');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+    
+    // Validación del número de camiseta
+    const numeroCamiseta = document.getElementById('{{ form.numero_camiseta.id_for_label }}');
+    if (numeroCamiseta) {
+        numeroCamiseta.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            if (value < 1 || value > 99) {
+                this.setCustomValidity('El número debe estar entre 1 y 99');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

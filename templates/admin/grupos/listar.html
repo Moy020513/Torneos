@@ -1,0 +1,171 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Grupos{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Gestión de Grupos</h2>
+        <p class="text-muted mb-0">Administre los grupos de las categorías del torneo</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_crear_grupo' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Nuevo Grupo
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Buscar</label>
+                <input type="text" class="admin-form-control form-control" name="search" 
+                       value="{{ search }}" placeholder="Nombre del grupo o categoría">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Categoría</label>
+                <select name="categoria" class="admin-form-control form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_id %}selected{% endif %}>
+                            {{ categoria.torneo.nombre }} - {{ categoria.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-outline-admin">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="stat-number">{{ total_grupos }}</div>
+            <div class="stat-label">Total Grupos</div>
+        </div>
+    </div>
+</div>
+
+<!-- Groups Table -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3>
+            <i class="fas fa-layer-group me-2"></i>
+            Listado de Grupos
+        </h3>
+    </div>
+    <div class="admin-card-body">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Grupo</th>
+                            <th>Categoría</th>
+                            <th>Torneo</th>
+                            <th>Descripción</th>
+                            <th width="120">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grupo in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ grupo.nombre }}</div>
+                            </td>
+                            <td>{{ grupo.categoria.nombre }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ grupo.categoria.torneo.nombre }}</span>
+                            </td>
+                            <td>
+                                {% if grupo.descripcion %}
+                                    <small class="text-muted">{{ grupo.descripcion|truncatewords:10 }}</small>
+                                {% else %}
+                                    <small class="text-muted">Sin descripción</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'admin_editar_grupo' grupo.id %}" 
+                                       class="btn btn-outline-secondary btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'admin_eliminar_grupo' grupo.id %}" 
+                                       class="btn btn-outline-danger btn-sm" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} grupos
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}">Siguiente</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-layer-group text-muted" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="text-muted">No hay grupos registrados</h5>
+                <p class="text-muted mb-4">Comience creando el primer grupo para organizar los equipos</p>
+                <a href="{% url 'admin_crear_grupo' %}" class="btn btn-admin">
+                    <i class="fas fa-plus me-2"></i>Crear Primer Grupo
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

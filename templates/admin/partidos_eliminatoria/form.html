@@ -1,0 +1,359 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}
+    {% if partido %}
+        Editar Partido Eliminatoria - Panel de Administración
+    {% else %}
+        Crear Partido Eliminatoria - Panel de Administración
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="admin-title">
+                <i class="fas fa-fire me-2"></i>
+                {% if partido %}
+                    Editar Partido Eliminatoria
+                {% else %}
+                    Crear Nuevo Partido Eliminatoria
+                {% endif %}
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'admin_partidos_eliminatoria' %}">Partidos Eliminatoria</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        {% if partido %}Editar{% else %}Crear{% endif %}
+                    </li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'admin_partidos_eliminatoria' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Volver a la Lista
+        </a>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if partido %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if partido %}
+                            Información del Partido Eliminatoria
+                        {% else %}
+                            Nuevo Partido Eliminatoria
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="partidoEliminatoriaForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información básica -->
+                        <div class="form-section">
+                            <h6 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Información Básica
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.eliminatoria.label_tag }}
+                                        {{ form.eliminatoria }}
+                                        {% if form.eliminatoria.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.eliminatoria.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">Selecciona la eliminatoria correspondiente</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.fecha.label_tag }}
+                                        {{ form.fecha }}
+                                        {% if form.fecha.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.fecha.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">Fecha y hora del partido</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.equipo_local.label_tag }}
+                                        {{ form.equipo_local }}
+                                        {% if form.equipo_local.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.equipo_local.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.equipo_visitante.label_tag }}
+                                        {{ form.equipo_visitante }}
+                                        {% if form.equipo_visitante.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.equipo_visitante.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.campo.label_tag }}
+                                {{ form.campo }}
+                                {% if form.campo.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.campo.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Campo donde se jugará el partido</div>
+                            </div>
+                        </div>
+
+                        <!-- Resultados -->
+                        <div class="form-section">
+                            <h6 class="section-title">
+                                <i class="fas fa-futbol me-2"></i>
+                                Resultados
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">
+                                        <i class="fas fa-play me-2"></i>
+                                        Partido de Ida
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                {{ form.goles_local.label_tag }}
+                                                {{ form.goles_local }}
+                                                {% if form.goles_local.errors %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form.goles_local.errors.0 }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                {{ form.goles_visitante.label_tag }}
+                                                {{ form.goles_visitante }}
+                                                {% if form.goles_visitante.errors %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form.goles_visitante.errors.0 }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">
+                                        <i class="fas fa-redo me-2"></i>
+                                        Partido de Vuelta
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                {{ form.goles_local_vuelta.label_tag }}
+                                                {{ form.goles_local_vuelta }}
+                                                {% if form.goles_local_vuelta.errors %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form.goles_local_vuelta.errors.0 }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                {{ form.goles_visitante_vuelta.label_tag }}
+                                                {{ form.goles_visitante_vuelta }}
+                                                {% if form.goles_visitante_vuelta.errors %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form.goles_visitante_vuelta.errors.0 }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="form-section">
+                            <h6 class="section-title">
+                                <i class="fas fa-flag me-2"></i>
+                                Estado del Partido
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    {{ form.jugado }}
+                                    {{ form.jugado.label_tag }}
+                                    {% if form.jugado.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.jugado.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Marca si el partido ya ha sido jugado</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'admin_partidos_eliminatoria' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if partido %}Actualizar{% else %}Crear{% endif %} Partido
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('partidoEliminatoriaForm');
+    const jugadoCheckbox = form.querySelector('#id_jugado');
+    const golesFields = [
+        '#id_goles_local',
+        '#id_goles_visitante', 
+        '#id_goles_local_vuelta',
+        '#id_goles_visitante_vuelta'
+    ];
+
+    // Validación de equipos diferentes
+    const equipoLocal = form.querySelector('#id_equipo_local');
+    const equipoVisitante = form.querySelector('#id_equipo_visitante');
+    
+    function validarEquiposDiferentes() {
+        if (equipoLocal.value && equipoVisitante.value && equipoLocal.value === equipoVisitante.value) {
+            equipoVisitante.setCustomValidity('Los equipos deben ser diferentes');
+            equipoVisitante.classList.add('is-invalid');
+        } else {
+            equipoVisitante.setCustomValidity('');
+            equipoVisitante.classList.remove('is-invalid');
+        }
+    }
+
+    equipoLocal.addEventListener('change', validarEquiposDiferentes);
+    equipoVisitante.addEventListener('change', validarEquiposDiferentes);
+
+    // Validación de goles cuando está marcado como jugado
+    function validarGoles() {
+        if (jugadoCheckbox.checked) {
+            golesFields.forEach(selector => {
+                const field = form.querySelector(selector);
+                if (field && !field.value) {
+                    field.setCustomValidity('Este campo es requerido cuando el partido está marcado como jugado');
+                } else if (field) {
+                    field.setCustomValidity('');
+                }
+            });
+        } else {
+            golesFields.forEach(selector => {
+                const field = form.querySelector(selector);
+                if (field) {
+                    field.setCustomValidity('');
+                }
+            });
+        }
+    }
+
+    jugadoCheckbox.addEventListener('change', validarGoles);
+    
+    golesFields.forEach(selector => {
+        const field = form.querySelector(selector);
+        if (field) {
+            field.addEventListener('input', validarGoles);
+        }
+    });
+
+    // Validación del formulario
+    form.addEventListener('submit', function(e) {
+        validarEquiposDiferentes();
+        validarGoles();
+        
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        form.classList.add('was-validated');
+    });
+
+    // Inicialización
+    validarEquiposDiferentes();
+    validarGoles();
+});
+</script>
+
+<style>
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(var(--primary-rgb), 0.2);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+</style>
+{% endblock %}

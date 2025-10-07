@@ -1,0 +1,160 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Eliminar Categoría{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1 text-danger">Eliminar Categoría</h2>
+        <p class="text-muted mb-0">Esta acción no se puede deshacer</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_categorias' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Confirmation Card -->
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="admin-card border-danger">
+            <div class="admin-card-header bg-danger text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <!-- Category Info -->
+                <div class="text-center mb-4">
+                    <i class="fas fa-tags text-danger" style="font-size: 4rem; opacity: 0.8;"></i>
+                    <h4 class="fw-bold mt-3">{{ categoria.nombre }}</h4>
+                    <p class="text-muted">{{ categoria.torneo.nombre }}</p>
+                    {% if categoria.descripcion %}
+                        <p class="text-muted">{{ categoria.descripcion|truncatechars:100 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Warning Alert -->
+                <div class="alert alert-danger border-0 mb-4">
+                    <div class="d-flex">
+                        <i class="fas fa-exclamation-triangle text-danger me-3 mt-1"></i>
+                        <div>
+                            <h6 class="alert-heading mb-2">¡Atención!</h6>
+                            <p class="mb-0">
+                                Al eliminar esta categoría se eliminarán también:
+                            </p>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>{{ categoria.equipo_set.count }}</strong> equipo{{ categoria.equipo_set.count|pluralize }}</li>
+                                <li>Todos los jugadores de estos equipos</li>
+                                <li>Todos los partidos de la categoría</li>
+                                <li>Todas las estadísticas y resultados</li>
+                                <li>Los grupos y eliminatorias asociadas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Category Details -->
+                <div class="border rounded p-3 mb-4 bg-light">
+                    <h6 class="fw-semibold mb-3">Detalles de la Categoría</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-2">
+                                <small class="text-muted">Torneo:</small><br>
+                                <span class="fw-semibold">{{ categoria.torneo.nombre }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Equipos registrados:</small><br>
+                                <span class="fw-semibold">{{ categoria.equipo_set.count }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Límite de equipos:</small><br>
+                                <span class="fw-semibold">{{ categoria.max_equipos|default:"Sin límite" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2">
+                                <small class="text-muted">Eliminatorias:</small><br>
+                                {% if categoria.tiene_eliminatorias %}
+                                    <span class="badge badge-success">
+                                        Sí ({{ categoria.num_equipos_eliminatoria }} equipos)
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-warning">No</span>
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Partidos:</small><br>
+                                <span class="fw-semibold">
+                                    {% with categoria.grupo_set.all as grupos %}
+                                        {% if grupos %}
+                                            {{ grupos.0.partido_set.count|default:0 }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    {% endwith %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Confirmation Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Confirmation Checkbox -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                        <label class="form-check-label text-danger fw-semibold" for="confirmDelete">
+                            Entiendo que esta acción es irreversible y eliminará permanentemente esta categoría y todos sus datos asociados.
+                        </label>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'admin_categorias' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                            <i class="fas fa-trash me-2"></i>Eliminar Categoría Permanentemente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    
+    confirmCheckbox.addEventListener('change', function() {
+        deleteButton.disabled = !this.checked;
+        if (this.checked) {
+            deleteButton.classList.remove('btn-outline-danger');
+            deleteButton.classList.add('btn-danger');
+        } else {
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-outline-danger');
+        }
+    });
+    
+    // Double confirmation on submit
+    deleteButton.addEventListener('click', function(e) {
+        if (!confirm('¿Está absolutamente seguro de que desea eliminar esta categoría? Esta acción NO se puede deshacer.')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

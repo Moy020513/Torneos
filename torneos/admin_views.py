@@ -1,0 +1,1369 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.http import JsonResponse
+from django.db.models import Q, Sum, Count, F, Max
+from django.core.paginator import Paginator
+from django.contrib.auth.models import User
+from .models import *
+from .forms import *
+import json
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.conf import settings
+
+def is_admin(user):
+    return user.is_superuser
+
+# =================== DASHBOARD ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_dashboard(request):
+    # Estadísticas generales
+    total_torneos = Torneo.objects.count()
+    total_equipos = Equipo.objects.count()
+    total_jugadores = Jugador.objects.count()
+    total_partidos = Partido.objects.count()
+    
+    # Nuevas estadísticas
+    total_grupos = Grupo.objects.count()
+    total_usuarios = User.objects.count()
+    total_capitanes = Capitan.objects.count()
+    total_eliminatorias = Eliminatoria.objects.count()
+    
+    # Estadísticas de partidos eliminatoria
+    total_partidos_eliminatoria = PartidoEliminatoria.objects.count()
+    partidos_eliminatoria_jugados = PartidoEliminatoria.objects.filter(jugado=True).count()
+    partidos_eliminatoria_pendientes = total_partidos_eliminatoria - partidos_eliminatoria_jugados
+    porcentaje_eliminatorias_completadas = (partidos_eliminatoria_jugados / max(total_partidos_eliminatoria, 1)) * 100
+    
+    # Estadísticas de goleadores
+    total_goleadores = Goleador.objects.count()
+    total_goles_sistema = Goleador.objects.aggregate(total=Sum('goles'))['total'] or 0
+    max_goleador = Goleador.objects.order_by('-goles').first()
+    max_goles_jugador = max_goleador.goles if max_goleador else 0
+    
+    # Torneos recientes
+    torneos_recientes = Torneo.objects.all().order_by('-fecha_creacion')[:5]
+    
+    # Partidos jugados
+    partidos_jugados = Partido.objects.filter(
+        Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
+    ).count()
+    
+    # Porcentajes
+    porcentaje_partidos_jugados = (partidos_jugados / max(total_partidos, 1)) * 100
+    
+    # Equipos completos (con al menos 8 jugadores)
+    equipos_completos = 0
+    for equipo in Equipo.objects.all():
+        if equipo.jugador_set.count() >= 8:
+            equipos_completos += 1
+    
+    porcentaje_equipos_completos = (equipos_completos / max(total_equipos, 1)) * 100
+    
+    # Usuarios activos (que han iniciado sesión en los últimos 30 días)
+    hace_30_dias = timezone.now() - timedelta(days=30)
+    usuarios_activos = User.objects.filter(last_login__gte=hace_30_dias).count()
+    
+    # Capitanes activos
+    capitanes_activos = Capitan.objects.filter(activo=True).count()
+    
+    # Goles totales
+    goles_totales = Partido.objects.filter(
+        Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
+    ).aggregate(
+        total=Sum('goles_local') + Sum('goles_visitante')
+    )['total'] or 0
+    
+    # Últimos resultados
+    ultimos_resultados = Partido.objects.filter(
+        Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
+    ).order_by('-fecha')[:10]
+    
+    # Administradores del sistema
+    total_admins = User.objects.filter(is_staff=True).count()
+    
+    context = {
+        'total_torneos': total_torneos,
+        'total_equipos': total_equipos,
+        'total_jugadores': total_jugadores,
+        'total_partidos': total_partidos,
+        'total_grupos': total_grupos,
+        'total_usuarios': total_usuarios,
+        'total_capitanes': total_capitanes,
+        'total_eliminatorias': total_eliminatorias,
+        'total_partidos_eliminatoria': total_partidos_eliminatoria,
+        'partidos_eliminatoria_jugados': partidos_eliminatoria_jugados,
+        'partidos_eliminatoria_pendientes': partidos_eliminatoria_pendientes,
+        'porcentaje_eliminatorias_completadas': round(porcentaje_eliminatorias_completadas, 1),
+        'total_goleadores': total_goleadores,
+        'total_goles_sistema': total_goles_sistema,
+        'max_goles_jugador': max_goles_jugador,
+        'torneos_recientes': torneos_recientes,
+        'partidos_jugados': partidos_jugados,
+        'porcentaje_partidos_jugados': round(porcentaje_partidos_jugados, 1),
+        'equipos_completos': equipos_completos,
+        'porcentaje_equipos_completos': round(porcentaje_equipos_completos, 1),
+        'usuarios_activos': usuarios_activos,
+        'capitanes_activos': capitanes_activos,
+        'total_admins': total_admins,
+        'goles_totales': goles_totales,
+        'ultimos_resultados': ultimos_resultados,
+    }
+    return render(request, 'admin/dashboard.html', context)
+
+# =================== TORNEOS ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_torneos(request):
+    torneos = Torneo.objects.all().order_by('-fecha_creacion')
+    
+    # Búsqueda
+    search = request.GET.get('search')
+    if search:
+        torneos = torneos.filter(
+            Q(nombre__icontains=search) |
+            Q(descripcion__icontains=search)
+        )
+    
+    # Paginación
+    paginator = Paginator(torneos, 10)
+    page_number = request.GET.get('page')
+    torneos = paginator.get_page(page_number)
+    
+    context = {
+        'torneos': torneos,
+        'search': search,
+    }
+    return render(request, 'admin/torneos/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_torneo(request):
+    if request.method == 'POST':
+        form = TorneoForm(request.POST, request.FILES)
+        if form.is_valid():
+            torneo = form.save(commit=False)
+            torneo.creado_por = request.user
+            torneo.save()
+            messages.success(request, 'Torneo creado exitosamente.')
+            return redirect('admin_torneos')
+    else:
+        form = TorneoForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/torneos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_torneo(request, torneo_id):
+    torneo = get_object_or_404(Torneo, id=torneo_id)
+    
+    if request.method == 'POST':
+        form = TorneoForm(request.POST, request.FILES, instance=torneo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Torneo actualizado exitosamente.')
+            return redirect('admin_torneos')
+    else:
+        form = TorneoForm(instance=torneo)
+    
+    context = {
+        'form': form,
+        'torneo': torneo,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/torneos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_torneo(request, torneo_id):
+    torneo = get_object_or_404(Torneo, id=torneo_id)
+    
+    if request.method == 'POST':
+        nombre_torneo = torneo.nombre
+        torneo.delete()
+        messages.success(request, f'Torneo "{nombre_torneo}" eliminado exitosamente.')
+        return redirect('admin_torneos')
+    
+    context = {
+        'torneo': torneo,
+    }
+    return render(request, 'admin/torneos/eliminar.html', context)
+
+# =================== CATEGORÍAS ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_categorias(request):
+    categorias = Categoria.objects.all().select_related('torneo').order_by('-id')
+    
+    # Filtros
+    torneo_id = request.GET.get('torneo')
+    search = request.GET.get('search')
+    
+    if torneo_id:
+        categorias = categorias.filter(torneo_id=torneo_id)
+    
+    if search:
+        categorias = categorias.filter(
+            Q(nombre__icontains=search) |
+            Q(descripcion__icontains=search) |
+            Q(torneo__nombre__icontains=search)
+        )
+    
+    # Paginación
+    paginator = Paginator(categorias, 10)
+    page_number = request.GET.get('page')
+    categorias = paginator.get_page(page_number)
+    
+    # Para el filtro
+    torneos = Torneo.objects.all()
+    
+    context = {
+        'categorias': categorias,
+        'torneos': torneos,
+        'torneo_id': torneo_id,
+        'search': search,
+    }
+    return render(request, 'admin/categorias/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_categoria(request):
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoría creada exitosamente.')
+            return redirect('admin_categorias')
+    else:
+        form = CategoriaForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/categorias/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoría actualizada exitosamente.')
+            return redirect('admin_categorias')
+    else:
+        form = CategoriaForm(instance=categoria)
+    
+    context = {
+        'form': form,
+        'categoria': categoria,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/categorias/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    
+    if request.method == 'POST':
+        nombre_categoria = categoria.nombre
+        categoria.delete()
+        messages.success(request, f'Categoría "{nombre_categoria}" eliminada exitosamente.')
+        return redirect('admin_categorias')
+    
+    context = {
+        'categoria': categoria,
+    }
+    return render(request, 'admin/categorias/eliminar.html', context)
+
+# =================== EQUIPOS ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_equipos(request):
+    equipos = Equipo.objects.all().select_related('categoria', 'categoria__torneo').order_by('-fecha_creacion')
+    
+    # Filtros
+    categoria_id = request.GET.get('categoria')
+    torneo_id = request.GET.get('torneo')
+    search = request.GET.get('search')
+    
+    if categoria_id:
+        equipos = equipos.filter(categoria_id=categoria_id)
+    elif torneo_id:
+        equipos = equipos.filter(categoria__torneo_id=torneo_id)
+    
+    if search:
+        equipos = equipos.filter(
+            Q(nombre__icontains=search) |
+            Q(categoria__nombre__icontains=search) |
+            Q(categoria__torneo__nombre__icontains=search)
+        )
+    
+    # Agregar datos de jugadores
+    for equipo in equipos:
+        equipo.total_jugadores = equipo.jugador_set.count()
+    
+    # Paginación
+    paginator = Paginator(equipos, 10)
+    page_number = request.GET.get('page')
+    equipos = paginator.get_page(page_number)
+    
+    # Para filtros
+    torneos = Torneo.objects.all()
+    categorias = Categoria.objects.all()
+    
+    context = {
+        'equipos': equipos,
+        'torneos': torneos,
+        'categorias': categorias,
+        'categoria_id': categoria_id,
+        'torneo_id': torneo_id,
+        'search': search,
+    }
+    return render(request, 'admin/equipos/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_equipo(request):
+    if request.method == 'POST':
+        form = EquipoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Equipo creado exitosamente.')
+            return redirect('admin_equipos')
+    else:
+        form = EquipoForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/equipos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_equipo(request, equipo_id):
+    equipo = get_object_or_404(Equipo, id=equipo_id)
+    
+    if request.method == 'POST':
+        form = EquipoForm(request.POST, request.FILES, instance=equipo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Equipo actualizado exitosamente.')
+            return redirect('admin_equipos')
+    else:
+        form = EquipoForm(instance=equipo)
+    
+    context = {
+        'form': form,
+        'equipo': equipo,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/equipos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_equipo(request, equipo_id):
+    equipo = get_object_or_404(Equipo, id=equipo_id)
+    
+    if request.method == 'POST':
+        nombre_equipo = equipo.nombre
+        equipo.delete()
+        messages.success(request, f'Equipo "{nombre_equipo}" eliminado exitosamente.')
+        return redirect('admin_equipos')
+    
+    context = {
+        'equipo': equipo,
+    }
+    return render(request, 'admin/equipos/eliminar.html', context)
+
+# =================== JUGADORES ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_jugadores(request):
+    jugadores = Jugador.objects.all().select_related('equipo', 'equipo__categoria', 'equipo__categoria__torneo').order_by('-fecha_creacion')
+    
+    # Filtros
+    equipo_id = request.GET.get('equipo')
+    categoria_id = request.GET.get('categoria')
+    search = request.GET.get('search')
+    
+    if equipo_id:
+        jugadores = jugadores.filter(equipo_id=equipo_id)
+    elif categoria_id:
+        jugadores = jugadores.filter(equipo__categoria_id=categoria_id)
+    
+    if search:
+        jugadores = jugadores.filter(
+            Q(nombre__icontains=search) |
+            Q(apellido__icontains=search) |
+            Q(equipo__nombre__icontains=search)
+        )
+    
+    # Calcular edad para cada jugador
+    from datetime import date
+    for jugador in jugadores:
+        if jugador.fecha_nacimiento:
+            today = date.today()
+            jugador.edad = today.year - jugador.fecha_nacimiento.year - ((today.month, today.day) < (jugador.fecha_nacimiento.month, jugador.fecha_nacimiento.day))
+        else:
+            jugador.edad = "N/A"
+    
+    # Paginación
+    paginator = Paginator(jugadores, 15)
+    page_number = request.GET.get('page')
+    jugadores = paginator.get_page(page_number)
+    
+    # Para filtros
+    equipos = Equipo.objects.all()
+    categorias = Categoria.objects.all()
+    
+    context = {
+        'jugadores': jugadores,
+        'equipos': equipos,
+        'categorias': categorias,
+        'equipo_id': equipo_id,
+        'categoria_id': categoria_id,
+        'search': search,
+    }
+    return render(request, 'admin/jugadores/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_jugador(request):
+    if request.method == 'POST':
+        form = JugadorForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Jugador creado exitosamente.')
+            return redirect('admin_jugadores')
+    else:
+        form = JugadorForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/jugadores/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_jugador(request, jugador_id):
+    jugador = get_object_or_404(Jugador, id=jugador_id)
+    
+    if request.method == 'POST':
+        form = JugadorForm(request.POST, request.FILES, instance=jugador)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Jugador actualizado exitosamente.')
+            return redirect('admin_jugadores')
+    else:
+        form = JugadorForm(instance=jugador)
+    
+    context = {
+        'form': form,
+        'jugador': jugador,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/jugadores/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_jugador(request, jugador_id):
+    jugador = get_object_or_404(Jugador, id=jugador_id)
+    
+    if request.method == 'POST':
+        nombre_jugador = f"{jugador.nombre} {jugador.apellido}"
+        jugador.delete()
+        messages.success(request, f'Jugador "{nombre_jugador}" eliminado exitosamente.')
+        return redirect('admin_jugadores')
+    
+    context = {
+        'jugador': jugador,
+    }
+    return render(request, 'admin/jugadores/eliminar.html', context)
+
+# =================== PARTIDOS ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_partidos(request):
+    partidos = Partido.objects.all().select_related('equipo_local', 'equipo_visitante', 'grupo', 'grupo__categoria').order_by('-fecha')
+    
+    # Filtros
+    categoria_id = request.GET.get('categoria')
+    estado = request.GET.get('estado')  # jugado, pendiente
+    search = request.GET.get('search')
+    
+    if categoria_id:
+        partidos = partidos.filter(grupo__categoria_id=categoria_id)
+    
+    if estado == 'jugado':
+        partidos = partidos.filter(Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0))
+    elif estado == 'pendiente':
+        partidos = partidos.filter(jugado=False, goles_local=0, goles_visitante=0)
+    
+    if search:
+        partidos = partidos.filter(
+            Q(equipo_local__nombre__icontains=search) |
+            Q(equipo_visitante__nombre__icontains=search) |
+            Q(grupo__categoria__nombre__icontains=search)
+        )
+    
+    # Paginación
+    paginator = Paginator(partidos, 15)
+    page_number = request.GET.get('page')
+    partidos = paginator.get_page(page_number)
+    
+    # Para filtros
+    categorias = Categoria.objects.all()
+    
+    context = {
+        'partidos': partidos,
+        'categorias': categorias,
+        'categoria_id': categoria_id,
+        'estado': estado,
+        'search': search,
+    }
+    return render(request, 'admin/partidos/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_partido(request):
+    if request.method == 'POST':
+        form = PartidoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Partido creado exitosamente.')
+            return redirect('admin_partidos')
+    else:
+        form = PartidoForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/partidos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_partido(request, partido_id):
+    partido = get_object_or_404(Partido, id=partido_id)
+    
+    if request.method == 'POST':
+        form = PartidoForm(request.POST, instance=partido)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Partido actualizado exitosamente.')
+            return redirect('admin_partidos')
+    else:
+        form = PartidoForm(instance=partido)
+    
+    context = {
+        'form': form,
+        'partido': partido,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/partidos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_partido(request, partido_id):
+    partido = get_object_or_404(Partido, id=partido_id)
+    
+    if request.method == 'POST':
+        partido.delete()
+        messages.success(request, 'Partido eliminado exitosamente.')
+        return redirect('admin_partidos')
+    
+    context = {
+        'partido': partido,
+    }
+    return render(request, 'admin/partidos/eliminar.html', context)
+
+# =================== USUARIOS ===================
+# =================== REPORTES ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_reportes(request):
+    # Estadísticas generales para reportes
+    context = {
+        'total_torneos': Torneo.objects.count(),
+        'total_equipos': Equipo.objects.count(),
+        'total_jugadores': Jugador.objects.count(),
+        'total_partidos': Partido.objects.count(),
+        'partidos_jugados': Partido.objects.filter(Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)).count(),
+        'goles_totales': Partido.objects.aggregate(total=Sum('goles_local') + Sum('goles_visitante'))['total'] or 0,
+    }
+    return render(request, 'admin/reportes/dashboard.html', context)
+
+# =================== AJAX HELPERS ===================
+@login_required
+@user_passes_test(is_admin)
+def get_categorias_ajax(request):
+    torneo_id = request.GET.get('torneo_id')
+    categorias = []
+    if torneo_id:
+        categorias_qs = Categoria.objects.filter(torneo_id=torneo_id).values('id', 'nombre')
+        categorias = list(categorias_qs)
+    return JsonResponse({'categorias': categorias})
+
+@login_required
+@user_passes_test(is_admin)
+def get_equipos_ajax(request):
+    categoria_id = request.GET.get('categoria_id')
+    equipos = []
+    if categoria_id:
+        equipos_qs = Equipo.objects.filter(categoria_id=categoria_id).values('id', 'nombre')
+        equipos = list(equipos_qs)
+    return JsonResponse({'equipos': equipos})
+
+# ========== GRUPOS ==========
+
+@login_required
+@user_passes_test(is_admin)
+def admin_grupos(request):
+    # Búsqueda y filtros
+    search = request.GET.get('search', '')
+    categoria_id = request.GET.get('categoria')
+    
+    grupos = Grupo.objects.select_related('categoria', 'categoria__torneo').all()
+    
+    if search:
+        grupos = grupos.filter(
+            Q(nombre__icontains=search) |
+            Q(categoria__nombre__icontains=search) |
+            Q(categoria__torneo__nombre__icontains=search)
+        )
+    
+    if categoria_id:
+        grupos = grupos.filter(categoria_id=categoria_id)
+    
+    grupos = grupos.order_by('categoria__torneo__nombre', 'categoria__nombre', 'nombre')
+    
+    # Paginación
+    paginator = Paginator(grupos, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Para el filtro de categorías
+    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+    
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'categoria_id': categoria_id,
+        'categorias': categorias,
+        'total_grupos': grupos.count(),
+    }
+    return render(request, 'admin/grupos/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_grupo(request):
+    if request.method == 'POST':
+        form = GrupoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Grupo creado exitosamente.')
+            return redirect('admin_grupos')
+    else:
+        form = GrupoForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/grupos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_grupo(request, grupo_id):
+    grupo = get_object_or_404(Grupo, id=grupo_id)
+    
+    if request.method == 'POST':
+        form = GrupoForm(request.POST, instance=grupo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Grupo actualizado exitosamente.')
+            return redirect('admin_grupos')
+    else:
+        form = GrupoForm(instance=grupo)
+    
+    context = {
+        'form': form,
+        'grupo': grupo,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/grupos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_grupo(request, grupo_id):
+    grupo = get_object_or_404(Grupo, id=grupo_id)
+    
+    if request.method == 'POST':
+        nombre_grupo = grupo.nombre
+        grupo.delete()
+        messages.success(request, f'Grupo "{nombre_grupo}" eliminado exitosamente.')
+        return redirect('admin_grupos')
+    
+    context = {
+        'grupo': grupo,
+    }
+    return render(request, 'admin/grupos/eliminar.html', context)
+
+# ========== USUARIOS ==========
+
+@login_required
+@user_passes_test(is_admin)
+def admin_usuarios(request):
+    # Búsqueda y filtros
+    search = request.GET.get('search', '')
+    is_staff = request.GET.get('is_staff')
+    is_active = request.GET.get('is_active')
+    
+    usuarios = User.objects.all()
+    
+    if search:
+        usuarios = usuarios.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+    
+    if is_staff:
+        usuarios = usuarios.filter(is_staff=(is_staff == 'true'))
+    
+    if is_active:
+        usuarios = usuarios.filter(is_active=(is_active == 'true'))
+    
+    usuarios = usuarios.order_by('-date_joined')
+    
+    # Agregar información de capitán
+    for usuario in usuarios:
+        try:
+            usuario.capitan_info = usuario.capitan
+        except:
+            usuario.capitan_info = None
+    
+    # Paginación
+    paginator = Paginator(usuarios, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'usuarios': page_obj,  # El template espera 'usuarios'
+        'page_obj': page_obj,
+        'search': search,
+        'is_staff': is_staff,
+        'is_active': is_active,
+        'total_usuarios': User.objects.count(),  # Total real, no filtrado
+        'total_admins': User.objects.filter(is_staff=True).count(),
+        'total_capitanes': Capitan.objects.filter(activo=True).count(),
+    }
+    return render(request, 'admin/usuarios/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_usuario(request):
+    if request.method == 'POST':
+        form = UsuarioForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'Usuario "{user.username}" creado exitosamente.')
+            return redirect('admin_usuarios')
+    else:
+        form = UsuarioForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/usuarios/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_usuario(request, usuario_id):
+    usuario = get_object_or_404(User, id=usuario_id)
+    
+    if request.method == 'POST':
+        form = UsuarioEditForm(request.POST, instance=usuario)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'Usuario "{user.username}" actualizado exitosamente.')
+            return redirect('admin_usuarios')
+    else:
+        form = UsuarioEditForm(instance=usuario)
+    
+    context = {
+        'form': form,
+        'usuario': usuario,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/usuarios/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_usuario(request, usuario_id):
+    usuario = get_object_or_404(User, id=usuario_id)
+    
+    # No permitir eliminar superusuarios ni el usuario actual
+    if usuario.is_superuser:
+        messages.error(request, 'No se puede eliminar un superusuario.')
+        return redirect('admin_usuarios')
+    
+    if usuario == request.user:
+        messages.error(request, 'No puedes eliminarte a ti mismo.')
+        return redirect('admin_usuarios')
+    
+    if request.method == 'POST':
+        username = usuario.username
+        usuario.delete()
+        messages.success(request, f'Usuario "{username}" eliminado exitosamente.')
+        return redirect('admin_usuarios')
+    
+    context = {
+        'usuario': usuario,
+    }
+    return render(request, 'admin/usuarios/eliminar.html', context)
+
+# ========== CAPITANES ==========
+
+@login_required
+@user_passes_test(is_admin)
+def admin_capitanes(request):
+    # Búsqueda y filtros
+    search = request.GET.get('search', '')
+    categoria_id = request.GET.get('categoria')
+    activo = request.GET.get('activo')
+    
+    capitanes = Capitan.objects.select_related('usuario', 'equipo', 'equipo__categoria').all()
+    
+    if search:
+        capitanes = capitanes.filter(
+            Q(usuario__username__icontains=search) |
+            Q(usuario__first_name__icontains=search) |
+            Q(usuario__last_name__icontains=search) |
+            Q(equipo__nombre__icontains=search)
+        )
+    
+    if categoria_id:
+        capitanes = capitanes.filter(equipo__categoria_id=categoria_id)
+    
+    if activo:
+        capitanes = capitanes.filter(activo=(activo == 'true'))
+    
+    capitanes = capitanes.order_by('equipo__categoria__nombre', 'equipo__nombre')
+    
+    # Paginación
+    paginator = Paginator(capitanes, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Para filtros
+    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+    
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'categoria_id': categoria_id,
+        'activo': activo,
+        'categorias': categorias,
+        'total_capitanes': capitanes.count(),
+        'capitanes_activos': Capitan.objects.filter(activo=True).count(),
+    }
+    return render(request, 'admin/capitanes/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_capitan(request):
+    if request.method == 'POST':
+        form = CapitanForm(request.POST)
+        if form.is_valid():
+            capitan = form.save()
+            messages.success(request, f'Capitán "{capitan.usuario.username}" asignado exitosamente.')
+            return redirect('admin_capitanes')
+    else:
+        form = CapitanForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/capitanes/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_capitan(request, capitan_id):
+    capitan = get_object_or_404(Capitan, id=capitan_id)
+    
+    if request.method == 'POST':
+        form = CapitanForm(request.POST, instance=capitan)
+        if form.is_valid():
+            capitan = form.save()
+            messages.success(request, f'Capitán "{capitan.usuario.username}" actualizado exitosamente.')
+            return redirect('admin_capitanes')
+    else:
+        form = CapitanForm(instance=capitan)
+    
+    context = {
+        'form': form,
+        'capitan': capitan,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/capitanes/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_capitan(request, capitan_id):
+    capitan = get_object_or_404(Capitan, id=capitan_id)
+    
+    if request.method == 'POST':
+        usuario_nombre = capitan.usuario.username
+        capitan.delete()
+        messages.success(request, f'Capitán "{usuario_nombre}" removido exitosamente.')
+        return redirect('admin_capitanes')
+    
+    context = {
+        'capitan': capitan,
+    }
+    return render(request, 'admin/capitanes/eliminar.html', context)
+
+# ========== ELIMINATORIAS ==========
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminatorias(request):
+    # Búsqueda y filtros
+    search = request.GET.get('search', '')
+    categoria_id = request.GET.get('categoria')
+    
+    eliminatorias = Eliminatoria.objects.select_related('categoria', 'categoria__torneo').all()
+    
+    if search:
+        eliminatorias = eliminatorias.filter(
+            Q(nombre__icontains=search) |
+            Q(categoria__nombre__icontains=search) |
+            Q(categoria__torneo__nombre__icontains=search)
+        )
+    
+    if categoria_id:
+        eliminatorias = eliminatorias.filter(categoria_id=categoria_id)
+    
+    eliminatorias = eliminatorias.order_by('categoria__torneo__nombre', 'categoria__nombre', 'orden')
+    
+    # Agregar información de partidos para cada eliminatoria
+    for eliminatoria in eliminatorias:
+        eliminatoria.partidos_count = PartidoEliminatoria.objects.filter(eliminatoria=eliminatoria).count()
+        eliminatoria.partidos_jugados = PartidoEliminatoria.objects.filter(eliminatoria=eliminatoria, jugado=True).count()
+    
+    # Paginación
+    paginator = Paginator(eliminatorias, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Para filtros
+    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+    
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'categoria_id': categoria_id,
+        'categorias': categorias,
+        'total_eliminatorias': eliminatorias.count(),
+    }
+    return render(request, 'admin/eliminatorias/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_eliminatoria(request):
+    if request.method == 'POST':
+        form = EliminatoriaForm(request.POST)
+        if form.is_valid():
+            eliminatoria = form.save()
+            messages.success(request, f'Eliminatoria "{eliminatoria.get_nombre_display()}" creada exitosamente.')
+            return redirect('admin_eliminatorias')
+    else:
+        form = EliminatoriaForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/eliminatorias/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_eliminatoria(request, eliminatoria_id):
+    eliminatoria = get_object_or_404(Eliminatoria, id=eliminatoria_id)
+    
+    if request.method == 'POST':
+        form = EliminatoriaForm(request.POST, instance=eliminatoria)
+        if form.is_valid():
+            eliminatoria = form.save()
+            messages.success(request, f'Eliminatoria "{eliminatoria.get_nombre_display()}" actualizada exitosamente.')
+            return redirect('admin_eliminatorias')
+    else:
+        form = EliminatoriaForm(instance=eliminatoria)
+    
+    context = {
+        'form': form,
+        'eliminatoria': eliminatoria,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/eliminatorias/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_eliminatoria(request, eliminatoria_id):
+    eliminatoria = get_object_or_404(Eliminatoria, id=eliminatoria_id)
+    
+    if request.method == 'POST':
+        nombre_eliminatoria = eliminatoria.get_nombre_display()
+        eliminatoria.delete()
+        messages.success(request, f'Eliminatoria "{nombre_eliminatoria}" eliminada exitosamente.')
+        return redirect('admin_eliminatorias')
+    
+    context = {
+        'eliminatoria': eliminatoria,
+    }
+    return render(request, 'admin/eliminatorias/eliminar.html', context)
+
+# ========== PARTIDOS DE ELIMINATORIA ==========
+
+@login_required
+@user_passes_test(is_admin)
+def admin_partidos_eliminatoria(request):
+    # Búsqueda y filtros
+    search = request.GET.get('search', '')
+    eliminatoria_id = request.GET.get('eliminatoria')
+    jugado = request.GET.get('jugado')
+    
+    partidos = PartidoEliminatoria.objects.select_related(
+        'eliminatoria', 'eliminatoria__categoria', 'eliminatoria__categoria__torneo',
+        'equipo_local', 'equipo_visitante'
+    ).all()
+    
+    if search:
+        partidos = partidos.filter(
+            Q(equipo_local__nombre__icontains=search) |
+            Q(equipo_visitante__nombre__icontains=search) |
+            Q(eliminatoria__categoria__nombre__icontains=search) |
+            Q(eliminatoria__categoria__torneo__nombre__icontains=search)
+        )
+    
+    if eliminatoria_id:
+        partidos = partidos.filter(eliminatoria_id=eliminatoria_id)
+    
+    if jugado:
+        partidos = partidos.filter(jugado=(jugado == 'true'))
+    
+    partidos = partidos.order_by('eliminatoria__orden', 'fecha')
+    
+    # Paginación
+    paginator = Paginator(partidos, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Para filtros
+    eliminatorias = Eliminatoria.objects.select_related('categoria', 'categoria__torneo').all().order_by('categoria__torneo__nombre', 'categoria__nombre', 'orden')
+    
+    # Estadísticas
+    total_partidos_eliminatoria = PartidoEliminatoria.objects.count()
+    partidos_jugados = PartidoEliminatoria.objects.filter(jugado=True).count()
+    partidos_pendientes = total_partidos_eliminatoria - partidos_jugados
+    eliminatorias_count = Eliminatoria.objects.count()
+    
+    context = {
+        'partidos': page_obj,  # Cambiar para que coincida con el template
+        'page_obj': page_obj,
+        'search': search,
+        'eliminatoria_id': eliminatoria_id,
+        'jugado': jugado,
+        'eliminatorias': eliminatorias,
+        'total_partidos': total_partidos_eliminatoria,
+        'partidos_jugados': partidos_jugados,
+        'partidos_pendientes': partidos_pendientes,
+        'eliminatorias_count': eliminatorias_count,
+    }
+    return render(request, 'admin/partidos_eliminatoria/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_partido_eliminatoria(request):
+    if request.method == 'POST':
+        form = PartidoEliminatoriaForm(request.POST)
+        if form.is_valid():
+            partido = form.save()
+            messages.success(request, f'Partido de eliminatoria creado exitosamente.')
+            return redirect('admin_partidos_eliminatoria')
+    else:
+        form = PartidoEliminatoriaForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/partidos_eliminatoria/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_partido_eliminatoria(request, partido_id):
+    partido = get_object_or_404(PartidoEliminatoria, id=partido_id)
+    
+    if request.method == 'POST':
+        form = PartidoEliminatoriaForm(request.POST, instance=partido)
+        if form.is_valid():
+            partido = form.save()
+            messages.success(request, f'Partido de eliminatoria actualizado exitosamente.')
+            return redirect('admin_partidos_eliminatoria')
+    else:
+        form = PartidoEliminatoriaForm(instance=partido)
+    
+    context = {
+        'form': form,
+        'partido': partido,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/partidos_eliminatoria/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_partido_eliminatoria(request, partido_id):
+    partido = get_object_or_404(PartidoEliminatoria, id=partido_id)
+    
+    if request.method == 'POST':
+        descripcion_partido = f"{partido.equipo_local} vs {partido.equipo_visitante}"
+        partido.delete()
+        messages.success(request, f'Partido de eliminatoria "{descripcion_partido}" eliminado exitosamente.')
+        return redirect('admin_partidos_eliminatoria')
+    
+    context = {
+        'partido': partido,
+    }
+    return render(request, 'admin/partidos_eliminatoria/eliminar.html', context)
+
+# =================== GOLEADORES ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_goleadores(request):
+    # Búsqueda y filtros
+    search = request.GET.get('search', '')
+    categoria_id = request.GET.get('categoria')
+    equipo_id = request.GET.get('equipo')
+    min_goles = request.GET.get('min_goles')
+    
+    goleadores = Goleador.objects.select_related(
+        'jugador', 'jugador__equipo', 'categoria', 'partido', 'partido_eliminatoria'
+    ).all()
+    
+    if search:
+        goleadores = goleadores.filter(
+            Q(jugador__nombre__icontains=search) |
+            Q(jugador__equipo__nombre__icontains=search) |
+            Q(categoria__nombre__icontains=search)
+        )
+    
+    if categoria_id:
+        goleadores = goleadores.filter(categoria_id=categoria_id)
+    
+    if equipo_id:
+        goleadores = goleadores.filter(jugador__equipo_id=equipo_id)
+    
+    if min_goles:
+        try:
+            goleadores = goleadores.filter(goles__gte=int(min_goles))
+        except ValueError:
+            pass
+    
+    goleadores = goleadores.order_by('-goles', 'jugador__nombre')
+    
+    # Paginación
+    paginator = Paginator(goleadores, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Para filtros
+    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+    equipos = Equipo.objects.all().order_by('nombre')
+    
+    # Estadísticas
+    total_goleadores = Goleador.objects.count()
+    total_goles_anotados = Goleador.objects.aggregate(total=Sum('goles'))['total'] or 0
+    max_goles = goleadores.aggregate(max_goles=Max('goles'))['max_goles'] or 0
+    categorias_count = Goleador.objects.values('categoria').distinct().count()
+    
+    context = {
+        'goleadores': page_obj,
+        'page_obj': page_obj,
+        'search': search,
+        'categoria_id': categoria_id,
+        'equipo_id': equipo_id,
+        'min_goles': min_goles,
+        'categorias': categorias,
+        'equipos': equipos,
+        'total_goleadores': total_goleadores,
+        'total_goles_anotados': total_goles_anotados,
+        'max_goles': max_goles,
+        'categorias_count': categorias_count,
+    }
+    return render(request, 'admin/goleadores/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_goleador(request):
+    if request.method == 'POST':
+        form = GoleadorForm(request.POST)
+        if form.is_valid():
+            goleador = form.save()
+            messages.success(request, f'Goleador "{goleador.jugador.nombre}" creado exitosamente.')
+            return redirect('admin_goleadores')
+    else:
+        form = GoleadorForm()
+    
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/goleadores/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_goleador(request, goleador_id):
+    goleador = get_object_or_404(Goleador, id=goleador_id)
+    
+    if request.method == 'POST':
+        form = GoleadorForm(request.POST, instance=goleador)
+        if form.is_valid():
+            goleador = form.save()
+            messages.success(request, f'Goleador "{goleador.jugador.nombre}" actualizado exitosamente.')
+            return redirect('admin_goleadores')
+    else:
+        form = GoleadorForm(instance=goleador)
+    
+    context = {
+        'form': form,
+        'goleador': goleador,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/goleadores/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_goleador(request, goleador_id):
+    goleador = get_object_or_404(Goleador, id=goleador_id)
+    
+    if request.method == 'POST':
+        jugador_nombre = goleador.jugador.nombre
+        goles = goleador.goles
+        goleador.delete()
+        messages.success(request, f'Registro de goleador "{jugador_nombre}" ({goles} goles) eliminado exitosamente.')
+        return redirect('admin_goleadores')
+    
+    context = {
+        'goleador': goleador,
+    }
+    return render(request, 'admin/goleadores/eliminar.html', context)
+
+# =================== HERRAMIENTAS ADMINISTRATIVAS ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_herramientas(request):
+    # Detectar inconsistencias en partidos
+    partidos_sin_fecha_con_resultado = Partido.objects.filter(
+        fecha__isnull=True
+    ).exclude(
+        goles_local__isnull=True,
+        goles_visitante__isnull=True
+    ).exclude(
+        goles_local=0,
+        goles_visitante=0
+    )
+    
+    partidos_jugados_sin_fecha = Partido.objects.filter(
+        jugado=True,
+        fecha__isnull=True
+    )
+    
+    partidos_con_resultado_no_jugados = Partido.objects.filter(
+        jugado=False
+    ).exclude(
+        goles_local__isnull=True,
+        goles_visitante__isnull=True
+    ).exclude(
+        goles_local=0,
+        goles_visitante=0
+    )
+    
+    context = {
+        'partidos_sin_fecha_con_resultado': partidos_sin_fecha_con_resultado,
+        'partidos_jugados_sin_fecha': partidos_jugados_sin_fecha,
+        'partidos_con_resultado_no_jugados': partidos_con_resultado_no_jugados,
+    }
+    return render(request, 'admin/herramientas/index.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_corregir_inconsistencias(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'marcar_jugados':
+            # Marcar como jugados los partidos con resultado
+            partidos_actualizados = Partido.objects.filter(
+                jugado=False
+            ).exclude(
+                goles_local__isnull=True,
+                goles_visitante__isnull=True
+            ).exclude(
+                goles_local=0,
+                goles_visitante=0
+            ).update(jugado=True)
+            
+            messages.success(request, f'Se marcaron {partidos_actualizados} partidos como jugados.')
+        
+        elif action == 'asignar_fechas':
+            # Asignar fecha actual a partidos finalizados sin fecha
+            from django.utils import timezone
+            partidos_sin_fecha = Partido.objects.filter(
+                Q(jugado=True) | 
+                (Q(goles_local__gt=0) | Q(goles_visitante__gt=0)),
+                fecha__isnull=True
+            )
+            
+            fecha_default = timezone.now()
+            partidos_actualizados = 0
+            
+            for partido in partidos_sin_fecha:
+                partido.fecha = fecha_default
+                partido.save()
+                partidos_actualizados += 1
+            
+            messages.success(request, f'Se asignó fecha a {partidos_actualizados} partidos.')
+        
+        elif action == 'resetear_resultados':
+            # Resetear resultados de partidos no jugados
+            partidos_reseteados = Partido.objects.filter(
+                jugado=False
+            ).exclude(
+                goles_local__isnull=True,
+                goles_visitante__isnull=True
+            ).exclude(
+                goles_local=0,
+                goles_visitante=0
+            ).update(goles_local=0, goles_visitante=0)
+            
+            messages.success(request, f'Se resetearon los resultados de {partidos_reseteados} partidos.')
+    
+    return redirect('admin_herramientas')
