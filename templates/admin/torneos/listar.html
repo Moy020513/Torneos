@@ -20,8 +20,8 @@
 <!-- Filters and Search -->
 <div class="admin-card mb-4">
     <div class="admin-card-body">
-        <form method="GET" class="row align-items-end">
-            <div class="col-md-8">
+        <div class="row align-items-end">
+            <div class="col-md-6">
                 <label class="admin-form-label">Buscar Torneos</label>
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0">
@@ -29,24 +29,27 @@
                     </span>
                     <input type="text" 
                            name="search" 
+                           id="searchInput"
                            class="admin-form-control border-start-0" 
                            placeholder="Buscar por nombre o descripción..."
-                           value="{{ search|default:'' }}">
+                           value="{{ search|default:'' }}"
+                           autocomplete="off">
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-admin">
-                        <i class="fas fa-filter me-2"></i>Filtrar
-                    </button>
-                    {% if search %}
-                        <a href="{% url 'admin_torneos' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    {% endif %}
-                </div>
+                <label class="admin-form-label">Ordenar por Categorías</label>
+                <select name="orden" id="ordenFilter" class="admin-form-control form-select">
+                    <option value="">Sin ordenar</option>
+                    <option value="mas_categorias" {% if orden == 'mas_categorias' %}selected{% endif %}>Más categorías primero</option>
+                    <option value="menos_categorias" {% if orden == 'menos_categorias' %}selected{% endif %}>Menos categorías primero</option>
+                </select>
             </div>
-        </form>
+            <div class="col-md-2">
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100" style="display: none;">
+                    <i class="fas fa-times me-2"></i>Limpiar
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -54,9 +57,9 @@
 <div class="admin-card">
     <div class="admin-card-header d-flex justify-content-between align-items-center">
         <h3><i class="fas fa-trophy me-2"></i>Lista de Torneos</h3>
-        <span class="badge badge-admin">{{ torneos.paginator.count }} torneo{{ torneos.paginator.count|pluralize }}</span>
+        <span class="badge badge-admin" id="torneoCount">{{ torneos.paginator.count }} torneo{{ torneos.paginator.count|pluralize }}</span>
     </div>
-    <div class="admin-card-body p-0">
+    <div class="admin-card-body p-0" id="torneosContainer">
         {% if torneos %}
             <div class="table-responsive admin-table" style="overflow-x: auto;">
                 <table class="table table-hover mb-0" style="min-width: 1200px;">
@@ -72,7 +75,7 @@
                             <th width="180" style="min-width: 180px;">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="torneosTableBody">
                         {% for torneo in torneos %}
                         <tr>
                             <td>
@@ -172,49 +175,192 @@
 </div>
 
 <!-- Pagination -->
-{% if torneos.has_other_pages %}
-<nav aria-label="Paginación" class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% if torneos.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}">
-                    <i class="fas fa-angle-double-left"></i>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ torneos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">
-                    <i class="fas fa-angle-left"></i>
-                </a>
-            </li>
-        {% endif %}
-        
-        {% for num in torneos.paginator.page_range %}
-            {% if num == torneos.number %}
-                <li class="page-item active">
-                    <span class="page-link">{{ num }}</span>
-                </li>
-            {% elif num > torneos.number|add:'-3' and num < torneos.number|add:'3' %}
+<div id="paginationContainer">
+    {% if torneos.has_other_pages %}
+    <nav aria-label="Paginación" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if torneos.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                    <a class="page-link pagination-link" href="#" data-page="1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link pagination-link" href="#" data-page="{{ torneos.previous_page_number }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
                 </li>
             {% endif %}
-        {% endfor %}
+            
+            {% for num in torneos.paginator.page_range %}
+                {% if num == torneos.number %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > torneos.number|add:'-3' and num < torneos.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link pagination-link" href="#" data-page="{{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if torneos.has_next %}
+                <li class="page-item">
+                    <a class="page-link pagination-link" href="#" data-page="{{ torneos.next_page_number }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link pagination-link" href="#" data-page="{{ torneos.paginator.num_pages }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const ordenFilter = document.getElementById('ordenFilter');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const torneosContainer = document.getElementById('torneosContainer');
+    const paginationContainer = document.getElementById('paginationContainer');
+    const torneoCount = document.getElementById('torneoCount');
+    
+    let searchTimeout;
+    let currentPage = 1;
+    
+    // Función para actualizar la visibilidad del botón limpiar
+    function updateClearButton() {
+        if (searchInput.value || ordenFilter.value) {
+            clearFiltersBtn.style.display = 'block';
+        } else {
+            clearFiltersBtn.style.display = 'none';
+        }
+    }
+    
+    // Función para cargar torneos con AJAX
+    function loadTorneos(page = 1) {
+        const searchValue = searchInput.value;
+        const ordenValue = ordenFilter.value;
         
-        {% if torneos.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ torneos.next_page_number }}{% if search %}&search={{ search }}{% endif %}">
-                    <i class="fas fa-angle-right"></i>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ torneos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}">
-                    <i class="fas fa-angle-double-right"></i>
-                </a>
-            </li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
+        // Construir URL con parámetros
+        const params = new URLSearchParams();
+        if (searchValue) params.append('search', searchValue);
+        if (ordenValue) params.append('orden', ordenValue);
+        if (page > 1) params.append('page', page);
+        
+        const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        
+        // Hacer petición AJAX
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Crear un documento temporal para parsear el HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Actualizar el contenedor de torneos
+            const newContainer = doc.getElementById('torneosContainer');
+            if (newContainer) {
+                torneosContainer.innerHTML = newContainer.innerHTML;
+            }
+            
+            // Actualizar la paginación
+            const newPagination = doc.getElementById('paginationContainer');
+            if (newPagination) {
+                paginationContainer.innerHTML = newPagination.innerHTML;
+                attachPaginationListeners();
+            }
+            
+            // Actualizar el contador
+            const newCount = doc.getElementById('torneoCount');
+            if (newCount) {
+                torneoCount.innerHTML = newCount.innerHTML;
+            }
+            
+            // Reinicializar tooltips
+            initTooltips();
+            
+            // Actualizar URL sin recargar
+            window.history.replaceState({}, '', url);
+        })
+        .catch(error => {
+            console.error('Error al cargar torneos:', error);
+        });
+    }
+    
+    // Función para adjuntar listeners a los enlaces de paginación
+    function attachPaginationListeners() {
+        document.querySelectorAll('.pagination-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.getAttribute('data-page');
+                currentPage = parseInt(page);
+                loadTorneos(currentPage);
+            });
+        });
+    }
+    
+    // Función para inicializar tooltips
+    function initTooltips() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+    
+    // Búsqueda instantánea con debounce
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        updateClearButton();
+        searchTimeout = setTimeout(function() {
+            currentPage = 1;
+            loadTorneos(1);
+        }, 300);
+    });
+    
+    // Filtro de orden instantáneo
+    ordenFilter.addEventListener('change', function() {
+        updateClearButton();
+        currentPage = 1;
+        loadTorneos(1);
+    });
+    
+    // Botón limpiar filtros
+    clearFiltersBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        ordenFilter.value = '';
+        updateClearButton();
+        currentPage = 1;
+        loadTorneos(1);
+    });
+    
+    // Inicializar listeners de paginación
+    attachPaginationListeners();
+    
+    // Inicializar tooltips
+    initTooltips();
+    
+    // Inicializar visibilidad del botón limpiar
+    updateClearButton();
+    
+    // Auto-scroll para mostrar acciones en pantallas pequeñas
+    const tableContainer = document.querySelector('.table-responsive');
+    if (tableContainer && tableContainer.scrollWidth > tableContainer.clientWidth) {
+        tableContainer.addEventListener('mouseenter', function() {
+            this.scrollTo({ left: this.scrollWidth - this.clientWidth, behavior: 'smooth' });
+        });
+    }
+});
+</script>
 
 {% endblock %}
 
@@ -254,27 +400,5 @@
     position: relative;
     z-index: 1;
 }
-
-
 </style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar tooltips de Bootstrap
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Auto-scroll para mostrar acciones en pantallas pequeñas
-    const tableContainer = document.querySelector('.table-responsive');
-    if (tableContainer && tableContainer.scrollWidth > tableContainer.clientWidth) {
-        tableContainer.addEventListener('mouseenter', function() {
-            this.scrollTo({ left: this.scrollWidth - this.clientWidth, behavior: 'smooth' });
-        });
-    }
-});
-</script>
 {% endblock %}

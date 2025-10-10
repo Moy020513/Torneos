@@ -20,10 +20,10 @@
 <!-- Filters and Search -->
 <div class="admin-card mb-4">
     <div class="admin-card-body">
-        <form method="GET" class="row align-items-end">
+        <div class="row align-items-end">
             <div class="col-md-3">
                 <label class="admin-form-label">Torneo</label>
-                <select name="torneo" class="admin-form-control form-select">
+                <select name="torneo" id="torneoFilter" class="admin-form-control form-select">
                     <option value="">Todos los torneos</option>
                     {% for torneo in torneos %}
                         <option value="{{ torneo.id }}" {% if torneo_id == torneo.id|slugify %}selected{% endif %}>
@@ -34,7 +34,7 @@
             </div>
             <div class="col-md-3">
                 <label class="admin-form-label">Categoría</label>
-                <select name="categoria" class="admin-form-control form-select">
+                <select name="categoria" id="categoriaFilter" class="admin-form-control form-select">
                     <option value="">Todas las categorías</option>
                     {% for categoria in categorias %}
                         <option value="{{ categoria.id }}" {% if categoria_id == categoria.id|slugify %}selected{% endif %}>
@@ -51,24 +51,19 @@
                     </span>
                     <input type="text" 
                            name="search" 
+                           id="searchInput"
                            class="admin-form-control border-start-0" 
                            placeholder="Buscar por nombre..."
-                           value="{{ search|default:'' }}">
+                           value="{{ search|default:'' }}"
+                           autocomplete="off">
                 </div>
             </div>
             <div class="col-md-2">
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-admin">
-                        <i class="fas fa-filter me-2"></i>Filtrar
-                    </button>
-                    {% if search or categoria_id or torneo_id %}
-                        <a href="{% url 'admin_equipos' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    {% endif %}
-                </div>
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100" style="display: none;">
+                    <i class="fas fa-times me-2"></i>Limpiar
+                </button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -76,9 +71,9 @@
 <div class="admin-card">
     <div class="admin-card-header d-flex justify-content-between align-items-center">
         <h3><i class="fas fa-users me-2"></i>Lista de Equipos</h3>
-        <span class="badge badge-admin">{{ equipos.paginator.count }} equipo{{ equipos.paginator.count|pluralize }}</span>
+        <span class="badge badge-admin" id="equipoCount">{{ equipos.paginator.count }} equipo{{ equipos.paginator.count|pluralize }}</span>
     </div>
-    <div class="admin-card-body p-0">
+    <div class="admin-card-body p-0" id="equiposContainer">
         {% if equipos %}
             <div class="admin-table">
                 <table class="table table-hover mb-0">
@@ -94,7 +89,7 @@
                             <th width="120">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="equiposTableBody">
                         {% for equipo in equipos %}
                         <tr>
                             <td>
@@ -175,5 +170,182 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Pagination -->
+<div id="paginationContainer">
+    {% if equipos.has_other_pages %}
+    <nav aria-label="Paginación" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if equipos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link pagination-link" href="#" data-page="1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link pagination-link" href="#" data-page="{{ equipos.previous_page_number }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in equipos.paginator.page_range %}
+                {% if num == equipos.number %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > equipos.number|add:'-3' and num < equipos.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link pagination-link" href="#" data-page="{{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if equipos.has_next %}
+                <li class="page-item">
+                    <a class="page-link pagination-link" href="#" data-page="{{ equipos.next_page_number }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link pagination-link" href="#" data-page="{{ equipos.paginator.num_pages }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const torneoFilter = document.getElementById('torneoFilter');
+    const categoriaFilter = document.getElementById('categoriaFilter');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const equiposContainer = document.getElementById('equiposContainer');
+    const paginationContainer = document.getElementById('paginationContainer');
+    const equipoCount = document.getElementById('equipoCount');
+    
+    let searchTimeout;
+    let currentPage = 1;
+    
+    // Función para actualizar la visibilidad del botón limpiar
+    function updateClearButton() {
+        if (searchInput.value || torneoFilter.value || categoriaFilter.value) {
+            clearFiltersBtn.style.display = 'block';
+        } else {
+            clearFiltersBtn.style.display = 'none';
+        }
+    }
+    
+    // Función para cargar equipos con AJAX
+    function loadEquipos(page = 1) {
+        const searchValue = searchInput.value;
+        const torneoValue = torneoFilter.value;
+        const categoriaValue = categoriaFilter.value;
+        
+        // Construir URL con parámetros
+        const params = new URLSearchParams();
+        if (searchValue) params.append('search', searchValue);
+        if (torneoValue) params.append('torneo', torneoValue);
+        if (categoriaValue) params.append('categoria', categoriaValue);
+        if (page > 1) params.append('page', page);
+        
+        const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        
+        // Hacer petición AJAX
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Crear un documento temporal para parsear el HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Actualizar el contenedor de equipos
+            const newContainer = doc.getElementById('equiposContainer');
+            if (newContainer) {
+                equiposContainer.innerHTML = newContainer.innerHTML;
+            }
+            
+            // Actualizar la paginación
+            const newPagination = doc.getElementById('paginationContainer');
+            if (newPagination) {
+                paginationContainer.innerHTML = newPagination.innerHTML;
+                attachPaginationListeners();
+            }
+            
+            // Actualizar el contador
+            const newCount = doc.getElementById('equipoCount');
+            if (newCount) {
+                equipoCount.innerHTML = newCount.innerHTML;
+            }
+            
+            // Actualizar URL sin recargar
+            window.history.replaceState({}, '', url);
+        })
+        .catch(error => {
+            console.error('Error al cargar equipos:', error);
+        });
+    }
+    
+    // Función para adjuntar listeners a los enlaces de paginación
+    function attachPaginationListeners() {
+        document.querySelectorAll('.pagination-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.getAttribute('data-page');
+                currentPage = parseInt(page);
+                loadEquipos(currentPage);
+            });
+        });
+    }
+    
+    // Búsqueda instantánea con debounce
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        updateClearButton();
+        searchTimeout = setTimeout(function() {
+            currentPage = 1;
+            loadEquipos(1);
+        }, 300);
+    });
+    
+    // Filtro de torneo instantáneo
+    torneoFilter.addEventListener('change', function() {
+        updateClearButton();
+        currentPage = 1;
+        loadEquipos(1);
+    });
+    
+    // Filtro de categoría instantáneo
+    categoriaFilter.addEventListener('change', function() {
+        updateClearButton();
+        currentPage = 1;
+        loadEquipos(1);
+    });
+    
+    // Botón limpiar filtros
+    clearFiltersBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        torneoFilter.value = '';
+        categoriaFilter.value = '';
+        updateClearButton();
+        currentPage = 1;
+        loadEquipos(1);
+    });
+    
+    // Inicializar listeners de paginación
+    attachPaginationListeners();
+    
+    // Inicializar visibilidad del botón limpiar
+    updateClearButton();
+});
+</script>
 
 {% endblock %}

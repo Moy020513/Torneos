@@ -117,7 +117,10 @@ def admin_dashboard(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_torneos(request):
-    torneos = Torneo.objects.all().order_by('-fecha_creacion')
+    # Anotar con el conteo de categorías
+    torneos = Torneo.objects.annotate(
+        num_categorias=Count('categoria')
+    ).order_by('-fecha_creacion')
     
     # Búsqueda
     search = request.GET.get('search')
@@ -127,6 +130,13 @@ def admin_torneos(request):
             Q(descripcion__icontains=search)
         )
     
+    # Ordenamiento por categorías
+    orden = request.GET.get('orden', '')
+    if orden == 'mas_categorias':
+        torneos = torneos.order_by('-num_categorias', '-fecha_creacion')
+    elif orden == 'menos_categorias':
+        torneos = torneos.order_by('num_categorias', '-fecha_creacion')
+    
     # Paginación
     paginator = Paginator(torneos, 10)
     page_number = request.GET.get('page')
@@ -135,6 +145,7 @@ def admin_torneos(request):
     context = {
         'torneos': torneos,
         'search': search,
+        'orden': orden,
     }
     return render(request, 'admin/torneos/listar.html', context)
 
