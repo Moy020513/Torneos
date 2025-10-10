@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Confirmar Generación de Calendario{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-warning text-dark">
+            <h3 class="mb-0"><i class="fa-solid fa-calendar-plus me-2"></i>Confirmar generación de calendario</h3>
+        </div>
+        <div class="card-body">
+            <p>¿Estás seguro que deseas generar el calendario para la categoría <strong>{{ categoria.nombre }}</strong>?</p>
+            <ul>
+                <li>Se crearán partidos para <strong>{{ equipos|length }}</strong> equipos.</li>
+                <li>Se eliminarán los partidos existentes de la categoría.</li>
+                <li>Esta acción no se puede deshacer.</li>
+            </ul>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-calendar-plus"></i> Sí, generar calendario
+                </button>
+                <a href="{% url 'administrar_torneo' categoria.torneo.id %}" class="btn btn-outline-secondary ms-2">
+                    Cancelar
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

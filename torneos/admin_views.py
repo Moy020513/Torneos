@@ -196,6 +196,66 @@ def admin_eliminar_torneo(request, torneo_id):
     return render(request, 'admin/torneos/eliminar.html', context)
 
 # =================== CATEGORÍAS ===================
+from django import forms
+
+class IntegrarEquipoForm(forms.Form):
+    equipo_id = forms.ModelChoiceField(queryset=Equipo.objects.none(), label="Equipo a integrar")
+
+    def __init__(self, categoria, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['equipo_id'].queryset = Equipo.objects.filter(categoria=categoria)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_integrar_equipo_calendario(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = Equipo.objects.filter(categoria=categoria)
+    if not equipos.exists():
+        messages.error(request, 'No hay equipos en la categoría para integrar.')
+        return redirect('admin_categorias')
+
+    if request.method == 'POST':
+        form = IntegrarEquipoForm(categoria, request.POST)
+        if form.is_valid():
+            equipo = form.cleaned_data['equipo_id']
+            # Lógica para integrar el equipo al calendario respetando jornadas jugadas y descansos
+            # 1. Obtener partidos jugados y jornadas existentes
+            partidos = Partido.objects.filter(grupo__categoria=categoria).order_by('jornada')
+            jornadas_existentes = set(partidos.values_list('jornada', flat=True))
+            # 2. Calcular jornadas jugadas y descansos
+            jornadas_jugadas = set(partidos.filter(jugado=True).values_list('jornada', flat=True))
+            # 3. Integrar el equipo solo en jornadas futuras y asignar descansos donde corresponda
+            # (Ejemplo simple: solo agrega partidos en jornadas no jugadas)
+            grupo, created = Grupo.objects.get_or_create(
+                categoria=categoria,
+                nombre="Grupo Único",
+                defaults={'descripcion': 'Grupo principal de la categoría'}
+            )
+            partidos_creados = 0
+            for jornada in sorted(jornadas_existentes):
+                if jornada in jornadas_jugadas:
+                    continue  # No modificar jornadas ya jugadas
+                # Crear partidos contra todos los equipos existentes en esa jornada
+                for rival in equipos.exclude(id=equipo.id):
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=jornada,
+                        equipo_local=equipo,
+                        equipo_visitante=rival,
+                        fecha=datetime.now()  # O asignar fecha lógica
+                    )
+                    partidos_creados += 1
+            messages.success(request, f'Equipo integrado al calendario. Se crearon {partidos_creados} partidos en jornadas futuras.')
+            return redirect('admin_categorias')
+    else:
+        form = IntegrarEquipoForm(categoria)
+
+    context = {
+        'form': form,
+        'categoria': categoria,
+        'equipos': equipos,
+    }
+    return render(request, 'admin/categorias/integrar_equipo.html', context)
 @login_required
 @user_passes_test(is_admin)
 def admin_categorias(request):

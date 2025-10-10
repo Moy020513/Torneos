@@ -389,6 +389,42 @@ def generar_calendario(request, categoria_id):
         messages.error(request, 'Se necesitan al menos 2 equipos para generar un calendario.')
         return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
 
+    if request.method == 'POST':
+        # Algoritmo round-robin para generar partidos
+        n = len(equipos)
+        if n % 2 == 1:
+            equipos.append(None)  # Equipo ficticio para números impares
+            n += 1
+        partidos_por_jornada = n // 2
+        total_jornadas = n - 1
+        grupo, created = Grupo.objects.get_or_create(
+            categoria=categoria,
+            nombre="Grupo Único",
+            defaults={'descripcion': 'Grupo principal de la categoría'}
+        )
+        Partido.objects.filter(grupo__categoria=categoria).delete()
+        for jornada in range(1, total_jornadas + 1):
+            for i in range(partidos_por_jornada):
+                local = equipos[i]
+                visitante = equipos[n - 1 - i]
+                if local is not None and visitante is not None:
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=jornada,
+                        equipo_local=local,
+                        equipo_visitante=visitante,
+                        fecha=datetime.now()  # Ajustar según necesidad
+                    )
+            equipos.insert(1, equipos.pop())
+        messages.success(request, f'Calendario generado con {total_jornadas} jornadas.')
+        return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
+    else:
+        # Mostrar confirmación visual
+        return render(request, 'torneos/confirmar_generar_calendario.html', {
+            'categoria': categoria,
+            'equipos': equipos
+        })
+
 
 # Vista independiente para tabla de posiciones
 def tabla_posiciones_view(request, categoria_id):

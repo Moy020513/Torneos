@@ -17,6 +17,7 @@ admin_urlpatterns = [
     path('panel/categorias/crear/', admin_views.admin_crear_categoria, name='admin_crear_categoria'),
     path('panel/categorias/<int:categoria_id>/editar/', admin_views.admin_editar_categoria, name='admin_editar_categoria'),
     path('panel/categorias/<int:categoria_id>/eliminar/', admin_views.admin_eliminar_categoria, name='admin_eliminar_categoria'),
+    path('panel/categorias/<int:categoria_id>/integrar-equipo/', admin_views.admin_integrar_equipo_calendario, name='admin_integrar_equipo_calendario'),
     
     # Equipos
     path('panel/equipos/', admin_views.admin_equipos, name='admin_equipos'),

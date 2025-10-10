@@ -113,7 +113,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     {% if partido.equipo_local.logo %}
-                                        <img src="{{ partido.equipo_local.logo.url }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                        <img src="{{ partido.equipo_local.logo.url }}" class="me-2 team-logo-admin" alt="{{ partido.equipo_local.nombre }}">
                                     {% endif %}
                                     <span class="fw-semibold">{{ partido.equipo_local.nombre }}</span>
                                 </div>
@@ -138,7 +138,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     {% if partido.equipo_visitante.logo %}
-                                        <img src="{{ partido.equipo_visitante.logo.url }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                        <img src="{{ partido.equipo_visitante.logo.url }}" class="me-2 team-logo-admin" alt="{{ partido.equipo_visitante.nombre }}">
                                     {% endif %}
                                     <span class="fw-semibold">{{ partido.equipo_visitante.nombre }}</span>
                                 </div>
@@ -257,6 +257,17 @@
 {% endif %}
 
 <style>
+.team-logo-admin {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    background: #fff;
+    border: none;
+    box-shadow: none;
+    border-radius: 8px;
+    padding: 2px;
+    display: inline-block;
+}
 /* Mejorar scroll horizontal en tablas */
 .table-responsive {
     overflow-x: auto;

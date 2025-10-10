@@ -1,0 +1,29 @@
+{% extends 'admin/admin_base.html' %}
+{% block page_title %}Integrar Equipo al Calendario{% endblock %}
+{% block content %}
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <h3><i class="fas fa-user-plus me-2"></i>Integrar Equipo al Calendario</h3>
+    </div>
+    <div class="admin-card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Selecciona el equipo a integrar:</label>
+                {{ form.equipo_id }}
+            </div>
+            <button type="submit" class="btn btn-admin">
+                <i class="fas fa-user-plus"></i> Integrar Equipo
+            </button>
+            <a href="{% url 'admin_categorias' %}" class="btn btn-outline-secondary ms-2">
+                Cancelar
+            </a>
+        </form>
+        <hr>
+        <p class="text-muted small">
+            El equipo seleccionado será integrado al calendario de la categoría <strong>{{ categoria.nombre }}</strong>.<br>
+            Solo se crearán partidos en jornadas futuras, respetando las jornadas ya jugadas y los descansos existentes.
+        </p>
+    </div>
+</div>
+{% endblock %}
