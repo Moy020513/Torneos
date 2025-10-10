@@ -79,7 +79,7 @@
 </div>
 
 <div class="row">
-    <div class="{% if user.is_staff %}col-md-8{% else %}col-12{% endif %}">
+    <div class="col-12">
         <div class="card mb-4 shadow-lg" 
              style="background: rgba(255, 255, 255, 0.95);
                     border: 1px solid rgba(30, 58, 95, 0.3);
@@ -202,85 +202,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Sidebar para administradores -->
-    {% if user.is_staff %}
-    <div class="col-md-4">
-        <div class="card mb-4 shadow-lg" 
-             style="background: rgba(255, 255, 255, 0.95); 
-                    border: 1px solid rgba(30, 58, 95, 0.3);
-                    border-radius: 18px;
-                    backdrop-filter: blur(10px);">
-            <div class="card-header text-white text-center"
-                 style="background: linear-gradient(135deg, #0c2340 0%, #1e3a5f 100%); 
-                        border: none;">
-                <h5 class="mb-0 fw-bold">
-                    <i class="fa-solid fa-chart-simple me-2"></i>Estadísticas
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="row text-center">
-                    <div class="col-6 mb-3">
-                        <div class="p-3 rounded-3" 
-                             style="background: rgba(30, 58, 95, 0.1); border: 1px solid rgba(45, 90, 160, 0.2);">
-                            <h4 class="fw-bold" style="color: #1e3a5f;">{{ total_torneos }}</h4>
-                            <p class="text-muted mb-0 small">Torneos</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="p-3 rounded-3" 
-                             style="background: rgba(30, 58, 95, 0.1); border: 1px solid rgba(45, 90, 160, 0.2);">
-                            <h4 class="fw-bold" style="color: #1e3a5f;">{{ total_equipos }}</h4>
-                            <p class="text-muted mb-0 small">Equipos</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="p-3 rounded-3" 
-                             style="background: rgba(30, 58, 95, 0.1); border: 1px solid rgba(45, 90, 160, 0.2);">
-                            <h4 class="fw-bold" style="color: #1e3a5f;">{{ total_jugadores }}</h4>
-                            <p class="text-muted mb-0 small">Jugadores</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="p-3 rounded-3" 
-                             style="background: rgba(30, 58, 95, 0.1); border: 1px solid rgba(45, 90, 160, 0.2);">
-                            <h4 class="fw-bold" style="color: #1e3a5f;">{{ total_partidos }}</h4>
-                            <p class="text-muted mb-0 small">Partidos</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card shadow-lg" 
-             style="background: rgba(255, 255, 255, 0.95); 
-                    border: 1px solid rgba(30, 58, 95, 0.3);
-                    border-radius: 18px;
-                    backdrop-filter: blur(10px);">
-            <div class="card-header text-white text-center"
-                 style="background: linear-gradient(135deg, #0c2340 0%, #1e3a5f 100%); 
-                        border: none;">
-                <h5 class="mb-0 fw-bold">
-                    <i class="fa-solid fa-arrow-trend-up me-2"></i>Accesos Rápidos
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="d-grid gap-3">
-                    <a href="/admin/" class="btn btn-outline-primary fw-semibold" 
-                       style="border: 2px solid #1e3a5f; color: #1e3a5f; border-radius: 10px;">
-                        <i class="fa-solid fa-gear me-2"></i>Panel de Administración
-                    </a>
-                    {% if user.is_authenticated and user.capitan %}
-                    <a href="{% url 'gestion_equipo' user.capitan.equipo.id %}" class="btn btn-outline-success fw-semibold"
-                       style="border: 2px solid #059669; color: #059669; border-radius: 10px;">
-                        <i class="fa-solid fa-users me-2"></i>Mi Equipo
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 
 <style>

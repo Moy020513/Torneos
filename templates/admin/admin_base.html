@@ -303,6 +303,94 @@
             font-size: 0.95rem;
         }
         
+        /* Compact Stats Cards */
+        .stat-compact {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 110px;
+        }
+        
+        .stat-compact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+        
+        .stat-compact.primary::before { background: linear-gradient(135deg, var(--navy-accent) 0%, var(--navy-light) 100%); }
+        .stat-compact.success::before { background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%); }
+        .stat-compact.warning::before { background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%); }
+        .stat-compact.info::before { background: linear-gradient(135deg, var(--info-color) 0%, #2563eb 100%); }
+        .stat-compact.danger::before { background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%); }
+        
+        .stat-compact:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .stat-compact i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
+        }
+        
+        .stat-compact.primary i { color: var(--navy-accent); }
+        .stat-compact.success i { color: var(--success-color); }
+        .stat-compact.warning i { color: var(--warning-color); }
+        .stat-compact.info i { color: var(--info-color); }
+        .stat-compact.danger i { color: var(--danger-color); }
+        
+        .stat-compact-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--navy-primary);
+            margin-bottom: 0.25rem;
+            line-height: 1;
+        }
+        
+        .stat-compact-label {
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+        
+        /* Responsive adjustments for compact stats */
+        @media (max-width: 1400px) {
+            .stat-compact-value {
+                font-size: 1.5rem;
+            }
+            .stat-compact i {
+                font-size: 1.25rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stat-compact {
+                min-height: 90px;
+                padding: 0.75rem;
+            }
+            .stat-compact-value {
+                font-size: 1.4rem;
+            }
+            .stat-compact-label {
+                font-size: 0.7rem;
+            }
+        }
+        
         /* Buttons */
         .btn-admin {
             background: linear-gradient(135deg, var(--navy-accent) 0%, var(--navy-light) 100%);
