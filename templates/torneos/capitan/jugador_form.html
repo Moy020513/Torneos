@@ -226,7 +226,7 @@
                 cropperImage.src = event.target.result;
                 cropper = new Cropper(cropperImage, {
                     aspectRatio: 2.5 / 3, // tamaño infantil (2.5x3)
-                    viewMode: 2, // marco fijo, mueve la imagen
+                    viewMode: 1, // mayor rango de movimiento de la imagen
                     autoCropArea: 1,
                     dragMode: 'move', // permite mover la imagen
                     movable: true, // permite mover la imagen
