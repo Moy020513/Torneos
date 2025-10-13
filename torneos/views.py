@@ -1,4 +1,4 @@
-# Vista independiente para jugadores
+
 def jugadores_view(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = Equipo.objects.filter(categoria=categoria)
@@ -76,6 +76,7 @@ def get_categorias_by_torneo(request):
     return JsonResponse({'categorias': categorias})
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q, Sum, Count, F
@@ -85,6 +86,7 @@ import json
 from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
+
 
 def is_admin(user):
     return user.is_superuser
@@ -271,6 +273,61 @@ def administrar_torneo(request, torneo_id):
     }
     return render(request, 'torneos/admin/administrar_torneo.html', context)
 
+@user_passes_test(is_admin)
+def integrar_nuevo_equipo(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = list(Equipo.objects.filter(categoria=categoria))
+    total_equipos = len(equipos)
+    if total_equipos < 2:
+        messages.error(request, f"La categoría '{categoria.nombre}' necesita al menos 2 equipos.")
+        return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
+    grupo, created = Grupo.objects.get_or_create(
+        categoria=categoria,
+        nombre="Grupo Único",
+        defaults={'descripcion': 'Grupo principal de la categoría'}
+    )
+    partidos = list(Partido.objects.filter(grupo__categoria=categoria).order_by('jornada', 'id'))
+    n = total_equipos
+    equipos_existentes = equipos[:-1]  # Todos menos el nuevo
+    nuevo_equipo = equipos[-1]
+    if partidos and (n - 1) % 2 == 0 and n % 2 == 1:
+        total_jornadas = n - 1
+        for jornada in range(1, total_jornadas + 1):
+            partidos_jornada = [p for p in partidos if p.jornada == jornada]
+            equipos_en_jornada = set()
+            partido_descanso = None
+            for p in partidos_jornada:
+                equipos_en_jornada.add(p.equipo_local)
+                equipos_en_jornada.add(p.equipo_visitante)
+                # Detectar partido de descanso (local == visitante)
+                if p.equipo_local == p.equipo_visitante:
+                    partido_descanso = p
+            equipo_descanso = None
+            for eq in equipos_existentes:
+                if eq not in equipos_en_jornada:
+                    equipo_descanso = eq
+                    break
+            # Eliminar partido de descanso si existe y no está jugado
+            if partido_descanso and not partido_descanso.jugado:
+                partido_descanso.delete()
+            # Crear partido entre el nuevo equipo y el que descansaba
+            if equipo_descanso is not None:
+                Partido.objects.create(
+                    grupo=grupo,
+                    jornada=jornada,
+                    equipo_local=equipo_descanso,
+                    equipo_visitante=nuevo_equipo,
+                    campo='Por definir',
+                    fecha=None
+                )
+        messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente enfrentando al equipo que descansaba en cada jornada. El número de partidos por jornada aumentó.")
+        return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
+    else:
+        messages.error(request, "La integración automática solo está disponible al pasar de par a impar y con calendario existente.")
+        return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
+# Vista independiente para jugadores
+
+
 @login_required
 @user_passes_test(is_capitan)
 def gestion_equipo(request, equipo_id):
@@ -407,6 +464,7 @@ def generar_calendario(request, categoria_id):
         # Ida (alternancia local/visitante por jornada)
         temp_equipos = equipos_rr.copy()
         for jornada in range(1, total_jornadas + 1):
+            equipos_en_jornada = set()
             for i in range(partidos_por_jornada):
                 if jornada % 2 == 1:
                     local = temp_equipos[i]
@@ -422,10 +480,26 @@ def generar_calendario(request, categoria_id):
                         equipo_visitante=visitante,
                         fecha=datetime.now()
                     )
+                    equipos_en_jornada.add(local)
+                    equipos_en_jornada.add(visitante)
+            # Si hay equipo descanso (impar), agrégalo como partido especial
+            if None in temp_equipos:
+                equipo_descanso = [eq for eq in temp_equipos if eq not in equipos_en_jornada and eq is not None]
+                if equipo_descanso:
+                    eq_descansa = equipo_descanso[0]
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=jornada,
+                        equipo_local=eq_descansa,
+                        equipo_visitante=eq_descansa,
+                        campo='Descansa',
+                        fecha=None
+                    )
             temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
         # Vuelta (alternancia local/visitante por jornada, invertidos)
         temp_equipos = equipos_rr.copy()
         for jornada in range(1, total_jornadas + 1):
+            equipos_en_jornada = set()
             for i in range(partidos_por_jornada):
                 if jornada % 2 == 1:
                     local = temp_equipos[n - 1 - i]
@@ -440,6 +514,21 @@ def generar_calendario(request, categoria_id):
                         equipo_local=local,
                         equipo_visitante=visitante,
                         fecha=datetime.now()
+                    )
+                    equipos_en_jornada.add(local)
+                    equipos_en_jornada.add(visitante)
+            # Si hay equipo descanso (impar), agrégalo como partido especial
+            if None in temp_equipos:
+                equipo_descanso = [eq for eq in temp_equipos if eq not in equipos_en_jornada and eq is not None]
+                if equipo_descanso:
+                    eq_descansa = equipo_descanso[0]
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=total_jornadas + jornada,
+                        equipo_local=eq_descansa,
+                        equipo_visitante=eq_descansa,
+                        campo='Descansa',
+                        fecha=None
                     )
             temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
         messages.success(request, f'Calendario (ida y vuelta) generado con {total_jornadas*2} jornadas.')

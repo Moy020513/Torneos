@@ -144,23 +144,23 @@ class CategoriaAdmin(admin.ModelAdmin):
                 nuevo_equipo = equipos[-1]
                 partidos = list(Partido.objects.filter(grupo__categoria=categoria).order_by('jornada', 'id'))
                 if (n - 1) % 2 == 0 and n % 2 == 1:
-                    # Pasó de par a impar: modificar un partido por jornada para que uno descanse y el nuevo equipo juegue
+                    # Pasó de par a impar: integrar nuevo equipo con mínimo alteración
                     total_jornadas = n
-                    for jornada in range(1, total_jornadas):
+                    # Jornada 1: nuevo equipo descansa
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=1,
+                        equipo_local=nuevo_equipo,
+                        equipo_visitante=nuevo_equipo,
+                        campo='Descansa',
+                        fecha=None
+                    )
+                    # Jornadas siguientes: modificar un partido por jornada
+                    for jornada in range(2, total_jornadas + 1):
                         partidos_jornada = [p for p in partidos if p.jornada == jornada]
                         if not partidos_jornada:
                             continue
-                        if jornada == 1:
-                            # El nuevo equipo descansa en la primera jornada
-                            Partido.objects.create(
-                                grupo=partidos_jornada[0].grupo,
-                                jornada=1,
-                                equipo_local=nuevo_equipo,
-                                equipo_visitante=nuevo_equipo,
-                                campo='Descansa',
-                                fecha=None
-                            )
-                            continue
+                        # Elegir el primer partido de la jornada para modificar
                         partido_a_modificar = partidos_jornada[0]
                         equipo_descansa = partido_a_modificar.equipo_local
                         # El nuevo equipo toma el lugar de equipo_local
@@ -177,7 +177,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                             campo='Descansa',
                             fecha=None
                         )
-                    messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente. En cada jornada, un equipo original descansa y el nuevo equipo juega en su lugar.")
+                    messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente. Descansa en la J1 y en cada jornada un equipo original descansa y el nuevo juega en su lugar.")
                 else:
                     # Lógica anterior para impar a par o generación normal
                     total_jornadas = n - 1
