@@ -404,12 +404,16 @@ def generar_calendario(request, categoria_id):
             defaults={'descripcion': 'Grupo principal de la categoría'}
         )
         Partido.objects.filter(grupo__categoria=categoria).delete()
-        # Ida
+        # Ida (alternancia local/visitante por jornada)
         temp_equipos = equipos_rr.copy()
         for jornada in range(1, total_jornadas + 1):
             for i in range(partidos_por_jornada):
-                local = temp_equipos[i]
-                visitante = temp_equipos[n - 1 - i]
+                if jornada % 2 == 1:
+                    local = temp_equipos[i]
+                    visitante = temp_equipos[n - 1 - i]
+                else:
+                    local = temp_equipos[n - 1 - i]
+                    visitante = temp_equipos[i]
                 if local is not None and visitante is not None:
                     Partido.objects.create(
                         grupo=grupo,
@@ -419,18 +423,22 @@ def generar_calendario(request, categoria_id):
                         fecha=datetime.now()
                     )
             temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
-        # Vuelta (local/visitante invertidos, misma rotación)
+        # Vuelta (alternancia local/visitante por jornada, invertidos)
         temp_equipos = equipos_rr.copy()
         for jornada in range(1, total_jornadas + 1):
             for i in range(partidos_por_jornada):
-                local = temp_equipos[i]
-                visitante = temp_equipos[n - 1 - i]
+                if jornada % 2 == 1:
+                    local = temp_equipos[n - 1 - i]
+                    visitante = temp_equipos[i]
+                else:
+                    local = temp_equipos[i]
+                    visitante = temp_equipos[n - 1 - i]
                 if local is not None and visitante is not None:
                     Partido.objects.create(
                         grupo=grupo,
                         jornada=total_jornadas + jornada,
-                        equipo_local=visitante,
-                        equipo_visitante=local,
+                        equipo_local=local,
+                        equipo_visitante=visitante,
                         fecha=datetime.now()
                     )
             temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
