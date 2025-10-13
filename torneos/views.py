@@ -116,8 +116,9 @@ def capitan_panel(request):
 @user_passes_test(is_capitan)
 def capitan_jugador_create(request):
     equipo = request.user.capitan.equipo
+    from .forms import CapitanJugadorForm
     if request.method == 'POST':
-        form = JugadorForm(request.POST, request.FILES)
+        form = CapitanJugadorForm(request.POST, request.FILES)
         if form.is_valid():
             jugador = form.save(commit=False)
             jugador.equipo = equipo
@@ -125,7 +126,7 @@ def capitan_jugador_create(request):
             messages.success(request, 'Jugador creado exitosamente.')
             return redirect('capitan_panel')
     else:
-        form = JugadorForm()
+        form = CapitanJugadorForm()
     return render(request, 'torneos/capitan/jugador_form.html', {'form': form})
 
 @login_required
@@ -133,14 +134,15 @@ def capitan_jugador_create(request):
 def capitan_jugador_update(request, jugador_id):
     equipo = request.user.capitan.equipo
     jugador = get_object_or_404(Jugador, id=jugador_id, equipo=equipo)
+    from .forms import CapitanJugadorForm
     if request.method == 'POST':
-        form = JugadorForm(request.POST, request.FILES, instance=jugador)
+        form = CapitanJugadorForm(request.POST, request.FILES, instance=jugador)
         if form.is_valid():
             form.save()
             messages.success(request, 'Jugador actualizado.')
             return redirect('capitan_panel')
     else:
-        form = JugadorForm(instance=jugador)
+        form = CapitanJugadorForm(instance=jugador)
     return render(request, 'torneos/capitan/jugador_form.html', {'form': form, 'jugador': jugador})
 
 @login_required

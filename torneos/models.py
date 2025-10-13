@@ -142,11 +142,13 @@ class Jugador(models.Model):
             if img.height > 500 or img.width > 500:
                 output_size = (500, 500)
                 img.thumbnail(output_size)
-            # Comprimir la imagen
-            if img.format == 'JPEG':
-                img.save(self.foto.path, quality=85, optimize=True)
-            elif img.format == 'PNG':
-                img.save(self.foto.path, optimize=True)
+            ext = self.foto.path.split('.')[-1].lower()
+            if ext in ['jpg', 'jpeg']:
+                if img.mode in ('RGBA', 'LA'):
+                    img = img.convert('RGB')
+                img.save(self.foto.path, format='JPEG', quality=85, optimize=True)
+            elif ext == 'png':
+                img.save(self.foto.path, format='PNG', optimize=True)
             else:
                 img.save(self.foto.path)
 

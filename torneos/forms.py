@@ -70,6 +70,8 @@ class EquipoForm(AdminFormMixin, forms.ModelForm):
             'activo': 'Equipo Activo',
         }
 
+
+# Formulario para el panel de administración
 class JugadorForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Jugador
@@ -79,6 +81,24 @@ class JugadorForm(AdminFormMixin, forms.ModelForm):
         }
         labels = {
             'equipo': 'Equipo',
+            'nombre': 'Nombre',
+            'apellido': 'Apellido',
+            'foto': 'Foto del Jugador',
+            'fecha_nacimiento': 'Fecha de Nacimiento',
+            'numero_camiseta': 'Número de Camiseta',
+            'posicion': 'Posición',
+            'activo': 'Jugador Activo',
+        }
+
+# Formulario para el capitán (sin campo equipo)
+class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = Jugador
+        fields = ['nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion', 'activo']
+        widgets = {
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
+        }
+        labels = {
             'nombre': 'Nombre',
             'apellido': 'Apellido',
             'foto': 'Foto del Jugador',
