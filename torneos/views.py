@@ -94,6 +94,66 @@ def is_admin(user):
 def is_capitan(user):
     return hasattr(user, 'capitan') and user.capitan.activo
 
+# Panel principal del capitán
+from django.urls import reverse
+from django.http import HttpResponseForbidden
+
+@login_required
+@user_passes_test(is_capitan)
+def capitan_panel(request):
+    capitan = request.user.capitan
+    equipo = capitan.equipo
+    jugadores = Jugador.objects.filter(equipo=equipo)
+    context = {
+        'capitan': capitan,
+        'equipo': equipo,
+        'jugadores': jugadores,
+    }
+    return render(request, 'torneos/capitan/panel.html', context)
+
+# CRUD de jugadores para capitán
+@login_required
+@user_passes_test(is_capitan)
+def capitan_jugador_create(request):
+    equipo = request.user.capitan.equipo
+    if request.method == 'POST':
+        form = JugadorForm(request.POST, request.FILES)
+        if form.is_valid():
+            jugador = form.save(commit=False)
+            jugador.equipo = equipo
+            jugador.save()
+            messages.success(request, 'Jugador creado exitosamente.')
+            return redirect('capitan_panel')
+    else:
+        form = JugadorForm()
+    return render(request, 'torneos/capitan/jugador_form.html', {'form': form})
+
+@login_required
+@user_passes_test(is_capitan)
+def capitan_jugador_update(request, jugador_id):
+    equipo = request.user.capitan.equipo
+    jugador = get_object_or_404(Jugador, id=jugador_id, equipo=equipo)
+    if request.method == 'POST':
+        form = JugadorForm(request.POST, request.FILES, instance=jugador)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Jugador actualizado.')
+            return redirect('capitan_panel')
+    else:
+        form = JugadorForm(instance=jugador)
+    return render(request, 'torneos/capitan/jugador_form.html', {'form': form, 'jugador': jugador})
+
+@login_required
+@user_passes_test(is_capitan)
+def capitan_jugador_delete(request, jugador_id):
+    equipo = request.user.capitan.equipo
+    jugador = get_object_or_404(Jugador, id=jugador_id, equipo=equipo)
+    if request.method == 'POST':
+        jugador.delete()
+        messages.success(request, 'Jugador eliminado.')
+        return redirect('capitan_panel')
+    return render(request, 'torneos/capitan/jugador_confirm_delete.html', {'jugador': jugador})
+
 def index(request):
     torneos_activos = Torneo.objects.filter(activo=True)
     

@@ -20,5 +20,9 @@ urlpatterns = [
     path('administracion/torneo/<int:torneo_id>/', views.administrar_torneo, name='administrar_torneo'),
     path('administracion/generar-calendario/<int:categoria_id>/', views.generar_calendario, name='generar_calendario'),
     # URLs de capitanes
-    path('equipo/<int:equipo_id>/gestion/', views.gestion_equipo, name='gestion_equipo'),
+        path('capitan/', views.capitan_panel, name='capitan_panel'),
+        path('capitan/jugadores/crear/', views.capitan_jugador_create, name='capitan_jugador_create'),
+        path('capitan/jugadores/<int:jugador_id>/editar/', views.capitan_jugador_update, name='capitan_jugador_update'),
+        path('capitan/jugadores/<int:jugador_id>/eliminar/', views.capitan_jugador_delete, name='capitan_jugador_delete'),
+        path('equipo/<int:equipo_id>/gestion/', views.gestion_equipo, name='gestion_equipo'),
 ] + admin_urlpatterns

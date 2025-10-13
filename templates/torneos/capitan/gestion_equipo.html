@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Gestión de Equipo</h2>
+<p>Equipo: <strong>{{ equipo.nombre }}</strong></p>
+<a href="{% url 'capitan_panel' %}" class="btn btn-secondary">Ir al panel de capitán</a>
+<h3>Jugadores</h3>
+<a href="{% url 'capitan_jugador_create' %}" class="btn btn-success">Agregar Jugador</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Foto</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for jugador in jugadores %}
+        <tr>
+            <td>{{ jugador.nombre }}</td>
+            <td>
+                {% if jugador.foto %}
+                <img src="/media/{{ jugador.foto }}" alt="Foto" height="40">
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn btn-primary btn-sm">Editar</a>
+                <a href="{% url 'capitan_jugador_delete' jugador.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No hay jugadores registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -153,7 +153,7 @@
                             </li>
                         {% elif user.capitan %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'gestion_equipo' user.capitan.equipo.id %}">Mi Equipo</a>
+                                <a class="nav-link" href="{% url 'capitan_panel' %}">Panel capitán</a>
                             </li>
                         {% endif %}
                     {% endif %}

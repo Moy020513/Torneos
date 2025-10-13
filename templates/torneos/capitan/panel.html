@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="panelcapi">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex align-items-center gap-4 mb-4">
+        <div class="team-logo-container">
+          {% if equipo.logo %}
+          <img src="/media/{{ equipo.logo }}" alt="Logo {{ equipo.nombre }}" class="img-fluid rounded" style="max-width: 100px; height: 100px; object-fit: contain;">
+          {% else %}
+          <div class="placeholder-logo d-flex align-items-center justify-content-center rounded">
+            <i class="fas fa-users fa-2x"></i>
+          </div>
+          {% endif %}
+        </div>
+        <div class="flex-grow-1">
+          <h1 class="h2 mb-1 fw-bold">Panel de Capitán</h1>
+          <p class="text-muted mb-0">Bienvenido, <strong>{{ capitan.usuario.username }}</strong></p>
+          <p class="text-muted mb-0">Equipo: <strong>{{ equipo.nombre }}</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Players Section -->
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="h4 mb-1">Gestión de Jugadores</h3>
+          <p class="text-muted small mb-0">Administra los miembros de tu equipo ({{ jugadores|length }})</p>
+        </div>
+        <a href="{% url 'capitan_jugador_create' %}" class="btn btn-success btn-lg d-flex align-items-center gap-2">
+          <i class="fas fa-plus"></i> Agregar Jugador
+        </a>
+      </div>
+
+      <!-- Players Table -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4 py-3 fw-semibold text-muted small text-uppercase">Jugador</th>
+                  <th class="py-3 fw-semibold text-muted small text-uppercase">Nombre</th>
+                  <th class="py-3 fw-semibold text-muted small text-uppercase">Estado</th>
+                  <th class="text-end pe-4 py-3 fw-semibold text-muted small text-uppercase">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for jugador in jugadores %}
+                <tr class="align-middle">
+                  <td class="ps-4">
+                    <div class="player-photo-wrapper">
+                      {% if jugador.foto %}
+                      <img src="/media/{{ jugador.foto }}" alt="Foto de {{ jugador.nombre }}" class="img-fluid rounded-circle" style="width: 45px; height: 45px; object-fit: cover;">
+                      {% else %}
+                      <div class="placeholder-photo d-flex align-items-center justify-content-center rounded-circle">
+                        <i class="fas fa-user"></i>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <strong>{{ jugador.nombre }}</strong>
+                  </td>
+                  <td>
+                    <span class="badge bg-success rounded-pill px-3 py-2">Activo</span>
+                  </td>
+                  <td class="text-end pe-4">
+                    <div class="d-flex justify-content-end gap-2">
+                      <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="Editar">
+                        <i class="fas fa-edit"></i> Editar
+                      </a>
+                      <a href="{% url 'capitan_jugador_delete' jugador.id %}" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar este jugador?');">
+                        <i class="fas fa-trash"></i> Eliminar
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-5">
+                    <div class="empty-state">
+                      <i class="fas fa-user-slash" style="font-size: 3rem; color: #dee2e6;"></i>
+                      <p class="text-muted mt-3 mb-1">No hay jugadores registrados aún</p>
+                      <p class="text-muted small">Comienza agregando tu primer jugador</p>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .panelcapi {
+    background-color: #f8f9fa !important;
+  }
+  .placeholder-logo {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .placeholder-photo {
+    width: 45px;
+    height: 45px;
+    background-color: #f8f9fa;
+    color: #adb5bd;
+    font-size: 1.1rem;
+  }
+
+  .color-badge {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+</style>
+{% endblock %}
