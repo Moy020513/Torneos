@@ -225,9 +225,15 @@
                 const cropperImage = document.getElementById('cropper-image');
                 cropperImage.src = event.target.result;
                 cropper = new Cropper(cropperImage, {
-                    aspectRatio: 1,
-                    viewMode: 1,
+                    aspectRatio: 2.5 / 3, // tamaño infantil (2.5x3)
+                    viewMode: 2, // marco fijo, mueve la imagen
                     autoCropArea: 1,
+                    dragMode: 'move', // permite mover la imagen
+                    movable: true, // permite mover la imagen
+                    zoomable: true, // permite hacer zoom
+                    scalable: false, // no permite escalar el marco
+                    cropBoxResizable: false, // el marco no se puede cambiar de tamaño
+                    cropBoxMovable: false, // el marco no se puede mover
                 });
                 document.getElementById('cropper-save').onclick = function() {
                     cropper.getCroppedCanvas().toBlob(function(blob) {
