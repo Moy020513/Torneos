@@ -13,15 +13,41 @@
                 <li>Se eliminarán los partidos existentes de la categoría.</li>
                 <li>Esta acción no se puede deshacer.</li>
             </ul>
-            <form method="post">
+            <form method="post" id="formGenerarCalendario">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success">
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Tipo de calendario:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tipo_calendario" id="ida" value="ida">
+                        <label class="form-check-label" for="ida">
+                            Solo ida (round robin simple)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tipo_calendario" id="ida_vuelta" value="ida_vuelta">
+                        <label class="form-check-label" for="ida_vuelta">
+                            Ida y vuelta (round robin doble)
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success" id="btnGenerar" disabled>
                     <i class="fa-solid fa-calendar-plus"></i> Sí, generar calendario
                 </button>
                 <a href="{% url 'administrar_torneo' categoria.torneo.id %}" class="btn btn-outline-secondary ms-2">
                     Cancelar
                 </a>
             </form>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const radios = document.querySelectorAll('input[name="tipo_calendario"]');
+                const btn = document.getElementById('btnGenerar');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        btn.disabled = false;
+                    });
+                });
+            });
+            </script>
         </div>
     </div>
 </div>

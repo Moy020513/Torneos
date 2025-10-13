@@ -20,8 +20,8 @@
 <!-- Filters and Search -->
 <div class="admin-card mb-4">
     <div class="admin-card-body">
-        <form method="GET" class="row align-items-end">
-            <div class="col-md-4">
+        <form method="GET" class="row align-items-end g-3">
+            <div class="col-md-3">
                 <label class="admin-form-label">Categoría</label>
                 <select name="categoria" class="admin-form-control form-select">
                     <option value="">Todas las categorías</option>
@@ -32,10 +32,21 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <label class="admin-form-label">Jornada</label>
+                <select name="jornada" class="admin-form-control form-select">
+                    <option value="">Todas</option>
+                    {% for j in jornadas %}
+                        <option value="{{ j }}" {% if jornada == j|slugify %}selected{% endif %}>
+                            Jornada {{ j }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
                 <label class="admin-form-label">Estado</label>
                 <select name="estado" class="admin-form-control form-select">
-                    <option value="">Todos los estados</option>
+                    <option value="">Todos</option>
                     <option value="jugado" {% if estado == 'jugado' %}selected{% endif %}>Jugados</option>
                     <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendientes</option>
                 </select>
@@ -58,7 +69,7 @@
                     <button type="submit" class="btn btn-admin">
                         <i class="fas fa-filter me-2"></i>Filtrar
                     </button>
-                    {% if search or categoria_id or estado %}
+                    {% if search or categoria_id or estado or jornada %}
                         <a href="{% url 'admin_partidos' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-times"></i>
                         </a>
@@ -199,7 +210,7 @@
             <div class="text-center py-5">
                 <i class="fas fa-futbol text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
                 <h4 class="text-muted mt-3">No se encontraron partidos</h4>
-                {% if search or categoria_id or estado %}
+                {% if search or categoria_id or estado or jornada %}
                     <p class="text-muted">No hay partidos que coincidan con los filtros aplicados</p>
                     <a href="{% url 'admin_partidos' %}" class="btn btn-outline-admin">Ver todos los partidos</a>
                 {% else %}
@@ -217,12 +228,12 @@
     <ul class="pagination justify-content-center">
         {% if partidos.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if jornada %}&jornada={{ jornada }}{% endif %}">
                     <i class="fas fa-angle-double-left"></i>
                 </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ partidos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                <a class="page-link" href="?page={{ partidos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if jornada %}&jornada={{ jornada }}{% endif %}">
                     <i class="fas fa-angle-left"></i>
                 </a>
             </li>
@@ -235,19 +246,19 @@
                 </li>
             {% elif num > partidos.number|add:'-3' and num < partidos.number|add:'3' %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if jornada %}&jornada={{ jornada }}{% endif %}">{{ num }}</a>
                 </li>
             {% endif %}
         {% endfor %}
         
         {% if partidos.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ partidos.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                <a class="page-link" href="?page={{ partidos.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if jornada %}&jornada={{ jornada }}{% endif %}">
                     <i class="fas fa-angle-right"></i>
                 </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ partidos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">
+                <a class="page-link" href="?page={{ partidos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if jornada %}&jornada={{ jornada }}{% endif %}">
                     <i class="fas fa-angle-double-right"></i>
                 </a>
             </li>

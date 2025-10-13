@@ -390,10 +390,11 @@ def generar_calendario(request, categoria_id):
         return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
 
     if request.method == 'POST':
-        # Algoritmo round-robin para generar partidos
+        # Algoritmo round-robin doble (ida y vuelta)
         n = len(equipos)
+        equipos_rr = equipos.copy()
         if n % 2 == 1:
-            equipos.append(None)  # Equipo ficticio para números impares
+            equipos_rr.append(None)  # Equipo ficticio para números impares
             n += 1
         partidos_por_jornada = n // 2
         total_jornadas = n - 1
@@ -403,20 +404,37 @@ def generar_calendario(request, categoria_id):
             defaults={'descripcion': 'Grupo principal de la categoría'}
         )
         Partido.objects.filter(grupo__categoria=categoria).delete()
+        # Ida
+        temp_equipos = equipos_rr.copy()
         for jornada in range(1, total_jornadas + 1):
             for i in range(partidos_por_jornada):
-                local = equipos[i]
-                visitante = equipos[n - 1 - i]
+                local = temp_equipos[i]
+                visitante = temp_equipos[n - 1 - i]
                 if local is not None and visitante is not None:
                     Partido.objects.create(
                         grupo=grupo,
                         jornada=jornada,
                         equipo_local=local,
                         equipo_visitante=visitante,
-                        fecha=datetime.now()  # Ajustar según necesidad
+                        fecha=datetime.now()
                     )
-            equipos.insert(1, equipos.pop())
-        messages.success(request, f'Calendario generado con {total_jornadas} jornadas.')
+            temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
+        # Vuelta (local/visitante invertidos, misma rotación)
+        temp_equipos = equipos_rr.copy()
+        for jornada in range(1, total_jornadas + 1):
+            for i in range(partidos_por_jornada):
+                local = temp_equipos[i]
+                visitante = temp_equipos[n - 1 - i]
+                if local is not None and visitante is not None:
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=total_jornadas + jornada,
+                        equipo_local=visitante,
+                        equipo_visitante=local,
+                        fecha=datetime.now()
+                    )
+            temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
+        messages.success(request, f'Calendario (ida y vuelta) generado con {total_jornadas*2} jornadas.')
         return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
     else:
         # Mostrar confirmación visual

@@ -120,7 +120,7 @@ class CategoriaAdmin(admin.ModelAdmin):
             descansos.append((jornada, equipo_descanso.nombre if equipo_descanso else "N/A"))
         return descansos
 
-    actions = ['generar_calendario_action', 'integrar_nuevo_equipo']
+    actions = ['generar_calendario_ida', 'generar_calendario_ida_vuelta', 'integrar_nuevo_equipo']
     def integrar_nuevo_equipo(self, request, queryset):
         from django.contrib import messages
         from .models import Equipo, Grupo, Partido
@@ -259,9 +259,11 @@ class CategoriaAdmin(admin.ModelAdmin):
     list_filter = ('torneo', 'tiene_eliminatorias')
     search_fields = ('nombre', 'descripcion')
 
-    actions = ['generar_calendario_action', 'integrar_nuevo_equipo']
+    actions = ['generar_calendario_ida', 'generar_calendario_ida_vuelta', 'integrar_nuevo_equipo']
 
-    def generar_calendario_action(self, request, queryset):
+
+    def generar_calendario_ida(self, request, queryset):
+        """Genera calendario solo ida (round robin simple)"""
         from django.contrib import messages
         from datetime import datetime
         from .models import Equipo, Grupo, Partido
@@ -272,8 +274,9 @@ class CategoriaAdmin(admin.ModelAdmin):
                 messages.warning(request, f"La categoría '{categoria.nombre}' necesita al menos 2 equipos.")
                 continue
             n = len(equipos)
+            equipos_rr = equipos.copy()
             if n % 2 == 1:
-                equipos.append(None)
+                equipos_rr.append(None)
                 n += 1
             partidos_por_jornada = n // 2
             total_jornadas = n - 1
@@ -287,11 +290,11 @@ class CategoriaAdmin(admin.ModelAdmin):
                 for i in range(partidos_por_jornada):
                     # Alternar local/visitante por jornada para equidad
                     if jornada % 2 == 1:
-                        local = equipos[i]
-                        visitante = equipos[n - 1 - i]
+                        local = equipos_rr[i]
+                        visitante = equipos_rr[n - 1 - i]
                     else:
-                        local = equipos[n - 1 - i]
-                        visitante = equipos[i]
+                        local = equipos_rr[n - 1 - i]
+                        visitante = equipos_rr[i]
                     if local is not None and visitante is not None:
                         Partido.objects.create(
                             grupo=grupo,
@@ -301,9 +304,68 @@ class CategoriaAdmin(admin.ModelAdmin):
                             campo='Por definir'
                         )
                         total += 1
-                equipos.insert(1, equipos.pop())
-            messages.success(request, f"Calendario generado para '{categoria.nombre}' ({total_jornadas} jornadas, {total} partidos).")
-    generar_calendario_action.short_description = "Generar calendario de partidos para la categoría"
+                equipos_rr.insert(1, equipos_rr.pop())
+            messages.success(request, f"Calendario (solo ida) generado para '{categoria.nombre}' ({total_jornadas} jornadas, {total} partidos).")
+    generar_calendario_ida.short_description = "Generar calendario solo ida (round robin simple)"
+
+    def generar_calendario_ida_vuelta(self, request, queryset):
+        """Genera calendario ida y vuelta (round robin doble)"""
+        from django.contrib import messages
+        from datetime import datetime
+        from .models import Equipo, Grupo, Partido
+        total = 0
+        for categoria in queryset:
+            equipos = list(Equipo.objects.filter(categoria=categoria))
+            if len(equipos) < 2:
+                messages.warning(request, f"La categoría '{categoria.nombre}' necesita al menos 2 equipos.")
+                continue
+            n = len(equipos)
+            equipos_rr = equipos.copy()
+            if n % 2 == 1:
+                equipos_rr.append(None)
+                n += 1
+            partidos_por_jornada = n // 2
+            total_jornadas = n - 1
+            grupo, created = Grupo.objects.get_or_create(
+                categoria=categoria,
+                nombre="Grupo Único",
+                defaults={'descripcion': 'Grupo principal de la categoría'}
+            )
+            Partido.objects.filter(grupo__categoria=categoria).delete()
+            # Ida
+            temp_equipos = equipos_rr.copy()
+            for jornada in range(1, total_jornadas + 1):
+                for i in range(partidos_por_jornada):
+                    local = temp_equipos[i]
+                    visitante = temp_equipos[n - 1 - i]
+                    if local is not None and visitante is not None:
+                        Partido.objects.create(
+                            grupo=grupo,
+                            jornada=jornada,
+                            equipo_local=local,
+                            equipo_visitante=visitante,
+                            campo='Por definir'
+                        )
+                        total += 1
+                temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
+            # Vuelta (local/visitante invertidos, misma rotación)
+            temp_equipos = equipos_rr.copy()
+            for jornada in range(1, total_jornadas + 1):
+                for i in range(partidos_por_jornada):
+                    local = temp_equipos[i]
+                    visitante = temp_equipos[n - 1 - i]
+                    if local is not None and visitante is not None:
+                        Partido.objects.create(
+                            grupo=grupo,
+                            jornada=total_jornadas + jornada,
+                            equipo_local=visitante,
+                            equipo_visitante=local,
+                            campo='Por definir'
+                        )
+                        total += 1
+                temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
+            messages.success(request, f"Calendario (ida y vuelta) generado para '{categoria.nombre}' ({total_jornadas*2} jornadas, {total} partidos).")
+    generar_calendario_ida_vuelta.short_description = "Generar calendario ida y vuelta (round robin doble)"
 
 @admin.register(Equipo)
 class EquipoAdmin(admin.ModelAdmin):

@@ -568,43 +568,61 @@ def admin_eliminar_jugador(request, jugador_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_partidos(request):
-    partidos = Partido.objects.all().select_related('equipo_local', 'equipo_visitante', 'grupo', 'grupo__categoria').order_by('-fecha')
+    # Obtener parámetros de filtrado
+    categoria_id = request.GET.get('categoria', '')
+    estado = request.GET.get('estado', '')
+    search = request.GET.get('search', '')
+    jornada = request.GET.get('jornada', '')
     
-    # Filtros
-    categoria_id = request.GET.get('categoria')
-    estado = request.GET.get('estado')  # jugado, pendiente
-    search = request.GET.get('search')
+    # Obtener todos los partidos ordenados por jornada ascendente (1, 2, 3...)
+    partidos = Partido.objects.select_related(
+        'equipo_local',
+        'equipo_visitante',
+        'grupo__categoria__torneo'
+    ).order_by('jornada', 'fecha', 'id')
     
+    # Filtrar por categoría
     if categoria_id:
         partidos = partidos.filter(grupo__categoria_id=categoria_id)
     
+    # Filtrar por estado
     if estado == 'jugado':
-        partidos = partidos.filter(Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0))
+        partidos = partidos.filter(jugado=True)
     elif estado == 'pendiente':
-        partidos = partidos.filter(jugado=False, goles_local=0, goles_visitante=0)
+        partidos = partidos.filter(jugado=False)
     
+    # Filtrar por jornada
+    if jornada:
+        partidos = partidos.filter(jornada=jornada)
+    
+    # Búsqueda por equipos
     if search:
         partidos = partidos.filter(
             Q(equipo_local__nombre__icontains=search) |
-            Q(equipo_visitante__nombre__icontains=search) |
-            Q(grupo__categoria__nombre__icontains=search)
+            Q(equipo_visitante__nombre__icontains=search)
         )
     
-    # Paginación
-    paginator = Paginator(partidos, 15)
-    page_number = request.GET.get('page')
-    partidos = paginator.get_page(page_number)
+    # Obtener todas las categorías para el filtro
+    categorias = Categoria.objects.select_related('torneo').all()
     
-    # Para filtros
-    categorias = Categoria.objects.all()
+    # Obtener todas las jornadas disponibles (sin duplicados, ordenadas)
+    jornadas = Partido.objects.values_list('jornada', flat=True).distinct().order_by('jornada')
+    
+    # Paginación
+    paginator = Paginator(partidos, 20)  # 20 partidos por página
+    page_number = request.GET.get('page')
+    partidos_paginados = paginator.get_page(page_number)
     
     context = {
-        'partidos': partidos,
+        'partidos': partidos_paginados,
         'categorias': categorias,
+        'jornadas': jornadas,
         'categoria_id': categoria_id,
         'estado': estado,
         'search': search,
+        'jornada': jornada,
     }
+
     return render(request, 'admin/partidos/listar.html', context)
 
 @login_required
@@ -1438,3 +1456,73 @@ def admin_corregir_inconsistencias(request):
             messages.success(request, f'Se resetearon los resultados de {partidos_reseteados} partidos.')
     
     return redirect('admin_herramientas')
+
+@login_required
+@user_passes_test(is_admin)
+def admin_generar_calendario(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    equipos = list(Equipo.objects.filter(categoria=categoria))
+    if len(equipos) < 2:
+        messages.error(request, 'Se necesitan al menos 2 equipos para generar un calendario.')
+        return redirect('admin_categorias')
+
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo_calendario')
+        if tipo not in ['ida', 'ida_vuelta']:
+            messages.error(request, 'Debes seleccionar el tipo de calendario.')
+            return redirect('admin_generar_calendario', categoria_id=categoria.id)
+        n = len(equipos)
+        equipos_rr = equipos.copy()
+        if n % 2 == 1:
+            equipos_rr.append(None)
+            n += 1
+        partidos_por_jornada = n // 2
+        total_jornadas = n - 1
+        grupo, created = Grupo.objects.get_or_create(
+            categoria=categoria,
+            nombre="Grupo Único",
+            defaults={'descripcion': 'Grupo principal de la categoría'}
+        )
+        Partido.objects.filter(grupo__categoria=categoria).delete()
+        total = 0
+        # Ida
+        for jornada in range(1, total_jornadas + 1):
+            for i in range(partidos_por_jornada):
+                local = equipos_rr[i]
+                visitante = equipos_rr[n - 1 - i]
+                if local is not None and visitante is not None:
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=jornada,
+                        equipo_local=local,
+                        equipo_visitante=visitante,
+                        campo='Por definir'
+                    )
+                    total += 1
+            equipos_rr.insert(1, equipos_rr.pop())
+        # Vuelta si corresponde
+        if tipo == 'ida_vuelta':
+            equipos_rr = equipos.copy()
+            if n % 2 == 1:
+                equipos_rr.append(None)
+            for jornada in range(1, total_jornadas + 1):
+                for i in range(partidos_por_jornada):
+                    local = equipos_rr[n - 1 - i]
+                    visitante = equipos_rr[i]
+                    if local is not None and visitante is not None:
+                        Partido.objects.create(
+                            grupo=grupo,
+                            jornada=total_jornadas + jornada,
+                            equipo_local=local,
+                            equipo_visitante=visitante,
+                            campo='Por definir'
+                        )
+                        total += 1
+                equipos_rr.insert(1, equipos_rr.pop())
+        messages.success(request, f'Calendario generado para "{categoria.nombre}" ({"ida y vuelta" if tipo=="ida_vuelta" else "solo ida"}). Total partidos: {total}.')
+        return redirect('admin_categorias')
+    else:
+        return render(request, 'torneos/confirmar_generar_calendario.html', {
+            'categoria': categoria,
+            'equipos': equipos
+        })
