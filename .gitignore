@@ -13,7 +13,6 @@ build/
 *.pyc
 *.pyo
 *.sqlite3
-media/
 
 
 # Virtualenv
