@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: torneos
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: contraseña
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    command: gunicorn torneos_app.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: tu_clave_secreta
+      DEBUG: False
+      ALLOWED_HOSTS: tu_dominio.com
+      DB_NAME: torneos
+      DB_USER: usuario
+      DB_PASSWORD: contraseña
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

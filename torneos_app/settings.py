@@ -1,13 +1,15 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = 'tu-clave-secreta-aqui'
+SECRET_KEY = os.getenv('SECRET_KEY', 'tu-clave-secreta-aqui')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,12 +59,12 @@ WSGI_APPLICATION = 'torneos_app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flask_db',
-        'USER': 'flask_moy',
-        'PASSWORD': '5De8619a2f*',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
