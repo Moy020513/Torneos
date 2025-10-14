@@ -92,6 +92,14 @@ class Equipo(models.Model):
     color_secundario = models.CharField(max_length=7, default='#FFFFFF')
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def capitan(self):
+        from .models import Capitan
+        try:
+            return Capitan.objects.get(equipo=self)
+        except Capitan.DoesNotExist:
+            return None
     
     def __str__(self):
         return self.nombre

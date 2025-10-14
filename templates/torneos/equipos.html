@@ -24,7 +24,7 @@
                         <h5 class="card-title mb-0 nombre-equipo">{{ equipo.nombre }}</h5>
                     </div>
                     <p class="card-text">
-                        <strong>Capitán:</strong> {{ equipo.capitan.get_full_name|default:"Sin capitán" }}<br>
+                        <strong>Capitán:</strong> {% if equipo.capitan %}{{ equipo.capitan.usuario.get_full_name|default:equipo.capitan.usuario.username }}{% else %}Sin capitán{% endif %}<br>
                         <strong>Jugadores:</strong> {{ equipo.jugador_set.count }}<br>
                         <strong>Color:</strong> <span style="color: {{ equipo.color }}; font-weight: bold;">{{ equipo.color }}</span>
                     </p>
