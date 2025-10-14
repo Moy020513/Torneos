@@ -27,10 +27,12 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td style="white-space:nowrap;">
-                            {% if equipo.logo %}
-                                <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width:32px; height:32px; object-fit:contain; margin-right:8px; vertical-align:middle;">
-                            {% endif %}
-                            <span style="display:inline-block; min-width:1em;">{{ equipo.nombre }}</span>
+                            <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                {% if equipo.logo %}
+                                    <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width:32px; height:32px; object-fit:contain;">
+                                {% endif %}
+                                <span style="min-width:1em; vertical-align:middle;">{{ equipo.nombre }}</span>
+                            </span>
                         </td>
                         <td>{{ equipo.partidos_jugados }}</td>
                         <td>{{ equipo.partidos_ganados }}</td>
