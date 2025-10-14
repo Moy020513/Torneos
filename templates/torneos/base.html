@@ -18,8 +18,8 @@
   }
   
   .torneos-header .card-body {
-    padding: 1rem; /* Mantener padding original */
-    min-height: 100px; /* Asegurar altura mínima */
+    padding: 1rem;
+    min-height: 100px;
   }
   
   .torneos-header .header-left {
@@ -49,6 +49,93 @@
   .torneos-actions{ gap:8px; }
   .btn-navy{ background:#0a2342; border:1px solid #0a2342; color:#fff; }
   .btn-navy:hover{ background:#0c2850; border-color:#0c2850; }
+
+  /* Menú hamburguesa responsivo */
+  .menu-toggle-btn {
+    background: #0a2342;
+    border: 1px solid #0a2342;
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: none;
+  }
+
+  .menu-toggle-btn:hover {
+    background: #0c2850;
+  }
+
+  .torneos-nav-mobile {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid rgba(8,247,254,.35);
+    border-radius: 12px;
+    margin-top: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.15);
+    padding: 8px;
+    z-index: 1000;
+  }
+
+  .torneos-nav-mobile.show {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .torneos-nav-mobile .nav-link {
+    border-radius: 10px;
+    font-weight: 700;
+    color: #0a2342;
+    border: 1px solid transparent;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .torneos-nav-mobile .nav-link:hover {
+    background: rgba(8,247,254,.10);
+    border-color: rgba(8,247,254,.35);
+  }
+
+  .torneos-nav-mobile .nav-link.active {
+    background: #0a2342;
+    color: #eaf7ff;
+    border-color: #0a2342;
+  }
+
+  .torneos-nav-mobile .nav-link i {
+    color: #08F7FE;
+    min-width: 20px;
+  }
+
+  @media (max-width: 991px) {
+    .torneos-nav {
+      display: none;
+    }
+
+    .menu-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .torneos-nav-mobile-container {
+      position: relative;
+      width: 100%;
+    }
+  }
+
+  @media (min-width: 992px) {
+    .torneos-nav-mobile-container {
+      display: none;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -68,7 +155,7 @@
           
           <div class="header-center text-center" style="margin-left: -40px;">
             {% if categoria %}
-            <h2 class="h4 text-navy m-0">Categoría: {{ categoria.nombre }}</h2>
+            <h2 class="h4 text-navy m-0">{{ categoria.nombre }}</h2>
             <div class="mt-2">
               <a href="{% url 'torneo_detalle' categoria.torneo.id %}" class="btn btn-navy btn-sm">
               <i class="fa-solid fa-arrow-left"></i> Volver al Torneo
@@ -85,6 +172,7 @@
   <div class="row mb-4">
     <div class="col-12">
       <div class="d-flex justify-content-center align-items-center flex-wrap" style="gap:12px;">
+        <!-- Menú Desktop -->
         <ul class="nav nav-pills torneos-nav w-100 justify-content-center flex-wrap mx-auto">
           <li class="nav-item">
             <a class="nav-link {% if url_name == 'categoria_detalle' %}active{% endif %}" href="{% url 'categoria_detalle' categoria.id %}"><i class="fa-solid fa-calendar-day"></i> Próximos</a>
@@ -113,6 +201,25 @@
             <a class="nav-link {% if url_name == 'estadisticas' %}active{% endif %}" href="{% url 'estadisticas' categoria.id %}"><i class="fa-solid fa-chart-simple"></i> Estadísticas</a>
           </li>
         </ul>
+
+        <!-- Menú Móvil Hamburguesa -->
+        <div class="torneos-nav-mobile-container w-100">
+          <button class="menu-toggle-btn w-100" onclick="toggleMobileMenu()">
+            <i class="fa-solid fa-bars"></i> Menú
+          </button>
+          <div class="torneos-nav-mobile" id="mobileMenu">
+            <a class="nav-link {% if url_name == 'categoria_detalle' %}active{% endif %}" href="{% url 'categoria_detalle' categoria.id %}"><i class="fa-solid fa-calendar-day"></i> Próximos</a>
+            <a class="nav-link {% if url_name == 'resultados' %}active{% endif %}" href="{% url 'resultados' categoria.id %}"><i class="fa-solid fa-list-check"></i> Resultados</a>
+            <a class="nav-link {% if url_name == 'tabla_posiciones' %}active{% endif %}" href="{% url 'tabla_posiciones' categoria.id %}"><i class="fa-solid fa-table-list"></i> Clasificación</a>
+            <a class="nav-link {% if url_name == 'equipos' %}active{% endif %}" href="{% url 'equipos' categoria.id %}"><i class="fa-solid fa-people-group"></i> Equipos</a>
+            <a class="nav-link {% if url_name == 'goleadores' %}active{% endif %}" href="{% url 'goleadores' categoria.id %}"><i class="fa-solid fa-bullseye"></i> Goleadores</a>
+            <a class="nav-link {% if url_name == 'jugadores' %}active{% endif %}" href="{% url 'jugadores' categoria.id %}"><i class="fa-solid fa-users"></i> Jugadores</a>
+            {% if categoria.tiene_eliminatorias %}
+            <a class="nav-link {% if url_name == 'eliminatorias' %}active{% endif %}" href="{% url 'eliminatorias' categoria.id %}"><i class="fa-solid fa-bracket"></i> Eliminatorias</a>
+            {% endif %}
+            <a class="nav-link {% if url_name == 'estadisticas' %}active{% endif %}" href="{% url 'estadisticas' categoria.id %}"><i class="fa-solid fa-chart-simple"></i> Estadísticas</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -120,4 +227,27 @@
 
   {% block categoria_content %}{% endblock %}
   {% endwith %}
+
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('show');
+    }
+
+    // Cerrar menú al hacer clic en un enlace
+    document.querySelectorAll('.torneos-nav-mobile .nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+        document.getElementById('mobileMenu').classList.remove('show');
+      });
+    });
+
+    // Cerrar menú al hacer clic fuera
+    document.addEventListener('click', function(event) {
+      const menu = document.getElementById('mobileMenu');
+      const btn = document.querySelector('.menu-toggle-btn');
+      if (menu && btn && !menu.contains(event.target) && !btn.contains(event.target)) {
+        menu.classList.remove('show');
+      }
+    });
+  </script>
 {% endblock %}

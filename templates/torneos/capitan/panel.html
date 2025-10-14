@@ -2,149 +2,1015 @@
 {% load static %}
 
 {% block content %}
-<div class="panelcapi">
+<div class="dashboard-container">
   <!-- Header Section -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="d-flex align-items-center gap-4 mb-4">
-        <div class="team-logo-container">
+  <div class="header-section">
+    <div class="header-content">
+      <div class="team-header">
+        <div class="team-logo-wrapper">
           {% if equipo.logo %}
-          <img src="/media/{{ equipo.logo }}" alt="Logo {{ equipo.nombre }}" class="img-fluid rounded" style="max-width: 100px; height: 100px; object-fit: contain;">
+          <img src="/media/{{ equipo.logo }}" alt="Logo {{ equipo.nombre }}" class="team-logo">
           {% else %}
-          <div class="placeholder-logo d-flex align-items-center justify-content-center rounded">
-            <i class="fas fa-users fa-2x"></i>
+          <div class="placeholder-logo">
+            <i class="fas fa-shield-alt"></i>
           </div>
           {% endif %}
         </div>
-        <div class="flex-grow-1">
-          <h1 class="h2 mb-1 fw-bold">Panel de Capitán</h1>
-          <p class="text-muted mb-0">Bienvenido, <strong>{{ capitan.usuario.username }}</strong></p>
-          <p class="text-muted mb-0">Equipo: <strong>{{ equipo.nombre }}</strong></p>
+        <div class="team-info">
+          <h1 class="team-name">{{ equipo.nombre }}</h1>
+          <p class="welcome-text">Bienvenido, <strong>{{ capitan.usuario.username }}</strong></p>
+          <div class="team-stats">
+            <div class="stat-badge">
+              <i class="fas fa-users"></i>
+              <span>{{ jugadores|length }} Jugadores</span>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-primary-action" data-action="add-player">
+          <i class="fas fa-plus-circle"></i> Agregar Jugador
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Players Section -->
-  <div class="row">
-    <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h3 class="h4 mb-1">Gestión de Jugadores</h3>
-          <p class="text-muted small mb-0">Administra los miembros de tu equipo ({{ jugadores|length }})</p>
+  <!-- Main Content -->
+  <div class="content-wrapper">
+   
+      
+      
+    </div>
+
+    <!-- Players Section -->
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h2 class="section-title">Gestión de Jugadores</h2>
+          <p class="section-subtitle">Administra y controla los miembros de tu equipo</p>
         </div>
-        <a href="{% url 'capitan_jugador_create' %}" class="btn btn-success btn-lg d-flex align-items-center gap-2">
-          <i class="fas fa-plus"></i> Agregar Jugador
-        </a>
+        <div class="search-wrapper">
+          <input type="text" class="search-input" id="playerSearch" placeholder="Buscar jugador...">
+          <i class="fas fa-search search-icon"></i>
+        </div>
       </div>
 
       <!-- Players Table -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-4 py-3 fw-semibold text-muted small text-uppercase">Jugador</th>
-                  <th class="py-3 fw-semibold text-muted small text-uppercase">Nombre</th>
-                  <th class="py-3 fw-semibold text-muted small text-uppercase">Estado</th>
-                  <th class="text-end pe-4 py-3 fw-semibold text-muted small text-uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for jugador in jugadores %}
-                <tr class="align-middle">
-                  <td class="ps-4">
-                    <div class="player-photo-wrapper">
-                      {% if jugador.foto %}
-                      <img src="/media/{{ jugador.foto }}" alt="Foto de {{ jugador.nombre }}" class="img-fluid rounded-circle" style="width: 45px; height: 45px; object-fit: cover;">
-                      {% else %}
-                      <div class="placeholder-photo d-flex align-items-center justify-content-center rounded-circle">
-                        <i class="fas fa-user"></i>
-                      </div>
-                      {% endif %}
+      <div class="players-table-container">
+        {% if jugadores %}
+        <div class="table-wrapper">
+          <table class="players-table">
+            <thead>
+              <tr>
+                <th class="col-photo">Foto</th>
+                <th class="col-name">Nombre</th>
+                <th class="col-apellido">Apellido</th>
+                <th class="col-status">Estado</th>
+                <th class="col-actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for jugador in jugadores %}
+              <tr class="player-row" data-player-name="{{ jugador.nombre|lower }}">
+                <td class="col-photo">
+                  <div class="player-photo-container">
+                    {% if jugador.foto %}
+                    <img src="/media/{{ jugador.foto }}" alt="{{ jugador.nombre }}" class="player-photo">
+                    {% else %}
+                    <div class="placeholder-photo">
+                      <i class="fas fa-user"></i>
                     </div>
-                  </td>
-                  <td>
-                    <strong>{{ jugador.nombre }}</strong>
-                  </td>
-                  <td>
-                    <span class="badge bg-success rounded-pill px-3 py-2">Activo</span>
-                  </td>
-                  <td class="text-end pe-4">
-                    <div class="d-flex justify-content-end gap-2">
-                      <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="Editar">
-                        <i class="fas fa-edit"></i> Editar
-                      </a>
-                      <a href="{% url 'capitan_jugador_delete' jugador.id %}" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar este jugador?');">
-                        <i class="fas fa-trash"></i> Eliminar
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="4" class="text-center py-5">
-                    <div class="empty-state">
-                      <i class="fas fa-user-slash" style="font-size: 3rem; color: #dee2e6;"></i>
-                      <p class="text-muted mt-3 mb-1">No hay jugadores registrados aún</p>
-                      <p class="text-muted small">Comienza agregando tu primer jugador</p>
-                    </div>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="col-name">
+                  <span class="player-name">{{ jugador.nombre }}</span>
+                </td>
+                <td class="col-apellido>">
+                  <span class="player-apellido">{{ jugador.apellido}}</span>
+                </td>
+                <td class="col-status">
+                  <span class="status-badge active">Activo</span>
+                </td>
+                <td class="col-actions">
+                  <div class="action-buttons">
+                    <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn-action btn-edit" title="Editar jugador">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <button class="btn-action btn-delete" onclick="confirmDelete({{ jugador.id }}, '{{ jugador.nombre }}')" title="Eliminar jugador">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-user-slash"></i>
+          </div>
+          <h3 class="empty-title">No hay jugadores registrados</h3>
+          <p class="empty-message">Comienza agregando tu primer jugador al equipo</p>
+          <a href="{% url 'capitan_jugador_create' %}" class="btn-empty-action">
+            <i class="fas fa-plus"></i> Agregar Primer Jugador
+          </a>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Confirmar eliminación</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-message">¿Estás seguro de que deseas eliminar a <strong id="playerNameConfirm"></strong>?</p>
+      <p class="modal-warning"><i class="fas fa-exclamation-triangle"></i> Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+      <button class="btn-confirm-delete" id="confirmDeleteBtn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-container">
+  <div class="toast" id="toast">
+    <span class="toast-message"></span>
+  </div>
+</div>
+
 <style>
-body {
-  background-color: #0080ffff;
+:root {
+  --primary-color: #0080ff;
+  --primary-dark: #0056b3;
+  --primary-light: #e6f2ff;
+  --danger-color: #dc3545;
+  --danger-light: #ffe6e6;
+  --success-color: #28a745;
+  --success-light: #e6ffe6;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6c757d;
+  --text-light: #999999;
+  --bg-light: #f8f9fa;
+  --bg-white: #ffffff;
+  --border-color: #e0e0e0;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-  .panelcapi {
-    background-color: #f8f9fa !important;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-light) 0%, #f0f4f8 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Header Section */
+.header-section {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-lg);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.team-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.team-logo-wrapper {
+  flex-shrink: 0;
+}
+
+.team-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: var(--transition);
+}
+
+.team-logo:hover {
+  transform: scale(1.05);
+}
+
+.placeholder-logo {
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.team-info h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.welcome-text {
+  font-size: 1rem;
+  opacity: 0.95;
+  margin-bottom: 1rem;
+}
+
+.team-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.header-actions {
+  flex-shrink: 0;
+}
+
+.btn-primary-action {
+  background: white;
+  color: var(--primary-color);
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary-action:active {
+  transform: translateY(0);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--bg-white);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  border: 1px solid var(--border-color);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.players-icon {
+  background: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.team-icon {
+  background: #fff3cd;
+  color: #ff9800;
+}
+
+.active-icon {
+  background: var(--success-light);
+  color: var(--success-color);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Content Wrapper */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Section Container */
+.section-container {
+  background: var(--bg-white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.section-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  background: var(--bg-light);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: var(--bg-white);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  pointer-events: none;
+}
+
+/* Players Table */
+.players-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper {
+  min-width: 100%;
+}
+
+.players-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.players-table thead {
+  background: var(--bg-light);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.players-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.col-photo { width: 80px; }
+.col-name { flex: 1; }
+.col-status { width: 120px; }
+.col-actions { width: 150px; }
+
+.player-row {
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.player-row:hover {
+  background: var(--bg-light);
+}
+
+.players-table td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.player-photo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.player-photo:hover {
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.placeholder-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-size: 1.3rem;
+  border: 2px solid var(--border-color);
+}
+
+.player-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+}
+
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.status-badge.active {
+  background: var(--success-light);
+  color: var(--success-color);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--text-secondary);
+  background: var(--bg-white);
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-edit:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: var(--primary-light);
+}
+
+.btn-delete:hover {
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+  background: var(--danger-light);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-message {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.btn-empty-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.btn-empty-action:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--bg-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  max-width: 400px;
+  width: 90%;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-message {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.modal-warning {
+  font-size: 0.9rem;
+  color: var(--danger-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--danger-light);
+  border-radius: 6px;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel, .btn-confirm-delete {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.95rem;
+}
+
+.btn-cancel {
+  background: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-cancel:hover {
+  background: var(--border-color);
+}
+
+.btn-confirm-delete {
+  background: var(--danger-color);
+  color: white;
+}
+
+.btn-confirm-delete:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 2000;
+}
+
+.toast {
+  background: var(--text-primary);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  display: none;
+  animation: slideInRight 0.3s ease;
+}
+
+.toast.show {
+  display: block;
+}
+
+.toast-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .header-section {
+    padding: 2rem 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .team-header {
+    width: 100%;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .team-info h1 {
+    font-size: 1.8rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-primary-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .players-table th,
+  .players-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .action-buttons {
+    gap: 0.25rem;
+  }
+
+  .btn-action {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .col-photo { width: 50px; }
+
+  .modal-content {
+    width: 95%;
+  }
+
+  .toast-container {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .toast {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-logo {
+    width: 80px;
+    height: 80px;
+  }
+
   .placeholder-logo {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .player-photo {
+    width: 40px;
+    height: 40px;
   }
 
   .placeholder-photo {
-    width: 45px;
-    height: 45px;
-    background-color: #f8f9fa;
-    color: #adb5bd;
-    font-size: 1.1rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
   }
+}
+</style>
 
-  .color-badge {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+<script>
+// Search functionality
+document.getElementById('playerSearch').addEventListener('keyup', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const rows = document.querySelectorAll('.player-row');
+  
+  rows.forEach(row => {
+    const playerName = row.dataset.playerName;
+    row.style.display = playerName.includes(searchTerm) ? '' : 'none';
+  });
+});
+
+// Delete modal functionality
+let deletePlayerId = null;
+let deletePlayerUrl = null;
+
+function confirmDelete(playerId, playerName) {
+  deletePlayerId = playerId;
+  deletePlayerUrl = `{% url 'capitan_jugador_delete' 0 %}`.replace('0', playerId);
+  document.getElementById('playerNameConfirm').textContent = playerName;
+  document.getElementById('deleteModal').classList.add('active');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('active');
+  deletePlayerId = null;
+  deletePlayerUrl = null;
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+  if (deletePlayerUrl) {
+    window.location.href = deletePlayerUrl;
   }
+});
 
-  .btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeDeleteModal();
   }
+});
 
-  .table-hover tbody tr:hover {
-    background-color: #f8f9fa;
-  }
+// Add player action
+document.querySelector('[data-action="add-player"]').addEventListener('click', function() {
+  window.location.href = "{% url 'capitan_jugador_create' %}";
+});
 
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+// Toast notification
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toast');
+  const toastMessage = toast.querySelector('.toast-message');
+  
+  let icon = '';
+  if (type === 'success') {
+    icon = '<i class="fas fa-check-circle"></i>';
+    toast.style.background = 'var(--success-color)';
+  } else if (type === 'error') {
+    icon = '<i class="fas fa-exclamation-circle"></i>';
+    toast.style.background = 'var(--danger-color)';
+  } else {
+    icon = '<i class="fas fa-info-circle"></i>';
+    toast.style.background = 'var(--primary-color)';
   }
   
-  .card-header {
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+  toastMessage.innerHTML = `${icon} ${message}`;
+  toast.classList.add('show');
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  // Esc para cerrar modal
+  if (e.key === 'Escape') {
+    closeDeleteModal();
   }
-</style>
+  // Ctrl/Cmd + K para buscar
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('playerSearch').focus();
+  }
+});
+</script>
 {% endblock %}
