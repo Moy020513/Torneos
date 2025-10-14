@@ -14,7 +14,7 @@ build/
 *.pyo
 *.sqlite3
 media/
-staticfiles/
+
 
 # Virtualenv
 venv/
