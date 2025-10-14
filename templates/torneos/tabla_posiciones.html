@@ -63,6 +63,12 @@
             <li class="col"><strong>PTS</strong>: Puntos Totales</li>
         </ul>
         <style>
+        /* Centrar todos los td y th excepto la columna Equipo */
+        .tabla-posiciones th:not(:nth-child(2)),
+        .tabla-posiciones td:not(:nth-child(2)) {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
         /* Reducir altura de las filas de la tabla de posiciones */
         .tabla-posiciones th,
         .tabla-posiciones td {
