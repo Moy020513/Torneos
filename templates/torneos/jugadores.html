@@ -107,13 +107,20 @@
 
 {% block extra_js %}
 <script>
-    // Paginación de cards de jugadores con filtros
+    // Paginación y filtrado de cards de jugadores
     let paginaActual = 1;
     const porPagina = 12;
+    function expandirFoto(urlFoto, nombreJugador) {
+        document.getElementById('fotoExpandida').src = urlFoto;
+        document.getElementById('fotoExpandida').alt = nombreJugador;
+        document.getElementById('fotoModalLabel').textContent = nombreJugador;
+        var modal = new bootstrap.Modal(document.getElementById('fotoModal'));
+        modal.show();
+    }
     function mostrarPaginaJugadores(pagina) {
         var items = Array.from(document.querySelectorAll('.jugador-item'));
         // Solo los que están visibles por filtro
-        var visibles = items.filter(item => item.style.display !== 'none');
+        var visibles = items.filter(item => item.dataset.visible === 'true');
         var total = visibles.length;
         var totalPaginas = Math.ceil(total / porPagina);
         pagina = Math.max(1, Math.min(pagina, totalPaginas));
@@ -159,19 +166,16 @@
             var posicion = String(item.getAttribute('data-posicion') || '').trim();
             var nombreElem = item.querySelector('strong');
             var nombre = nombreElem ? nombreElem.textContent.trim().toLowerCase() : '';
-
             var coincideEquipo = (filtroEquipo === '' || equipoId === filtroEquipo);
             var coincidePosicion = (filtroPosicion === '' || posicion === filtroPosicion);
             var coincideNombre = (filtroNombre === '' || nombre.includes(filtroNombre));
-
             if (coincideEquipo && coincidePosicion && coincideNombre) {
-                item.style.display = 'block';
+                item.dataset.visible = 'true';
                 jugadoresMostrados++;
             } else {
-                item.style.display = 'none';
+                item.dataset.visible = 'false';
             }
         });
-        // Actualizar contadores
         document.getElementById('totalJugadores').textContent = totalJugadores;
         document.getElementById('jugadoresMostrados').textContent = jugadoresMostrados;
         mostrarPaginaJugadores(1);
@@ -190,60 +194,6 @@
         if (buscadorNombre) {
             buscadorNombre.addEventListener('input', filtrarJugadores);
         }
-    });
-</script>
-<script>
-    // Función para expandir foto
-    function expandirFoto(urlFoto, nombreJugador) {
-        document.getElementById('fotoExpandida').src = urlFoto;
-        document.getElementById('fotoExpandida').alt = nombreJugador;
-        document.getElementById('fotoModalLabel').textContent = nombreJugador;
-        var modal = new bootstrap.Modal(document.getElementById('fotoModal'));
-        modal.show();
-    }
-
-    function filtrarJugadores() {
-        var filtroEquipo = String(document.getElementById('equipoFiltro').value).trim();
-        var filtroPosicion = String(document.getElementById('posicionFiltro').value).trim();
-        var filtroNombre = document.getElementById('buscadorNombre').value.trim().toLowerCase();
-        var items = document.querySelectorAll('.jugador-item');
-        var totalJugadores = items.length;
-        var jugadoresMostrados = 0;
-        items.forEach(function(item) {
-            var equipoId = String(item.getAttribute('data-equipo') || '').trim();
-            var posicion = String(item.getAttribute('data-posicion') || '').trim();
-            var nombreElem = item.querySelector('strong');
-            var nombre = nombreElem ? nombreElem.textContent.trim().toLowerCase() : '';
-
-            var coincideEquipo = (filtroEquipo === '' || equipoId === filtroEquipo);
-            var coincidePosicion = (filtroPosicion === '' || posicion === filtroPosicion);
-            var coincideNombre = (filtroNombre === '' || nombre.includes(filtroNombre));
-
-            if (coincideEquipo && coincidePosicion && coincideNombre) {
-                item.style.display = 'block';
-                jugadoresMostrados++;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-        // Actualizar contadores
-        document.getElementById('totalJugadores').textContent = totalJugadores;
-        document.getElementById('jugadoresMostrados').textContent = jugadoresMostrados;
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        var equipoFiltro = document.getElementById('equipoFiltro');
-        var posicionFiltro = document.getElementById('posicionFiltro');
-        var buscadorNombre = document.getElementById('buscadorNombre');
-        if (equipoFiltro) {
-            equipoFiltro.addEventListener('change', filtrarJugadores);
-        }
-        if (posicionFiltro) {
-            posicionFiltro.addEventListener('change', filtrarJugadores);
-        }
-        if (buscadorNombre) {
-            buscadorNombre.addEventListener('input', filtrarJugadores);
-        }
-        filtrarJugadores();
     });
 </script>
 {% endblock %}
