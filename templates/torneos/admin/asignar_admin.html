@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0"><i class="fas fa-user-shield"></i> Asignar Administrador de Torneo</h3>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="usuario" class="form-label fw-semibold">Usuario</label>
+              <select name="usuario" id="usuario" class="form-select" required>
+                {% for user in usuarios %}
+                  <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="torneo" class="form-label fw-semibold">Torneo</label>
+              <select name="torneo" id="torneo" class="form-select" required>
+                {% for torneo in torneos %}
+                  <option value="{{ torneo.id }}">{{ torneo.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-check"></i> Asignar Administrador</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

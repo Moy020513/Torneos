@@ -615,7 +615,6 @@
                     Volver al Sitio
                 </a>
             </div>
-            
             <div class="nav-section-title">Dashboard</div>
             <div class="admin-nav-item">
                 <a href="{% url 'admin_dashboard' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
@@ -623,21 +622,21 @@
                     Dashboard Principal
                 </a>
             </div>
-            
-            <div class="nav-section-title">Gestión de Torneos</div>
-            <div class="admin-nav-item">
-                <a href="{% url 'admin_torneos' %}" class="admin-nav-link {% if 'torneo' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-trophy"></i>
-                    Torneos
-                </a>
-            </div>
-            <div class="admin-nav-item">
-                <a href="{% url 'admin_categorias' %}" class="admin-nav-link {% if 'categoria' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-tags"></i>
-                    Categorías
-                </a>
-            </div>
-            
+            {% if user.is_superuser or user.is_staff %}
+                <div class="nav-section-title">Gestión de Torneos</div>
+                <div class="admin-nav-item">
+                    <a href="{% url 'admin_torneos' %}" class="admin-nav-link {% if 'torneo' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-trophy"></i>
+                        Torneos
+                    </a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="{% url 'admin_categorias' %}" class="admin-nav-link {% if 'categoria' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-tags"></i>
+                        Categorías
+                    </a>
+                </div>
+            {% endif %}
             <div class="nav-section-title">Gestión de Equipos</div>
             <div class="admin-nav-item">
                 <a href="{% url 'admin_equipos' %}" class="admin-nav-link {% if 'equipo' in request.resolver_match.url_name %}active{% endif %}">
@@ -657,7 +656,6 @@
                     Capitanes
                 </a>
             </div>
-            
             <div class="nav-section-title">Gestión de Partidos</div>
             <div class="admin-nav-item">
                 <a href="{% url 'admin_partidos' %}" class="admin-nav-link {% if 'partido' in request.resolver_match.url_name and 'eliminatoria' not in request.resolver_match.url_name %}active{% endif %}">
@@ -687,26 +685,6 @@
                 <a href="{% url 'admin_goleadores' %}" class="admin-nav-link {% if 'goleador' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-bullseye"></i>
                     Goleadores
-                </a>
-            </div>
-            
-            <div class="nav-section-title">Sistema</div>
-            <div class="admin-nav-item">
-                <a href="{% url 'admin_usuarios' %}" class="admin-nav-link {% if 'usuario' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-user-cog"></i>
-                    Usuarios
-                </a>
-            </div>
-            <div class="admin-nav-item">
-                <a href="{% url 'admin_reportes' %}" class="admin-nav-link {% if 'reporte' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-chart-bar"></i>
-                    Reportes
-                </a>
-            </div>
-            <div class="admin-nav-item">
-                <a href="{% url 'admin_herramientas' %}" class="admin-nav-link {% if 'herramienta' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-tools"></i>
-                    Herramientas
                 </a>
             </div>
         </div>

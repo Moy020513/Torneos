@@ -55,6 +55,9 @@ TEMPLATES = [
     },
 ]
 
+
+LOGIN_URL = '/login/'
+
 WSGI_APPLICATION = 'torneos_app.wsgi.application'
 
 DATABASES = {

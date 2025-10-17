@@ -3,6 +3,7 @@ from . import admin_views
 
 # URLs del Panel de Administración Personalizado
 admin_urlpatterns = [
+    path('panel/asignar-admin/', admin_views.asignar_admin_torneo, name='asignar_admin_torneo'),
     # Dashboard
     path('panel/', admin_views.admin_dashboard, name='admin_dashboard'),
     

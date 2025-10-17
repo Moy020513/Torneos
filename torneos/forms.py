@@ -3,6 +3,11 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import *
 
+class AdministradorTorneoForm(forms.ModelForm):
+    class Meta:
+        model = AdministradorTorneo
+        fields = ['usuario', 'torneo', 'activo']
+
 # Formularios para el Panel de Administración
 class AdminFormMixin:
     """Mixin para aplicar clases CSS consistentes a todos los formularios del admin"""
@@ -151,6 +156,14 @@ class UsuarioForm(AdminFormMixin, forms.ModelForm):
             'is_staff': 'Acceso al Admin',
             'is_superuser': 'Superusuario',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = kwargs.get('request')
+        # Si el usuario actual no es superuser/staff, ocultar los campos de staff y superuser
+        if hasattr(self, 'current_user') and not (self.current_user.is_superuser or self.current_user.is_staff):
+            self.fields.pop('is_staff', None)
+            self.fields.pop('is_superuser', None)
     
     def clean(self):
         cleaned_data = super().clean()
