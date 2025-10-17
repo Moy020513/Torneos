@@ -2,38 +2,37 @@
 {% block categoria_content %}
     <div class="row mb-3">
         <div class="col-12">
-            <div class="d-flex align-items-center justify-content-between mt-2">
+            <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-2">
                 <div class="text-light">
-                    <strong>Total de equipos:</strong> <span id="total-equipos">{{ equipos|length }}</span>
+                    <strong style="font-size: clamp(0.85rem, 2vw, 1rem);">Total de equipos:</strong> <span id="total-equipos" style="font-size: clamp(0.85rem, 2vw, 1rem);">{{ equipos|length }}</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <input type="text" id="buscador-equipos" class="form-control" placeholder="Buscar equipo..." style="max-width: 220px;">
+                    <input type="text" id="buscador-equipos" class="form-control" placeholder="Buscar equipo..." style="max-width: 220px; font-size: clamp(0.8rem, 2vw, 1rem); padding: 0.35rem 0.5rem;">
                 </div>
             </div>
         </div>
     </div>
-    <div class="d-flex flex-wrap justify-content-center gap-3" id="equipos-lista">
+    <div class="row g-2 g-md-3" id="equipos-lista">
         {% for equipo in equipos %}
-        <div class="equipo-item">
-            <div class="card" style="width: max-content; min-width: 200px; max-width: 300px;">
-                <div class="card-body">
+        <div class="col-6 col-md-4 col-lg-3 equipo-item">
+            <div class="card h-100" style="padding: 0.75rem;">
+                <div class="card-body p-2">
                     <div class="d-flex flex-column align-items-center mb-2">
                         {% if equipo.logo %}
-                            <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width:40px; height:40px; object-fit:contain; margin-bottom:10px;">
+                            <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width: 35px; height: 35px; object-fit: contain; margin-bottom: 8px;">
                         {% endif %}
-                        <h5 class="card-title mb-0 nombre-equipo">{{ equipo.nombre }}</h5>
+                        <h6 class="card-title mb-0 nombre-equipo text-center" style="font-size: clamp(0.7rem, 2.5vw, 1rem); font-weight: 600; word-break: break-word;">{{ equipo.nombre }}</h6>
                     </div>
-                    <p class="card-text">
-                        <strong>Capitán:</strong> {% if equipo.capitan %}{{ equipo.capitan.usuario.get_full_name|default:equipo.capitan.usuario.username }}{% else %}Sin capitán{% endif %}<br>
-                        <strong>Jugadores:</strong> {{ equipo.jugador_set.count }}<br>
-                        <strong>Color:</strong> <span style="color: {{ equipo.color }}; font-weight: bold;">{{ equipo.color }}</span>
+                    <p class="card-text mb-0" style="font-size: clamp(0.65rem, 2vw, 0.95rem); line-height: 1.3;">
+                        <strong>Capitán:</strong> <span style="font-size: clamp(0.6rem, 1.8vw, 0.9rem); display: block; word-break: break-word;">{% if equipo.capitan %}{{ equipo.capitan.usuario.get_full_name|default:equipo.capitan.usuario.username }}{% else %}Sin capitán{% endif %}</span>
+                        <strong>Jugadores:</strong> {{ equipo.jugador_set.count }}
                     </p>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="alert alert-info">No hay equipos registrados en esta categoría.</div>
+            <div class="alert alert-info mb-0">No hay equipos registrados en esta categoría.</div>
         </div>
         {% endfor %}
     </div>
