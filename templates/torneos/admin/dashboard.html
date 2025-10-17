@@ -2,6 +2,11 @@
 {% block title %}Panel de Administración{% endblock %}
 {% block content %}
 <div class="container mt-4">
+    <div class="mb-4">
+        <a href="{% url 'asignar_admin_torneo' %}" class="btn btn-danger btn-lg">
+            <i class="fa-solid fa-user-shield"></i> Administradores de Torneo
+        </a>
+    </div>
     <div class="card mb-4">
         <div class="card-header bg-dark text-white">
             <h2><i class="fa-solid fa-gear"></i> Panel de Administración</h2>
