@@ -34,7 +34,7 @@
         {% for equipo in equipos %}
             {% for jugador in equipo.jugador_set.all %}
                 <div class="card jugador-item" data-equipo="{{ equipo.id }}" data-posicion="{{ jugador.get_posicion_display }}" 
-                     style="background: rgba(10, 35, 66, 0.9); border: 1px solid #08F7FE; border-radius: 12px; padding: 16px; width: max-content; min-width: 300px; max-width: 500px;">
+                     style="background: rgba(10, 35, 66, 0.9); border: 1px solid #08F7FE; border-radius: 12px; padding: 16px; width: max-content; min-width: 300px; max-width: 500px; display:none;">
                     <div class="d-flex align-items-center">
                         {% if jugador.foto %}
                             <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }}" 
@@ -64,6 +64,7 @@
                 </div>
             {% endfor %}
         {% endfor %}
+        <div class="w-100 d-flex justify-content-center mt-4" id="paginacionJugadores"></div>
     </div>
 
     <!-- Modal para expandir foto -->
@@ -83,6 +84,35 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    // Paginación de cards de jugadores
+    function mostrarPaginaJugadores(pagina, porPagina) {
+        var items = document.querySelectorAll('.jugador-item');
+        var total = items.length;
+        var totalPaginas = Math.ceil(total / porPagina);
+        pagina = Math.max(1, Math.min(pagina, totalPaginas));
+        items.forEach(function(item, idx) {
+            item.style.display = (idx >= (pagina-1)*porPagina && idx < pagina*porPagina) ? 'block' : 'none';
+        });
+        // Renderizar paginación
+        var paginacion = document.getElementById('paginacionJugadores');
+        if (paginacion) {
+            paginacion.innerHTML = '';
+            if (totalPaginas > 1) {
+                for (let i = 1; i <= totalPaginas; i++) {
+                    let btn = document.createElement('button');
+                    btn.textContent = i;
+                    btn.className = 'btn btn-sm mx-1 ' + (i === pagina ? 'btn-primary' : 'btn-outline-primary');
+                    btn.onclick = function() { mostrarPaginaJugadores(i, porPagina); };
+                    paginacion.appendChild(btn);
+                }
+            }
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        mostrarPaginaJugadores(1, 12);
+    });
+</script>
 <script>
     // Función para expandir foto
     function expandirFoto(urlFoto, nombreJugador) {
