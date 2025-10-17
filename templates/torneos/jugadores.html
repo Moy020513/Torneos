@@ -59,12 +59,34 @@
                         </div>
                     </div>
                     <div style="margin-top: 12px; text-align: right;">
-                        <span style="color: #08F7FE; font-size: 0.95em;">Registrado: {{ jugador.fecha_creacion|date:'d/m/Y H:i' }}</span>
+                        <span style="color: #08F7FE; font-size: 0.95em;">Fecha de registro: {{ jugador.fecha_creacion|date:'d/m/Y H:i' }}</span>
                     </div>
                 </div>
             {% endfor %}
         {% endfor %}
         <div class="w-100 d-flex justify-content-center mt-4" id="paginacionJugadores"></div>
+        <style>
+        #paginacionJugadores {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            max-width: 100vw;
+            overflow-x: auto;
+        }
+        #paginacionJugadores button {
+            min-width: 40px;
+            min-height: 40px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        @media (max-width: 600px) {
+            #paginacionJugadores button {
+                min-width: 48px;
+                min-height: 48px;
+                font-size: 1.2em;
+            }
+        }
+        </style>
     </div>
 
     <!-- Modal para expandir foto -->
@@ -99,13 +121,24 @@
         if (paginacion) {
             paginacion.innerHTML = '';
             if (totalPaginas > 1) {
+                let pagContainer = document.createElement('div');
+                pagContainer.style.display = 'flex';
+                pagContainer.style.flexWrap = 'wrap';
+                pagContainer.style.justifyContent = 'center';
+                pagContainer.style.gap = '0.5rem';
                 for (let i = 1; i <= totalPaginas; i++) {
                     let btn = document.createElement('button');
                     btn.textContent = i;
-                    btn.className = 'btn btn-sm mx-1 ' + (i === pagina ? 'btn-primary' : 'btn-outline-primary');
-                    btn.onclick = function() { mostrarPaginaJugadores(i, porPagina); };
-                    paginacion.appendChild(btn);
+                    btn.className = 'btn btn-lg ' + (i === pagina ? 'btn-primary' : 'btn-outline-primary');
+                    btn.style.minWidth = '40px';
+                    btn.style.minHeight = '40px';
+                    btn.style.fontSize = '1.1em';
+                    btn.style.borderRadius = '8px';
+                    btn.style.marginBottom = '6px';
+                    btn.onclick = function() { mostrarPaginaJugadores(i, porPagina); window.scrollTo({top: document.getElementById('jugadoresLista').offsetTop-60, behavior:'smooth'}); };
+                    pagContainer.appendChild(btn);
                 }
+                paginacion.appendChild(pagContainer);
             }
         }
     }
