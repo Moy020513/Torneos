@@ -28,7 +28,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn-primary-action" data-action="add-player">
+        <button class="btn-primary-action" data-action="add-player" id="addPlayerBtn" {% if jugadores|length >= 16 %}disabled style="opacity:0.6;cursor:not-allowed;"{% endif %}>
           <i class="fas fa-plus-circle"></i> Agregar Jugador
         </button>
       </div>
@@ -48,6 +48,10 @@
         <div class="section-title-group">
           <h2 class="section-title">Gestión de Jugadores</h2>
           <p class="section-subtitle">Administra y controla los miembros de tu equipo</p>
+          <p class="text-muted" style="margin-bottom:0.5rem;">Cantidad máxima de jugadores permitidos: <strong>16</strong></p>
+          {% if jugadores|length >= 16 %}
+            <p style="color:#dc3545;font-weight:bold;">Actualmente tienes 16 jugadores, para agregar otro deberás eliminar uno primero.</p>
+          {% endif %}
         </div>
         <div class="search-wrapper">
           <input type="text" class="search-input" id="playerSearch" placeholder="Buscar jugador...">
@@ -940,6 +944,21 @@ body {
 </style>
 
 <script>
+  // Límite de jugadores: 16
+  document.addEventListener('DOMContentLoaded', function() {
+    var addBtn = document.getElementById('addPlayerBtn');
+    if (addBtn) {
+      addBtn.addEventListener('click', function(e) {
+        if ({{ jugadores|length }} >= 16) {
+          e.preventDefault();
+          // Mostrar flash usando Django messages vía recarga
+          window.location.href = window.location.pathname + '?limite_jugadores=1';
+        } else {
+          window.location.href = "{% url 'capitan_jugador_create' %}";
+        }
+      });
+    }
+  });
 // Search functionality
 document.getElementById('playerSearch').addEventListener('keyup', function(e) {
   const searchTerm = e.target.value.toLowerCase();
