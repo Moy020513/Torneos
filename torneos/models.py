@@ -1,24 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Q
-def user_is_admin_torneo(self):
-    return AdministradorTorneo.objects.filter(usuario=self, activo=True).exists()
-
-User.add_to_class('administradortorneo', property(user_is_admin_torneo))
-from django.core.validators import FileExtensionValidator
-from PIL import Image
-import os
-
-class AdministradorTorneo(models.Model):
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    torneo = models.ForeignKey('Torneo', on_delete=models.CASCADE)
-    activo = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.usuario.username} - {self.torneo.nombre}"
-from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 from PIL import Image
 import os

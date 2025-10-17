@@ -12,62 +12,8 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.conf import settings
 
-@login_required
-def admin_crear_jugador(request):
-    if request.method == 'POST':
-        form = JugadorForm(request.POST, request.FILES)
-        if form.is_valid():
-            jugador = form.save()
-            messages.success(request, 'Jugador creado exitosamente.')
-            return redirect('admin_jugadores')
-    else:
-        form = JugadorForm()
-    context = {
-        'form': form,
-        'action': 'Crear',
-    }
-    return render(request, 'admin/jugadores/form.html', context)
 def is_admin(user):
     return user.is_superuser
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib import messages
-from django.http import JsonResponse
-from django.db.models import Q, Sum, Count, F, Max
-from django.core.paginator import Paginator
-from django.contrib.auth.models import User
-from .models import *
-from .forms import *
-import json
-from datetime import datetime, timedelta
-from django.utils import timezone
-from django.conf import settings
-@login_required
-@user_passes_test(is_admin)
-def asignar_admin_torneo(request):
-    usuarios = User.objects.filter(is_active=True)
-    torneos = Torneo.objects.all()
-    if request.method == 'POST':
-        usuario_id = request.POST.get('usuario')
-        torneo_id = request.POST.get('torneo')
-        usuario = User.objects.get(id=usuario_id)
-        torneo = Torneo.objects.get(id=torneo_id)
-        admin, created = AdministradorTorneo.objects.get_or_create(usuario=usuario, torneo=torneo)
-        admin.activo = True
-        admin.save()
-        messages.success(request, f"Administrador '{usuario.username}' asignado al torneo '{torneo.nombre}' correctamente.")
-        return redirect('asignar_admin_torneo')
-    return render(request, 'torneos/admin/asignar_admin.html', {
-        'usuarios': usuarios,
-        'torneos': torneos,
-    })
-
-def is_admin(user):
-    from .models import AdministradorTorneo
-    if user.is_superuser:
-        return True
-    # Verifica si el usuario es administrador de algún torneo y está activo
-    return AdministradorTorneo.objects.filter(usuario=user, activo=True).exists()
 
 # =================== DASHBOARD ===================
 @login_required
@@ -564,26 +510,24 @@ def admin_jugadores(request):
     return render(request, 'admin/jugadores/listar.html', context)
 
 @login_required
-def admin_crear_torneo(request):
-    # Solo superusuarios o staff pueden crear torneos
-    if not (request.user.is_superuser or request.user.is_staff):
-        messages.error(request, 'No tienes permisos para crear torneos.')
-        return redirect('admin_dashboard')
+@user_passes_test(is_admin)
+def admin_crear_jugador(request):
     if request.method == 'POST':
-        form = TorneoForm(request.POST, request.FILES)
+        form = JugadorForm(request.POST, request.FILES)
         if form.is_valid():
-            torneo = form.save(commit=False)
-            torneo.creado_por = request.user
-            torneo.save()
-            messages.success(request, 'Torneo creado exitosamente.')
-            return redirect('admin_torneos')
+            form.save()
+            messages.success(request, 'Jugador creado exitosamente.')
+            return redirect('admin_jugadores')
     else:
-        form = TorneoForm()
+        form = JugadorForm()
+    
     context = {
         'form': form,
         'action': 'Crear',
     }
-    return render(request, 'admin/torneos/form.html', context)
+    return render(request, 'admin/jugadores/form.html', context)
+
+@login_required
 @user_passes_test(is_admin)
 def admin_editar_jugador(request, jugador_id):
     jugador = get_object_or_404(Jugador, id=jugador_id)

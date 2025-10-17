@@ -154,15 +154,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="/admin/">Administración</a>
                             </li>
-                        {% endif %}
-                        {% if user.capitan %}
+                        {% elif user.capitan %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'capitan_panel' %}">Panel capitán</a>
-                            </li>
-                        {% endif %}
-                        {% if user.administradortorneo %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin_dashboard' %}">Panel Administrador de Torneo</a>
                             </li>
                         {% endif %}
                     {% endif %}
