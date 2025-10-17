@@ -96,17 +96,20 @@ class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
         model = Jugador
         fields = ['nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion', 'activo']
         widgets = {
-            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
+            'nombre': forms.TextInput(attrs={'style': 'text-transform:uppercase;', 'oninput': "this.value = this.value.toUpperCase();"}),
+            'apellido': forms.TextInput(attrs={'style': 'text-transform:uppercase;', 'oninput': "this.value = this.value.toUpperCase();"}),
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
         labels = {
-            'nombre': 'Nombre',
-            'apellido': 'Apellido',
+            'nombre': 'Nombre(s)',
+            'apellido': 'Apellidos',
             'foto': 'Foto del Jugador',
             'fecha_nacimiento': 'Fecha de Nacimiento',
             'numero_camiseta': 'Número de Camiseta',
             'posicion': 'Posición',
             'activo': 'Jugador Activo',
         }
+
 
 class PartidoForm(AdminFormMixin, forms.ModelForm):
     class Meta:

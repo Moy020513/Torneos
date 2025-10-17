@@ -63,8 +63,9 @@
             <thead>
               <tr>
                 <th class="col-photo">Foto</th>
-                <th class="col-name">Nombre</th>
-                <th class="col-apellido">Apellido</th>
+                <th class="col-name">Nombre(s)</th>
+                <th class="col-apellido">Apellidos</th>
+                <th class="col-fecha-nac">Fecha Nac.</th>
                 <th class="col-status">Estado</th>
                 <th class="col-actions">Acciones</th>
               </tr>
@@ -86,8 +87,11 @@
                 <td class="col-name">
                   <span class="player-name">{{ jugador.nombre }}</span>
                 </td>
-                <td class="col-apellido>">
-                  <span class="player-apellido">{{ jugador.apellido}}</span>
+                <td class="col-apellido">
+                  <span class="player-apellido">{{ jugador.apellido }}</span>
+                </td>
+                <td class="col-fecha-nac">
+                  <span class="player-fecha-nac">{{ jugador.fecha_nacimiento|date:'d/m/Y' }}</span>
                 </td>
                 <td class="col-status">
                   <span class="status-badge active">Activo</span>
