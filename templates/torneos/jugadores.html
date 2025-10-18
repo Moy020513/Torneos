@@ -33,8 +33,11 @@
     <div class="d-flex flex-wrap gap-3 justify-content-center" id="jugadoresLista">
         {% for equipo in equipos %}
             {% for jugador in equipo.jugador_set.all %}
-                <div class="card jugador-item" data-equipo="{{ equipo.id }}" data-posicion="{{ jugador.get_posicion_display }}" 
-                     style="background: rgba(10, 35, 66, 0.9); border: 1px solid #08F7FE; border-radius: 12px; padding: 16px; width: max-content; min-width: 300px; max-width: 500px; display:none;">
+                <div class="card jugador-item" 
+                     data-equipo-id="{{ equipo.id }}" 
+                     data-posicion="{{ jugador.get_posicion_display }}" 
+                     data-nombre="{{ jugador.nombre }} {{ jugador.apellido }}"
+                     style="background: rgba(10, 35, 66, 0.9); border: 1px solid #08F7FE; border-radius: 12px; padding: 16px; width: max-content; min-width: 300px; max-width: 500px; display:block;">
                     <div class="d-flex align-items-center">
                         {% if jugador.foto %}
                             <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }}" 
@@ -64,7 +67,8 @@
                 </div>
             {% endfor %}
         {% endfor %}
-        <div class="w-100 d-flex justify-content-center mt-4" id="paginacionJugadores"></div>
+    </div>
+    <div class="w-100 d-flex justify-content-center mt-4" id="paginacionJugadores" style="display: block; min-height: 50px;"></div>
         <style>
         #paginacionJugadores {
             flex-wrap: wrap;
@@ -107,9 +111,9 @@
 
 {% block extra_js %}
 <script>
-    // Paginación y filtrado de cards de jugadores
     let paginaActual = 1;
     const porPagina = 12;
+
     function expandirFoto(urlFoto, nombreJugador) {
         document.getElementById('fotoExpandida').src = urlFoto;
         document.getElementById('fotoExpandida').alt = nombreJugador;
@@ -117,27 +121,40 @@
         var modal = new bootstrap.Modal(document.getElementById('fotoModal'));
         modal.show();
     }
+
     function mostrarPaginaJugadores(pagina) {
-        var items = Array.from(document.querySelectorAll('.jugador-item'));
-        // Solo los que están visibles por filtro
-        var visibles = items.filter(item => item.dataset.visible === 'true');
+        var allItems = Array.from(document.querySelectorAll('.jugador-item'));
+        var visibles = allItems.filter(item => item.classList.contains('filtrado'));
         var total = visibles.length;
-        var totalPaginas = Math.ceil(total / porPagina);
+        var totalPaginas = Math.max(1, Math.ceil(total / porPagina));
         pagina = Math.max(1, Math.min(pagina, totalPaginas));
         paginaActual = pagina;
-        visibles.forEach(function(item, idx) {
-            item.style.display = (idx >= (pagina-1)*porPagina && idx < pagina*porPagina) ? 'block' : 'none';
+
+        // Ocultar todos
+        allItems.forEach(function(item) {
+            item.style.display = 'none';
         });
-        // Renderizar paginación
+
+        // Mostrar solo los de la página actual
+        visibles.forEach(function(item, idx) {
+            if (idx >= (pagina-1)*porPagina && idx < pagina*porPagina) {
+                item.style.display = 'block';
+            }
+        });
+
+        // Actualizar paginación
         var paginacion = document.getElementById('paginacionJugadores');
         if (paginacion) {
             paginacion.innerHTML = '';
+            
             if (totalPaginas > 1) {
                 let pagContainer = document.createElement('div');
                 pagContainer.style.display = 'flex';
                 pagContainer.style.flexWrap = 'wrap';
                 pagContainer.style.justifyContent = 'center';
                 pagContainer.style.gap = '0.5rem';
+                pagContainer.style.width = '100%';
+                
                 for (let i = 1; i <= totalPaginas; i++) {
                     let btn = document.createElement('button');
                     btn.textContent = i;
@@ -147,44 +164,70 @@
                     btn.style.fontSize = '1.1em';
                     btn.style.borderRadius = '8px';
                     btn.style.marginBottom = '6px';
-                    btn.onclick = function() { mostrarPaginaJugadores(i); window.scrollTo({top: document.getElementById('jugadoresLista').offsetTop-60, behavior:'smooth'}); };
+                    btn.style.cursor = 'pointer';
+                    btn.type = 'button';
+                    btn.onclick = function() { 
+                        mostrarPaginaJugadores(i); 
+                        window.scrollTo({top: document.getElementById('jugadoresLista').offsetTop-60, behavior:'smooth'}); 
+                    };
                     pagContainer.appendChild(btn);
                 }
                 paginacion.appendChild(pagContainer);
             }
         }
     }
+
     function filtrarJugadores() {
-        var filtroEquipo = String(document.getElementById('equipoFiltro').value).trim();
-        var filtroPosicion = String(document.getElementById('posicionFiltro').value).trim();
+        var filtroEquipo = document.getElementById('equipoFiltro').value.trim();
+        var filtroPosicion = document.getElementById('posicionFiltro').value.trim();
         var filtroNombre = document.getElementById('buscadorNombre').value.trim().toLowerCase();
+        
         var items = document.querySelectorAll('.jugador-item');
         var totalJugadores = items.length;
-        var jugadoresMostrados = 0;
+        var visiblesCount = 0;
+
         items.forEach(function(item) {
-            var equipoId = String(item.getAttribute('data-equipo') || '').trim();
-            var posicion = String(item.getAttribute('data-posicion') || '').trim();
-            var nombreElem = item.querySelector('strong');
-            var nombre = nombreElem ? nombreElem.textContent.trim().toLowerCase() : '';
+            var equipoId = item.getAttribute('data-equipo-id') || '';
+            var posicion = item.getAttribute('data-posicion') || '';
+            var nombre = (item.getAttribute('data-nombre') || '').toLowerCase();
+
             var coincideEquipo = (filtroEquipo === '' || equipoId === filtroEquipo);
             var coincidePosicion = (filtroPosicion === '' || posicion === filtroPosicion);
             var coincideNombre = (filtroNombre === '' || nombre.includes(filtroNombre));
+
             if (coincideEquipo && coincidePosicion && coincideNombre) {
-                item.dataset.visible = 'true';
-                jugadoresMostrados++;
+                item.classList.add('filtrado');
+                visiblesCount++;
             } else {
-                item.dataset.visible = 'false';
+                item.classList.remove('filtrado');
             }
         });
+
         document.getElementById('totalJugadores').textContent = totalJugadores;
-        document.getElementById('jugadoresMostrados').textContent = jugadoresMostrados;
+        document.getElementById('jugadoresMostrados').textContent = visiblesCount;
         mostrarPaginaJugadores(1);
     }
+
     document.addEventListener('DOMContentLoaded', function() {
-        filtrarJugadores();
+        var items = document.querySelectorAll('.jugador-item');
+        
+        // Marcar todos como filtrados inicialmente
+        items.forEach(function(item) {
+            item.classList.add('filtrado');
+        });
+
+        // Actualizar contadores
+        document.getElementById('totalJugadores').textContent = items.length;
+        document.getElementById('jugadoresMostrados').textContent = items.length;
+        
+        // Mostrar primera página
+        mostrarPaginaJugadores(1);
+
+        // Event listeners para filtros
         var equipoFiltro = document.getElementById('equipoFiltro');
         var posicionFiltro = document.getElementById('posicionFiltro');
         var buscadorNombre = document.getElementById('buscadorNombre');
+
         if (equipoFiltro) {
             equipoFiltro.addEventListener('change', filtrarJugadores);
         }
