@@ -1,4 +1,3 @@
-
 def jugadores_view(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = Equipo.objects.filter(categoria=categoria)
@@ -324,7 +323,7 @@ def administrar_torneo(request, torneo_id):
             categoria.torneo = torneo
             categoria.save()
             messages.success(request, 'Categoría creada exitosamente.')
-            return redirect('administrar_torneo', torneo_id=torneo.id)
+            return redirect('administrar_torneo', torneo_id=torneo_id)
     else:
         form = CategoriaForm()
     
@@ -704,3 +703,14 @@ def equipos_view(request, categoria_id):
     
     messages.success(request, f'Calendario generado con {total_jornadas} jornadas.')
     return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
+
+def jugador_detalle(request, jugador_id):
+    jugador = get_object_or_404(Jugador, id=jugador_id)
+    participaciones = jugador.participaciones.select_related('partido').order_by('-partido__fecha')
+    categoria = jugador.equipo.categoria if jugador.equipo else None
+    context = {
+        'jugador': jugador,
+        'participaciones': participaciones,
+        'categoria': categoria,
+    }
+    return render(request, 'torneos/jugador_detalle.html', context)

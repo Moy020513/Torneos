@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="row g-0">
+            <div class="col-md-4 text-center">
+                {% if jugador.foto %}
+                    <img src="{{ jugador.foto.url }}" class="img-fluid rounded-start" alt="Foto de {{ jugador.nombre }}" style="max-height: 250px;">
+                {% else %}
+                    <img src="/static/img/default_avatar.png" class="img-fluid rounded-start" alt="Sin foto" style="max-height: 250px;">
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h3 class="card-title">{{ jugador.nombre }} {{ jugador.apellido }}</h3>
+                    <p class="card-text"><strong>Equipo:</strong> {{ jugador.equipo.nombre }}</p>
+                    <p class="card-text"><strong>Fecha de nacimiento:</strong> {{ jugador.fecha_nacimiento|date:'d/m/Y' }}</p>
+                    <p class="card-text"><strong>Edad:</strong> {{ jugador.edad }}</p>
+                    <p class="card-text"><strong>Partidos jugados:</strong> {{ partidos_jugados }}</p>
+                    <p class="card-text"><strong>Posición:</strong> {{ jugador.posicion }}</p>
+                    <p class="card-text"><strong>Número:</strong> {{ jugador.numero }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h4>Participaciones</h4>
+    <ul class="list-group mb-4">
+        {% for participacion in participaciones %}
+            <li class="list-group-item">
+                <strong>Partido:</strong> {{ participacion.partido }}<br>
+                <strong>Fecha:</strong> {{ participacion.partido.fecha|date:'d/m/Y H:i' }}
+            </li>
+        {% empty %}
+            <li class="list-group-item">No hay participaciones registradas.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'admin_jugadores' %}" class="btn btn-secondary">Volver a jugadores</a>
+</div>
+{% endblock %}

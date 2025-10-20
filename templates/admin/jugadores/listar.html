@@ -108,7 +108,11 @@
                             </td>
                             <td>
                                 <div>
-                                    <h6 class="mb-1 fw-semibold">{{ jugador.nombre }} {{ jugador.apellido }}</h6>
+                                    <h6 class="mb-1 fw-semibold">
+                                        <a href="{% url 'admin_detalle_jugador' jugador.id %}" class="text-decoration-none text-dark">
+                                            {{ jugador.nombre }} {{ jugador.apellido }}
+                                        </a>
+                                    </h6>
                                     <small class="text-muted">{{ jugador.fecha_nacimiento|date:"d/m/Y" }}</small>
                                 </div>
                             </td>
@@ -145,6 +149,11 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
+                                    <a href="{% url 'admin_detalle_jugador' jugador.id %}"
+                                       class="btn btn-outline-info btn-sm me-1"
+                                       title="Ver detalles">
+                                        <i class="fas fa-eye"></i> Detalles
+                                    </a>
                                     <a href="{% url 'admin_editar_jugador' jugador.id %}" 
                                        class="btn btn-outline-primary btn-sm" 
                                        title="Editar">

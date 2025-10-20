@@ -15,6 +15,7 @@ urlpatterns = [
     path('categoria/<int:categoria_id>/estadisticas/', views.estadisticas_view, name='estadisticas'),
     path('categoria/<int:categoria_id>/resultados/', views.resultados_view, name='resultados'),
     path('categoria/<int:categoria_id>/jugadores/', views.jugadores_view, name='jugadores'),
+    path('jugador/<int:jugador_id>/', views.jugador_detalle, name='jugador_detalle'),
     # AJAX para admin
     path('get_categorias/', views.get_categorias_by_torneo, name='get_categorias_by_torneo'),
     # URLs de administración (legacy - mantenidas para compatibilidad)

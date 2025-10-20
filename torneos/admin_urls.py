@@ -37,6 +37,7 @@ admin_urlpatterns = [
     path('panel/jugadores/crear/', admin_views.admin_crear_jugador, name='admin_crear_jugador'),
     path('panel/jugadores/<int:jugador_id>/editar/', admin_views.admin_editar_jugador, name='admin_editar_jugador'),
     path('panel/jugadores/<int:jugador_id>/eliminar/', admin_views.admin_eliminar_jugador, name='admin_eliminar_jugador'),
+        path('panel/jugadores/<int:jugador_id>/detalle/', admin_views.admin_detalle_jugador, name='admin_detalle_jugador'),
 
     # Partidos
     path('panel/partidos/', admin_views.admin_partidos, name='admin_partidos'),

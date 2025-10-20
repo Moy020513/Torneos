@@ -1,11 +1,34 @@
-# =================== ELIMINAR PARTICIPACION ===================
-
 
 # Definir is_admin antes de cualquier uso en decoradores
 def is_admin(user):
     return user.is_superuser
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
+from datetime import date, timedelta, datetime
+
+@login_required
+@user_passes_test(is_admin)
+def admin_detalle_jugador(request, jugador_id):
+    jugador = get_object_or_404(Jugador, id=jugador_id)
+    # Calcular edad
+    if jugador.fecha_nacimiento:
+        today = date.today()
+        jugador.edad = today.year - jugador.fecha_nacimiento.year - ((today.month, today.day) < (jugador.fecha_nacimiento.month, jugador.fecha_nacimiento.day))
+    else:
+        jugador.edad = "N/A"
+    # Participaciones y partidos jugados
+    participaciones = ParticipacionJugador.objects.filter(jugador=jugador).select_related('partido').order_by('-partido__fecha')
+    partidos_jugados = participaciones.count()
+    context = {
+        'jugador': jugador,
+        'participaciones': participaciones,
+        'partidos_jugados': partidos_jugados,
+    }
+    return render(request, 'admin/jugadores/detalle.html', context)
+
+# =================== ELIMINAR PARTICIPACION ===================
+
 from django.views.decorators.http import require_POST
 
 @login_required
@@ -44,16 +67,7 @@ def admin_crear_participaciones_multiples(request):
     context = {'form': form, 'action': 'Registrar múltiples', 'equipo_id': equipo_id}
     return render(request, 'admin/participaciones/form_multiple.html', context)
 
-from .forms import ParticipacionJugadorForm, ParticipacionMultipleForm
-
-
-from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import ParticipacionJugador
-from .forms import ParticipacionJugadorForm, ParticipacionMultipleForm
-
-# Definir is_admin antes de cualquier uso en decoradores
-def is_admin(user):
-    return user.is_superuser
+# ...existing code...
 # =================== PARTICIPACIONES DE JUGADORES ===================
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
@@ -116,13 +130,7 @@ def admin_editar_participacion(request, participacion_id):
     return render(request, 'admin/participaciones/form.html', context)
 
 # =================== HERRAMIENTAS ADMINISTRATIVAS ===================
-from django.contrib import messages
-from django.db.models import Q
-from django.contrib.auth.decorators import login_required, user_passes_test
-
-# Definir is_admin antes de cualquier uso
-def is_admin(user):
-    return user.is_superuser
+# ...existing code...
 
 @login_required
 @user_passes_test(is_admin)
@@ -293,11 +301,7 @@ from django.contrib.auth.models import User
 from .models import *
 from .forms import *
 import json
-from datetime import datetime, timedelta
-from django.utils import timezone
-from django.conf import settings
-def is_admin(user):
-    return user.is_superuser
+# ...existing code...
 # =================== DASHBOARD ===================
 @login_required
 @user_passes_test(is_admin)
