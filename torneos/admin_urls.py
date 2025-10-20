@@ -76,7 +76,6 @@ admin_urlpatterns = [
     
     # Herramientas Administrativas
     path('herramientas/', admin_views.admin_herramientas, name='admin_herramientas'),
-    path('herramientas/corregir/', admin_views.admin_corregir_inconsistencias, name='admin_corregir_inconsistencias'),
     
     # Reportes
     path('panel/reportes/', admin_views.admin_reportes, name='admin_reportes'),

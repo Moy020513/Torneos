@@ -1,6 +1,8 @@
 from django.urls import path, include
 from . import views
+
 from .admin_urls import admin_urlpatterns
+from .admin_campos_urls import urlpatterns as admin_campos_urlpatterns
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -25,4 +27,4 @@ urlpatterns = [
         path('capitan/jugadores/<int:jugador_id>/editar/', views.capitan_jugador_update, name='capitan_jugador_update'),
         path('capitan/jugadores/<int:jugador_id>/eliminar/', views.capitan_jugador_delete, name='capitan_jugador_delete'),
         path('equipo/<int:equipo_id>/gestion/', views.gestion_equipo, name='gestion_equipo'),
-] + admin_urlpatterns
+] + admin_urlpatterns + admin_campos_urlpatterns

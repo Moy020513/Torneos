@@ -1,3 +1,172 @@
+
+# =================== HERRAMIENTAS ADMINISTRATIVAS ===================
+from django.contrib import messages
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+# Definir is_admin antes de cualquier uso
+def is_admin(user):
+    return user.is_superuser
+
+@login_required
+@user_passes_test(is_admin)
+def admin_herramientas(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'marcar_jugados':
+            # Marcar como jugados los partidos con resultado
+            partidos_actualizados = Partido.objects.filter(
+                jugado=False
+            ).exclude(
+                goles_local__isnull=True,
+                goles_visitante__isnull=True
+            ).exclude(
+                goles_local=0,
+                goles_visitante=0
+            ).update(jugado=True)
+            messages.success(request, f'Se marcaron {partidos_actualizados} partidos como jugados.')
+        elif action == 'asignar_fechas':
+            # Asignar fecha actual a partidos finalizados sin fecha
+            from django.utils import timezone
+            partidos_sin_fecha = Partido.objects.filter(
+                Q(jugado=True) | 
+                (Q(goles_local__gt=0) | Q(goles_visitante__gt=0)),
+                fecha__isnull=True
+            )
+            fecha_default = timezone.now()
+            partidos_actualizados = 0
+            for partido in partidos_sin_fecha:
+                partido.fecha = fecha_default
+                partido.save()
+                partidos_actualizados += 1
+            messages.success(request, f'Se asignó fecha a {partidos_actualizados} partidos.')
+        elif action == 'resetear_resultados':
+            # Resetear resultados de partidos no jugados
+            partidos_reseteados = Partido.objects.filter(
+                jugado=False
+            ).exclude(
+                goles_local__isnull=True,
+                goles_visitante__isnull=True
+            ).exclude(
+                goles_local=0,
+                goles_visitante=0
+            ).update(goles_local=0, goles_visitante=0)
+            messages.success(request, f'Se resetearon los resultados de {partidos_reseteados} partidos.')
+        return redirect('admin_herramientas')
+
+    # Detectar inconsistencias en partidos
+    partidos_sin_fecha_con_resultado = Partido.objects.filter(
+        fecha__isnull=True
+    ).exclude(
+        goles_local__isnull=True,
+        goles_visitante__isnull=True
+    ).exclude(
+        goles_local=0,
+        goles_visitante=0
+    )
+
+    partidos_jugados_sin_fecha = Partido.objects.filter(
+        jugado=True,
+        fecha__isnull=True
+    )
+
+    partidos_con_resultado_no_jugados = Partido.objects.filter(
+        jugado=False
+    ).exclude(
+        goles_local__isnull=True,
+        goles_visitante__isnull=True
+    ).exclude(
+        goles_local=0,
+        goles_visitante=0
+    )
+
+    context = {
+        'partidos_sin_fecha_con_resultado': partidos_sin_fecha_con_resultado,
+        'partidos_jugados_sin_fecha': partidos_jugados_sin_fecha,
+        'partidos_con_resultado_no_jugados': partidos_con_resultado_no_jugados,
+    }
+    return render(request, 'admin/herramientas/index.html', context)
+
+
+
+from .models import UbicacionCampo
+from django.core.paginator import Paginator
+from .forms import AdminFormMixin
+
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_campos(request):
+    search = request.GET.get('search', '')
+    campos = UbicacionCampo.objects.all()
+    if search:
+        campos = campos.filter(nombre__icontains=search)
+    paginator = Paginator(campos, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context = {
+        'campos': page_obj,
+        'search': search,
+    }
+    return render(request, 'admin/campos/listar.html', context)
+
+
+from django import forms
+class UbicacionCampoForm(AdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = UbicacionCampo
+        fields = ['nombre', 'direccion', 'latitud', 'longitud']
+        labels = {
+            'nombre': 'Nombre del Campo',
+            'direccion': 'Dirección',
+            'latitud': 'Latitud',
+            'longitud': 'Longitud',
+        }
+        widgets = {
+            'latitud': forms.NumberInput(attrs={'step': 'any'}),
+            'longitud': forms.NumberInput(attrs={'step': 'any'}),
+        }
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_campo(request):
+    if request.method == 'POST':
+        form = UbicacionCampoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Campo creado exitosamente.')
+            return redirect('admin_campos')
+    else:
+        form = UbicacionCampoForm()
+    context = {'form': form, 'action': 'Crear'}
+    return render(request, 'admin/campos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_campo(request, campo_id):
+    campo = get_object_or_404(UbicacionCampo, id=campo_id)
+    if request.method == 'POST':
+        form = UbicacionCampoForm(request.POST, instance=campo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Campo actualizado exitosamente.')
+            return redirect('admin_campos')
+    else:
+        form = UbicacionCampoForm(instance=campo)
+    context = {'form': form, 'campo': campo, 'action': 'Editar'}
+    return render(request, 'admin/campos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_campo(request, campo_id):
+    campo = get_object_or_404(UbicacionCampo, id=campo_id)
+    if request.method == 'POST':
+        campo.delete()
+        messages.success(request, 'Campo eliminado exitosamente.')
+        return redirect('admin_campos')
+    context = {'campo': campo}
+    return render(request, 'admin/campos/eliminar.html', context)
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
@@ -11,10 +180,8 @@ import json
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.conf import settings
-
 def is_admin(user):
     return user.is_superuser
-
 # =================== DASHBOARD ===================
 @login_required
 @user_passes_test(is_admin)
@@ -1365,49 +1532,79 @@ def admin_eliminar_goleador(request, goleador_id):
     }
     return render(request, 'admin/goleadores/eliminar.html', context)
 
-# =================== HERRAMIENTAS ADMINISTRATIVAS ===================
-@login_required
-@user_passes_test(is_admin)
-def admin_herramientas(request):
-    # Detectar inconsistencias en partidos
-    partidos_sin_fecha_con_resultado = Partido.objects.filter(
-        fecha__isnull=True
-    ).exclude(
-        goles_local__isnull=True,
-        goles_visitante__isnull=True
-    ).exclude(
-        goles_local=0,
-        goles_visitante=0
-    )
-    
-    partidos_jugados_sin_fecha = Partido.objects.filter(
-        jugado=True,
-        fecha__isnull=True
-    )
-    
-    partidos_con_resultado_no_jugados = Partido.objects.filter(
-        jugado=False
-    ).exclude(
-        goles_local__isnull=True,
-        goles_visitante__isnull=True
-    ).exclude(
-        goles_local=0,
-        goles_visitante=0
-    )
-    
-    context = {
-        'partidos_sin_fecha_con_resultado': partidos_sin_fecha_con_resultado,
-        'partidos_jugados_sin_fecha': partidos_jugados_sin_fecha,
-        'partidos_con_resultado_no_jugados': partidos_con_resultado_no_jugados,
-    }
-    return render(request, 'admin/herramientas/index.html', context)
+
+# =================== CAMPOS (UBICACIONCAMPO) ===================
+from .forms import AdminFormMixin
+from django import forms
+
+class UbicacionCampoForm(AdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = UbicacionCampo
+        fields = ['nombre', 'direccion', 'latitud', 'longitud']
+        labels = {
+            'nombre': 'Nombre del Campo',
+            'direccion': 'Dirección',
+            'latitud': 'Latitud',
+            'longitud': 'Longitud',
+        }
 
 @login_required
 @user_passes_test(is_admin)
-def admin_corregir_inconsistencias(request):
+def admin_campos(request):
+    search = request.GET.get('search', '')
+    campos = UbicacionCampo.objects.all()
+    if search:
+        campos = campos.filter(nombre__icontains=search)
+    paginator = Paginator(campos, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context = {
+        'campos': page_obj,
+        'search': search,
+    }
+    return render(request, 'admin/campos/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_campo(request):
     if request.method == 'POST':
-        action = request.POST.get('action')
-        
+        form = UbicacionCampoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Campo creado exitosamente.')
+            return redirect('admin_campos')
+    else:
+        form = UbicacionCampoForm()
+    context = {'form': form, 'action': 'Crear'}
+    return render(request, 'admin/campos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_campo(request, campo_id):
+    campo = get_object_or_404(UbicacionCampo, id=campo_id)
+    if request.method == 'POST':
+        form = UbicacionCampoForm(request.POST, instance=campo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Campo actualizado exitosamente.')
+            return redirect('admin_campos')
+    else:
+        form = UbicacionCampoForm(instance=campo)
+    context = {'form': form, 'campo': campo, 'action': 'Editar'}
+    return render(request, 'admin/campos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_campo(request, campo_id):
+    campo = get_object_or_404(UbicacionCampo, id=campo_id)
+    if request.method == 'POST':
+        campo.delete()
+        messages.success(request, 'Campo eliminado exitosamente.')
+        return redirect('admin_campos')
+    context = {'campo': campo}
+    return render(request, 'admin/campos/eliminar.html', context)
+
+    if request.method == 'POST':
         if action == 'marcar_jugados':
             # Marcar como jugados los partidos con resultado
             partidos_actualizados = Partido.objects.filter(
@@ -1419,9 +1616,7 @@ def admin_corregir_inconsistencias(request):
                 goles_local=0,
                 goles_visitante=0
             ).update(jugado=True)
-            
             messages.success(request, f'Se marcaron {partidos_actualizados} partidos como jugados.')
-        
         elif action == 'asignar_fechas':
             # Asignar fecha actual a partidos finalizados sin fecha
             from django.utils import timezone
@@ -1430,17 +1625,13 @@ def admin_corregir_inconsistencias(request):
                 (Q(goles_local__gt=0) | Q(goles_visitante__gt=0)),
                 fecha__isnull=True
             )
-            
             fecha_default = timezone.now()
             partidos_actualizados = 0
-            
             for partido in partidos_sin_fecha:
                 partido.fecha = fecha_default
                 partido.save()
                 partidos_actualizados += 1
-            
             messages.success(request, f'Se asignó fecha a {partidos_actualizados} partidos.')
-        
         elif action == 'resetear_resultados':
             # Resetear resultados de partidos no jugados
             partidos_reseteados = Partido.objects.filter(
@@ -1452,10 +1643,8 @@ def admin_corregir_inconsistencias(request):
                 goles_local=0,
                 goles_visitante=0
             ).update(goles_local=0, goles_visitante=0)
-            
             messages.success(request, f'Se resetearon los resultados de {partidos_reseteados} partidos.')
-    
-    return redirect('admin_herramientas')
+        return redirect('admin_herramientas')
 
 @login_required
 @user_passes_test(is_admin)

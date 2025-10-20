@@ -1,5 +1,6 @@
 {% extends 'torneos/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}{{ categoria.nombre }} - Sistema de Torneos{% endblock %}
 
@@ -202,7 +203,11 @@
                             <div>
                                 <span class="match-loc">
                                     <i class="fa-solid fa-location-dot"></i>
-                                    {% if partido.campo %}{{ partido.campo }}{% else %}Por definir{% endif %}
+                                    {% if partido.ubicacion %}
+                                        <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>Ver</strong></a>
+                                    {% else %}
+                                        Por definir
+                                    {% endif %}
                                 </span>
                             </div>
                         </div>

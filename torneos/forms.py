@@ -114,7 +114,7 @@ class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
 class PartidoForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Partido
-        fields = ['grupo', 'jornada', 'equipo_local', 'equipo_visitante', 'fecha', 'goles_local', 'goles_visitante', 'jugado', 'campo']
+        fields = ['grupo', 'jornada', 'equipo_local', 'equipo_visitante', 'fecha', 'goles_local', 'goles_visitante', 'jugado', 'ubicacion']
         widgets = {
             'fecha': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
@@ -127,7 +127,7 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
             'goles_local': 'Goles Equipo Local',
             'goles_visitante': 'Goles Equipo Visitante',
             'jugado': 'Partido Jugado',
-            'campo': 'Campo de Juego',
+            'ubicacion': 'Campo',
         }
 
 class UsuarioForm(AdminFormMixin, forms.ModelForm):

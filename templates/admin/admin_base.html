@@ -660,6 +660,12 @@
             
             <div class="nav-section-title">Gestión de Partidos</div>
             <div class="admin-nav-item">
+                <a href="{% url 'admin_campos' %}" class="admin-nav-link {% if 'campo' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Campos
+                </a>
+            </div>
+            <div class="admin-nav-item">
                 <a href="{% url 'admin_partidos' %}" class="admin-nav-link {% if 'partido' in request.resolver_match.url_name and 'eliminatoria' not in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-futbol"></i>
                     Partidos

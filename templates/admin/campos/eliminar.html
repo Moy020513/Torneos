@@ -1,0 +1,19 @@
+{% extends 'admin/admin_base.html' %}
+{% block page_title %}Eliminar Campo{% endblock %}
+{% block content %}
+<div class="admin-card" style="max-width: 500px; margin: 0 auto;">
+    <div class="admin-card-header bg-danger">
+        <h3 class="mb-0">Eliminar Campo</h3>
+    </div>
+    <div class="admin-card-body">
+        <form method="post">
+            {% csrf_token %}
+            <p>¿Estás seguro de que deseas eliminar el campo <strong>{{ campo.nombre }}</strong>?</p>
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+                <a href="{% url 'admin_campos' %}" class="btn btn-outline-admin ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

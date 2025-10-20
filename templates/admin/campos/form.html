@@ -1,0 +1,41 @@
+{% extends 'admin/admin_base.html' %}
+{% block page_title %}{{ action }} Campo{% endblock %}
+{% block content %}
+<div class="admin-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="admin-card-header">
+        <h3 class="mb-0">{{ action }} Campo</h3>
+    </div>
+    <div class="admin-card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="admin-form-group">
+                <label class="admin-form-label">Nombre</label>
+                {{ form.nombre }}
+                {{ form.nombre.errors }}
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-form-label">Dirección</label>
+                {{ form.direccion }}
+                {{ form.direccion.errors }}
+            </div>
+            <div class="row">
+                <div class="col-md-6 admin-form-group">
+                    <label class="admin-form-label">Latitud</label>
+                    {{ form.latitud }}
+                    {{ form.latitud.errors }}
+                </div>
+                <div class="col-md-6 admin-form-group">
+                    <label class="admin-form-label">Longitud</label>
+                    {{ form.longitud }}
+                    {{ form.longitud.errors }}
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-admin">Guardar</button>
+                <a href="{% url 'admin_campos' %}" class="btn btn-outline-admin ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

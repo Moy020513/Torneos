@@ -1,5 +1,6 @@
 {% extends 'admin/admin_base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block page_title %}Gestión de Partidos{% endblock %}
 
@@ -160,7 +161,13 @@
                             </td>
                             <td>
                                 <small class="text-muted">
-                                    {{ partido.campo|default:"No asignado" }}
+                                    {% if partido.ubicacion %}
+                                        <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" style="color:#0d6efd;text-decoration:underline;">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-warning">No asignado</span>
+                                    {% endif %}
                                 </small>
                             </td>
                             <td>
