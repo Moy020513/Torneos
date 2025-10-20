@@ -1,9 +1,32 @@
+# Importar forms y modelos antes de definir formularios que los usan
+from django import forms
+from .models import *
+# Formulario para registrar participaciones múltiples
+class ParticipacionMultipleForm(forms.Form):
+    equipo = forms.ModelChoiceField(queryset=Equipo.objects.all(), label='Equipo')
+    jugadores = forms.ModelMultipleChoiceField(queryset=Jugador.objects.none(), widget=forms.CheckboxSelectMultiple, label='Jugadores')
+    partido = forms.ModelChoiceField(queryset=Partido.objects.none(), label='Partido')
+
+    def __init__(self, *args, **kwargs):
+        equipo_id = kwargs.pop('equipo_id', None)
+        super().__init__(*args, **kwargs)
+        if equipo_id:
+            self.fields['jugadores'].queryset = Jugador.objects.filter(equipo_id=equipo_id)
+            self.fields['partido'].queryset = Partido.objects.filter(
+                (models.Q(equipo_local__id=equipo_id) | models.Q(equipo_visitante__id=equipo_id))
+            )
+            # Establecer el valor inicial del campo equipo si no viene en POST
+            if not self.data.get('equipo'):
+                self.initial['equipo'] = equipo_id
+        else:
+            self.fields['jugadores'].queryset = Jugador.objects.none()
+            self.fields['partido'].queryset = Partido.objects.none()
 
 from django import forms
 from django.contrib.auth.models import User
 from .models import *
 
-# Formularios para el Panel de Administración
+# Mixin para aplicar clases CSS consistentes a todos los formularios del admin
 class AdminFormMixin:
     """Mixin para aplicar clases CSS consistentes a todos los formularios del admin"""
     def __init__(self, *args, **kwargs):
@@ -17,6 +40,21 @@ class AdminFormMixin:
                 field.widget.attrs.update({'class': 'admin-form-control form-control'})
             else:
                 field.widget.attrs.update({'class': 'admin-form-control form-control'})
+
+# Formulario para ParticipacionJugador en el panel admin personalizado
+class ParticipacionJugadorForm(AdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = ParticipacionJugador
+        fields = ['jugador', 'partido', 'titular', 'minutos_jugados', 'observaciones']
+        labels = {
+            'jugador': 'Jugador',
+            'partido': 'Partido',
+            'titular': '¿Fue titular?',
+            'minutos_jugados': 'Minutos jugados',
+            'observaciones': 'Observaciones',
+        }
+
+
 
 class TorneoForm(AdminFormMixin, forms.ModelForm):
     class Meta:

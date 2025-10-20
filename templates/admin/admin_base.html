@@ -678,6 +678,12 @@
                 </a>
             </div>
             <div class="admin-nav-item">
+                <a href="{% url 'admin_participaciones' %}" class="admin-nav-link {% if 'participacion' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-running"></i>
+                    Partidos Jugados
+                </a>
+            </div>
+            <div class="admin-nav-item">
                 <a href="{% url 'admin_eliminatorias' %}" class="admin-nav-link {% if 'eliminatoria' in request.resolver_match.url_name and 'partido' not in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-trophy"></i>
                     Eliminatorias

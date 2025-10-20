@@ -1,3 +1,119 @@
+# =================== ELIMINAR PARTICIPACION ===================
+
+
+# Definir is_admin antes de cualquier uso en decoradores
+def is_admin(user):
+    return user.is_superuser
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.http import require_POST
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_participacion(request, participacion_id):
+    participacion = get_object_or_404(ParticipacionJugador, id=participacion_id)
+    if request.method == 'POST':
+        participacion.delete()
+        messages.success(request, 'Participación eliminada exitosamente.')
+        return redirect('admin_participaciones')
+    context = {'participacion': participacion}
+    return render(request, 'admin/participaciones/eliminar.html', context)
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+# Definir is_admin antes de cualquier uso en decoradores
+def is_admin(user):
+    return user.is_superuser
+
+# Vista para registrar participaciones múltiples
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_participaciones_multiples(request):
+    equipo_id = request.GET.get('equipo') or request.POST.get('equipo')
+    form = ParticipacionMultipleForm(request.POST or None, equipo_id=equipo_id)
+    if request.method == 'POST' and form.is_valid():
+        jugadores = form.cleaned_data['jugadores']
+        partido = form.cleaned_data['partido']
+        creadas = 0
+        for jugador in jugadores:
+            obj, created = ParticipacionJugador.objects.get_or_create(jugador=jugador, partido=partido)
+            if created:
+                creadas += 1
+        messages.success(request, f'Se registraron {creadas} participaciones.')
+        return redirect('admin_participaciones')
+    context = {'form': form, 'action': 'Registrar múltiples', 'equipo_id': equipo_id}
+    return render(request, 'admin/participaciones/form_multiple.html', context)
+
+from .forms import ParticipacionJugadorForm, ParticipacionMultipleForm
+
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import ParticipacionJugador
+from .forms import ParticipacionJugadorForm, ParticipacionMultipleForm
+
+# Definir is_admin antes de cualquier uso en decoradores
+def is_admin(user):
+    return user.is_superuser
+# =================== PARTICIPACIONES DE JUGADORES ===================
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect, get_object_or_404
+
+@login_required
+@user_passes_test(is_admin)
+def admin_participaciones(request):
+    search = request.GET.get('search', '')
+    participaciones = ParticipacionJugador.objects.select_related('jugador', 'partido').order_by('-fecha_creacion')
+    if search:
+        participaciones = participaciones.filter(
+            Q(jugador__nombre__icontains=search) |
+            Q(jugador__apellido__icontains=search) |
+            Q(partido__equipo_local__nombre__icontains=search) |
+            Q(partido__equipo_visitante__nombre__icontains=search)
+        )
+    paginator = Paginator(participaciones, 20)
+    page_number = request.GET.get('page')
+    participaciones_paginadas = paginator.get_page(page_number)
+    context = {
+        'participaciones': participaciones_paginadas,
+        'search': search,
+    }
+    return render(request, 'admin/participaciones/listar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_participacion(request):
+    if request.method == 'POST':
+        form = ParticipacionJugadorForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Participación registrada exitosamente.')
+            return redirect('admin_participaciones')
+    else:
+        form = ParticipacionJugadorForm()
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/participaciones/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_participacion(request, participacion_id):
+    participacion = get_object_or_404(ParticipacionJugador, id=participacion_id)
+    if request.method == 'POST':
+        form = ParticipacionJugadorForm(request.POST, instance=participacion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Participación actualizada exitosamente.')
+            return redirect('admin_participaciones')
+    else:
+        form = ParticipacionJugadorForm(instance=participacion)
+    context = {
+        'form': form,
+        'participacion': participacion,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/participaciones/form.html', context)
 
 # =================== HERRAMIENTAS ADMINISTRATIVAS ===================
 from django.contrib import messages

@@ -1,0 +1,10 @@
+{% extends 'admin/admin_base.html' %}
+{% block content %}
+<h2>Eliminar Participación</h2>
+<p>¿Estás seguro que deseas eliminar la participación de <strong>{{ participacion.jugador }}</strong> en el partido <strong>{{ participacion.partido }}</strong>?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a href="{% url 'admin_participaciones' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

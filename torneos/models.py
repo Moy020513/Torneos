@@ -1,4 +1,20 @@
 from django.db import models
+
+class ParticipacionJugador(models.Model):
+    jugador = models.ForeignKey('Jugador', on_delete=models.CASCADE, related_name='participaciones')
+    partido = models.ForeignKey('Partido', on_delete=models.CASCADE, related_name='participaciones')
+    titular = models.BooleanField(default=True, help_text='¿Fue titular?')
+    minutos_jugados = models.PositiveIntegerField(null=True, blank=True)
+    observaciones = models.CharField(max_length=255, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('jugador', 'partido')
+        verbose_name = 'Participación de Jugador'
+        verbose_name_plural = 'Participaciones de Jugadores'
+
+    def __str__(self):
+        return f"{self.jugador} en {self.partido}"
 class UbicacionCampo(models.Model):
     nombre = models.CharField(max_length=100)
     direccion = models.CharField(max_length=255, blank=True)

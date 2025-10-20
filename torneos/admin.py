@@ -1,7 +1,6 @@
-
 from django.contrib import admin
 from django.db import models
-from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Capitan, Partido, PartidoEliminatoria, Goleador
+from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Capitan, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
 from .forms import EquipoAdminForm
 
 @admin.register(Eliminatoria)
@@ -539,3 +538,21 @@ class GoleadorAdmin(admin.ModelAdmin):
     list_display = ('jugador', 'partido', 'partido_eliminatoria', 'goles')
     list_filter = ('partido', 'partido_eliminatoria')
     search_fields = ('jugador__nombre', 'jugador__apellido')
+
+@admin.register(ParticipacionJugador)
+class ParticipacionJugadorAdmin(admin.ModelAdmin):
+    list_display = ('jugador', 'partido', 'titular', 'minutos_jugados', 'observaciones', 'fecha_creacion')
+    list_filter = ('titular', 'jugador', 'partido')
+    search_fields = ('jugador__nombre', 'jugador__apellido', 'partido__equipo_local__nombre', 'partido__equipo_visitante__nombre')
+
+# Reubicar ParticipacionJugador en la sección adecuada del admin
+class GestionParticipacionesAdminArea(admin.AdminSite):
+    site_header = 'Gestión de Participaciones'
+    site_title = 'Participaciones'
+    index_title = 'Participaciones de Jugadores'
+
+# Si quieres que aparezca en una sección personalizada, puedes crear un AppConfig o agruparlo en el admin usando etiquetas.
+# Pero por defecto, ParticipacionJugador ya aparece en el menú principal del admin.
+
+# Si quieres que aparezca bajo "Gestión de Partidos" o con un nombre personalizado:
+ParticipacionJugadorAdmin.verbose_name_plural = "Partidos Jugados por Jugador"

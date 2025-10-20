@@ -1,0 +1,35 @@
+{% extends 'admin/admin_base.html' %}
+{% block content %}
+<h2>Registrar Participaciones Múltiples</h2>
+<form method="post" class="admin-form">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.equipo.label_tag }}
+        {{ form.equipo }}
+        {% if form.equipo.errors %}<div class="text-danger">{{ form.equipo.errors }}</div>{% endif %}
+    </div>
+    <div class="mb-3">
+        {{ form.jugadores.label_tag }}
+        {{ form.jugadores }}
+        {% if form.jugadores.errors %}<div class="text-danger">{{ form.jugadores.errors }}</div>{% endif %}
+    </div>
+    <div class="mb-3">
+        {{ form.partido.label_tag }}
+        {{ form.partido }}
+        {% if form.partido.errors %}<div class="text-danger">{{ form.partido.errors }}</div>{% endif %}
+    </div>
+    <button type="submit" class="btn btn-success">Registrar participaciones</button>
+    <a href="{% url 'admin_participaciones' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+<script>
+// Recargar jugadores y partidos al cambiar equipo
+const equipoSelect = document.getElementById('id_equipo');
+if (equipoSelect) {
+    equipoSelect.addEventListener('change', function() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('equipo', this.value);
+        window.location.href = url.toString();
+    });
+}
+</script>
+{% endblock %}
