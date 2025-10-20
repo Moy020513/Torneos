@@ -164,11 +164,15 @@
                                     </td>
                                     <td>
                                         <i class="fas fa-calendar me-1"></i>
-                                        {{ partido.fecha|date:"d/m/Y" }}<br>
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>
-                                            {{ partido.fecha|date:"H:i" }}
-                                        </small>
+                                        {% if partido.fecha %}
+                                            {{ partido.fecha|date:"d/m/Y" }}<br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ partido.fecha|date:"H:i" }}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-warning"><i class="fas fa-calendar-plus me-1"></i>Por definir</span>
+                                        {% endif %}
                                     </td>
                                     <td class="text-center">
                                         {% if partido.goles_local is not None and partido.goles_visitante is not None %}

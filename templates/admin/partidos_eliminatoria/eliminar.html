@@ -108,7 +108,7 @@
                                         <div class="col-md-6">
                                             <div class="detail-item">
                                                 <i class="fas fa-calendar text-primary me-2"></i>
-                                                <strong>Fecha:</strong> {{ partido.fecha|date:"d/m/Y H:i" }}
+                                                <strong>Fecha:</strong> {% if partido.fecha %}{{ partido.fecha|date:"d/m/Y H:i" }}{% else %}Por definir{% endif %}
                                             </div>
                                             {% if partido.campo %}
                                                 <div class="detail-item">

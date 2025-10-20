@@ -225,7 +225,7 @@
                                 <tr>
                                     <td>
                                         <small class="text-muted">
-                                            {{ partido.fecha|date:"d/m/Y H:i"|default:"Por definir" }}
+                                            {% if partido.fecha %}{{ partido.fecha|date:"d/m/Y H:i" }}{% else %}Por definir{% endif %}
                                         </small>
                                     </td>
                                     <td>

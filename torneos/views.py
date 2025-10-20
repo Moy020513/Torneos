@@ -540,7 +540,7 @@ def generar_calendario(request, categoria_id):
                         jornada=jornada,
                         equipo_local=local,
                         equipo_visitante=visitante,
-                        fecha=datetime.now()
+                        fecha=None
                     )
                     equipos_en_jornada.add(local)
                     equipos_en_jornada.add(visitante)
@@ -575,7 +575,7 @@ def generar_calendario(request, categoria_id):
                         jornada=total_jornadas + jornada,
                         equipo_local=local,
                         equipo_visitante=visitante,
-                        fecha=datetime.now()
+                        fecha=None
                     )
                     equipos_en_jornada.add(local)
                     equipos_en_jornada.add(visitante)
@@ -696,7 +696,7 @@ def equipos_view(request, categoria_id):
                     jornada=jornada,
                     equipo_local=local,
                     equipo_visitante=visitante,
-                    fecha=datetime.now()  # Ajustar según necesidad
+                    fecha=None
                 )
         
         # Rotar equipos

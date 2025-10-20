@@ -111,10 +111,8 @@
                                     {% if partido.fecha %}
                                         {{ partido.fecha|date:"d/m/Y" }}<br>
                                         <strong>{{ partido.fecha|time:"H:i" }}</strong>
-                                    {% elif partido.jugado or partido.goles_local > 0 or partido.goles_visitante > 0 %}
-                                        <span class="text-info"><i class="fas fa-exclamation-triangle me-1"></i>Sin fecha registrada</span>
                                     {% else %}
-                                        <span class="text-warning"><i class="fas fa-calendar-plus me-1"></i>Por programar</span>
+                                        <span class="text-warning"><i class="fas fa-calendar-plus me-1"></i>Por definir</span>
                                     {% endif %}
                                 </small>
                             </td>
