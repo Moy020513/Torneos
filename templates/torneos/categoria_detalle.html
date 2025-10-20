@@ -19,7 +19,7 @@
         border: 2px solid #08F7FE;
         box-shadow: 0 0 0 4px rgba(8,247,254,.14), 0 10px 20px rgba(0,0,0,.10);
         transition: transform .2s ease, box-shadow .2s ease;
-        width: max-content; /* ancho según contenido */
+        width: max-content; /* ancho según contenido en desktop */
         max-width: 100%;
         margin-left: auto;
         margin-right: auto;
@@ -116,9 +116,28 @@
     }
     .match-loc i{ color:#0a2342; }
     @media (max-width: 576px){
-        .team-logo-small{ width: 36px; height: 36px; }
-        .match-card{ padding: 12px; width: 100%; }
-        .vs-text{ width: 34px; height: 34px; }
+        .team-logo-small{ width: 32px; height: 32px; }
+        .match-card{ padding: 8px 4px; width: 100%; margin-left: 0; margin-right: 0; }
+        .vs-text{ width: 28px; height: 28px; font-size: 0.95em; }
+        .match-date-chip, .match-time-chip, .match-loc {
+            padding: 4px 6px;
+            font-size: 0.58em;
+            margin-right: 2px;
+        }
+        .match-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .col-md-4.text-end > div { margin-bottom: 0 !important; }
+        .col-md-1.d-flex.align-items-center.justify-content-center {
+            align-items: center !important;
+            justify-content: center !important;
+            display: flex !important;
+            height: 100%;
+        }
     }
     /* Separadores sutiles en desktop para el bloque central */
     @media (min-width: 768px){
@@ -141,9 +160,21 @@
         .match-card .col-md-7:after{ right: -8px; }
     }
     /* Grid de partidos: 1 columna en móvil, 2 en desktop */
-    #proximos-partidos-lista{ display:grid; grid-template-columns: 1fr; gap: 16px; justify-content: center; }
+    #proximos-partidos-lista{
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        justify-content: center;
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
     @media (min-width: 992px){
-        #proximos-partidos-lista{ grid-template-columns: repeat(2, max-content); }
+        #proximos-partidos-lista{ grid-template-columns: repeat(2, max-content); justify-content: center; }
+    }
+    @media (max-width: 576px){
+        .match-card{ width: 100%; max-width: 100%; margin-left: 0; margin-right: 0; }
+        #proximos-partidos-lista{ grid-template-columns: 1fr; justify-content: stretch; }
     }
 </style>
 {% endblock %}
@@ -164,7 +195,7 @@
                 {% for partido in proximos_partidos %}
                 <div class="match-card proximo" data-jornada="{{ partido.jornada }}">
                     <div class="row align-items-center">
-                        <div class="col-md-1 d-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
+                        <div class="col-md-1 d-none d-sm-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
                             <span class="match-status status-proximo mb-2">J{{ partido.jornada }}</span>
                         </div>
                         <div class="col-md-7">
@@ -188,19 +219,40 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="mb-2">
+                            <div class="d-none d-sm-block"><!-- Desktop: cada dato en su fila -->
+                                <div class="mb-2">
+                                    <span class="match-date-chip">
+                                        <i class="fa-solid fa-calendar-day"></i>
+                                        {% if partido.fecha %}{{ partido.fecha|date:"d M Y" }}{% else %}Por definir{% endif %}
+                                    </span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="match-time-chip">
+                                        <i class="fa-solid fa-clock"></i>
+                                        {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="match-loc">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        {% if partido.ubicacion %}
+                                            <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>Ver</strong></a>
+                                        {% else %}
+                                            Por definir
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="match-meta-row d-block d-sm-none"><!-- Móvil: todo en una fila -->
+                                <span class="match-status status-proximo mb-0" style="margin-right:6px;">J{{ partido.jornada }}</span>
                                 <span class="match-date-chip">
                                     <i class="fa-solid fa-calendar-day"></i>
                                     {% if partido.fecha %}{{ partido.fecha|date:"d M Y" }}{% else %}Por definir{% endif %}
                                 </span>
-                            </div>
-                            <div class="mb-2">
                                 <span class="match-time-chip">
                                     <i class="fa-solid fa-clock"></i>
                                     {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
                                 </span>
-                            </div>
-                            <div>
                                 <span class="match-loc">
                                     <i class="fa-solid fa-location-dot"></i>
                                     {% if partido.ubicacion %}
