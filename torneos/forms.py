@@ -116,7 +116,7 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
         model = Partido
         fields = ['grupo', 'jornada', 'equipo_local', 'equipo_visitante', 'fecha', 'goles_local', 'goles_visitante', 'jugado', 'ubicacion']
         widgets = {
-            'fecha': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fecha': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
         }
         labels = {
             'grupo': 'Grupo',
@@ -129,6 +129,11 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
             'jugado': 'Partido Jugado',
             'ubicacion': 'Campo',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.fecha:
+            self.fields['fecha'].initial = self.instance.fecha.strftime('%Y-%m-%dT%H:%M')
 
 class UsuarioForm(AdminFormMixin, forms.ModelForm):
     password = forms.CharField(

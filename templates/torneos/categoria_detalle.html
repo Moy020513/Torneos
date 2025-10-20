@@ -119,10 +119,22 @@
         .team-logo-small{ width: 32px; height: 32px; }
         .match-card{ padding: 8px 4px; width: 100%; margin-left: 0; margin-right: 0; }
         .vs-text{ width: 28px; height: 28px; font-size: 0.95em; }
-        .match-date-chip, .match-time-chip, .match-loc {
-            padding: 4px 6px;
+        .match-date-chip, .match-time-chip, .match-loc, .match-status {
             font-size: 0.58em;
             margin-right: 2px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            line-height: 1;
+        }
+        .match-date-chip i, .match-time-chip i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+            margin: 0;
+            line-height: 1;
         }
         .match-meta-row {
             display: flex;

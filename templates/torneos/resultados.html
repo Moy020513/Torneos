@@ -1,4 +1,5 @@
 {% extends 'torneos/base.html' %}
+{% load custom_filters %}
 {% block extra_css %}
 {{ block.super }}
 <style>
@@ -38,7 +39,54 @@
     .match-card .col-md-7,
     .match-card .col-md-4{ flex:0 0 auto; width:auto; }
 }
-@media (max-width: 576px){ .team-logo-small{ width:36px; height:36px; } .match-card{ padding:12px; width:100%; } }
+@media (max-width: 576px){
+    .team-logo-small{ width:36px; height:36px; }
+    .match-card{ padding:12px; width:100%; }
+    .match-date-chip, .match-time-chip, .match-loc, .match-status {
+        font-size: 0.58em;
+        margin-right: 2px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        line-height: 1;
+    }
+    .match-date-chip i, .match-time-chip i {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1em;
+        margin: 0;
+        line-height: 1;
+    }
+    .match-loc a.btn.btn-sm.btn-outline-admin {
+        padding: 0 rem;
+        font-size: 0.8rem;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        font-weight: 700;
+        box-shadow: none;
+        border: none;
+        background: none;
+        color: #0a2342;
+    }
+    .match-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .col-md-4.text-end > div { margin-bottom: 0 !important; }
+    .col-md-1.d-flex.align-items-center.justify-content-center {
+        align-items: center !important;
+        justify-content: center !important;
+        display: flex !important;
+        height: 100%;
+    }
+}
 /* Grid de resultados: 1 columna en móvil, 2 en desktop */
 #ultimos-resultados-lista{ display:grid; grid-template-columns: 1fr; gap:16px; justify-content:center; }
 @media (min-width: 992px){
@@ -63,7 +111,7 @@
                 {% for partido in ultimos_resultados %}
                 <div class="match-card jugado" data-jornada="{{ partido.jornada }}">
                     <div class="row align-items-center">
-                        <div class="col-md-1 d-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
+                        <div class="col-md-1 d-none d-sm-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
                             <span class="match-status status-jugado mb-2">J{{ partido.jornada }}</span>
                         </div>
                         <div class="col-md-7">
@@ -89,22 +137,47 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="mb-2">
+                            <div class="d-none d-sm-block"><!-- Desktop: cada dato en su fila -->
+                                <div class="mb-2">
+                                    <span class="match-date-chip">
+                                        <i class="fa-solid fa-calendar-day"></i>
+                                        {% if partido.fecha %}{{ partido.fecha|date:"d M Y" }}{% else %}Por definir{% endif %}
+                                    </span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="match-time-chip">
+                                        <i class="fa-solid fa-clock"></i>
+                                        {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="match-loc">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        {% if partido.ubicacion and partido.ubicacion.latitud and partido.ubicacion.longitud %}
+                                            <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>Ver</strong></a>
+                                        {% else %}
+                                            Por definir
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="match-meta-row d-block d-sm-none"><!-- Móvil: todo en una fila -->
+                                <span class="match-status status-jugado mb-0" style="margin-right:6px;">J{{ partido.jornada }}</span>
                                 <span class="match-date-chip">
                                     <i class="fa-solid fa-calendar-day"></i>
                                     {% if partido.fecha %}{{ partido.fecha|date:"d M Y" }}{% else %}Por definir{% endif %}
                                 </span>
-                            </div>
-                            <div class="mb-2">
                                 <span class="match-time-chip">
                                     <i class="fa-solid fa-clock"></i>
                                     {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
                                 </span>
-                            </div>
-                            <div>
                                 <span class="match-loc">
                                     <i class="fa-solid fa-location-dot"></i>
-                                    {% if partido.campo %}{{ partido.campo }}{% else %}Sede neutral{% endif %}
+                                    {% if partido.ubicacion and partido.ubicacion.latitud and partido.ubicacion.longitud %}
+                                        <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>Ver</strong></a>
+                                    {% else %}
+                                        Por definir
+                                    {% endif %}
                                 </span>
                             </div>
                         </div>
