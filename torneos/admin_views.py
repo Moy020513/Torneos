@@ -1,3 +1,43 @@
+# Importar decoradores antes de usarlos
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.conf import settings
+import os
+
+# Definir is_admin antes de cualquier uso en decoradores
+def is_admin(user):
+    return user.is_superuser
+
+# =================== ELIMINAR IMÁGENES HUÉRFANAS ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_imagenes_huerfanas(request):
+    # Carpeta media
+    media_root = settings.MEDIA_ROOT
+    eliminadas = []
+    # Buscar imágenes huérfanas en jugadores
+    from .models import Jugador, Equipo, Torneo
+    jugadores = Jugador.objects.exclude(foto='')
+    for jugador in jugadores:
+        if jugador.foto and not os.path.exists(jugador.foto.path):
+            jugador.foto = None
+            jugador.save(update_fields=['foto'])
+            eliminadas.append(f"Foto huérfana de jugador {jugador.nombre} {jugador.apellido}")
+    # Buscar imágenes huérfanas en equipos
+    equipos = Equipo.objects.exclude(logo='')
+    for equipo in equipos:
+        if equipo.logo and not os.path.exists(equipo.logo.path):
+            equipo.logo = None
+            equipo.save(update_fields=['logo'])
+            eliminadas.append(f"Logo huérfano de equipo {equipo.nombre}")
+    # Buscar imágenes huérfanas en torneos
+    torneos = Torneo.objects.exclude(logo='')
+    for torneo in torneos:
+        if torneo.logo and not os.path.exists(torneo.logo.path):
+            torneo.logo = None
+            torneo.save(update_fields=['logo'])
+            eliminadas.append(f"Logo huérfano de torneo {torneo.nombre}")
+    context = {'eliminadas': eliminadas}
+    return render(request, 'admin/torneos/eliminar_imagenes_huerfanas.html', context)
 
 # Definir is_admin antes de cualquier uso en decoradores
 def is_admin(user):

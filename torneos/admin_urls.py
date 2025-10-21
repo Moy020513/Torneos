@@ -1,8 +1,10 @@
 from django.urls import path
 from . import admin_views
+from django.urls import path
 
 # URLs del Panel de Administración Personalizado
 admin_urlpatterns = [
+    path('panel/torneos/eliminar-imagenes-huerfanas/', admin_views.admin_eliminar_imagenes_huerfanas, name='admin_eliminar_imagenes_huerfanas'),
     # Dashboard
     path('panel/', admin_views.admin_dashboard, name='admin_dashboard'),
     # Participaciones de Jugadores
