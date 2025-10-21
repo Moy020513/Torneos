@@ -113,7 +113,7 @@
                                         {{ partido.fecha|date:"d/m/Y" }}<br>
                                         <strong>{{ partido.fecha|time:"H:i" }}</strong>
                                     {% else %}
-                                        <span class="text-warning"><i class="fas fa-calendar-plus me-1"></i>Por definir</span>
+                                        <span class="badge badge-warning"><i class="fas fa-calendar-plus me-1"></i>Por definir</span>
                                     {% endif %}
                                 </small>
                             </td>
@@ -130,17 +130,17 @@
                             </td>
                             <td>
                                 {% if partido.goles_local is not None and partido.goles_visitante is not None and partido.goles_local >= 0 and partido.goles_visitante >= 0 %}
-                                    {% if partido.jugado %}
+                                    {% if partido.goles_local > 0 or partido.goles_visitante > 0 or partido.jugado %}
                                         <span class="badge badge-success fs-6">
                                             {{ partido.goles_local }} - {{ partido.goles_visitante }}
                                         </span>
                                     {% else %}
-                                        <span class="badge badge-warning fs-6">
-                                            {{ partido.goles_local }} - {{ partido.goles_visitante }}
+                                        <span class="badge badge-danger fs-6">
+                                            vs
                                         </span>
                                     {% endif %}
                                 {% else %}
-                                    <span class="badge badge-secondary">
+                                    <span class="badge badge-warning fs-6">
                                         vs
                                     </span>
                                 {% endif %}
@@ -162,11 +162,15 @@
                             <td>
                                 <small class="text-muted">
                                     {% if partido.ubicacion %}
-                                        <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" style="color:#0d6efd;text-decoration:underline;">
-                                            <i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}
-                                        </a>
+                                        <span class="badge badge-success">
+                                            <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" style="color:#fff; text-decoration:underline;">
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}
+                                            </a>
+                                        </span>
                                     {% else %}
-                                        <span class="text-warning">No asignado</span>
+                                       <span class="badge badge-danger">
+                                            <i class="fas fa-clock me-1"></i>No asignado
+                                        </span>
                                     {% endif %}
                                 </small>
                             </td>
@@ -181,7 +185,7 @@
                                             <i class="fas fa-exclamation-triangle me-1"></i>Resultado sin fecha
                                         </span>
                                     {% else %}
-                                        <span class="badge badge-info">
+                                        <span class="badge badge-success">
                                             <i class="fas fa-clock me-1"></i>Con resultado
                                         </span>
                                     {% endif %}

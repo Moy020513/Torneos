@@ -58,8 +58,8 @@
 </div>
 
 <!-- Stats -->
-<div class="row mb-4">
-    <div class="col-md-3">
+<div class="row mb-4 g-2">
+    <div class="col-6 col-md-3">
         <div class="stat-card">
             <div class="stat-icon primary">
                 <i class="fas fa-user-tie"></i>
@@ -68,7 +68,7 @@
             <div class="stat-label">Total Capitanes</div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="stat-card">
             <div class="stat-icon success">
                 <i class="fas fa-check-circle"></i>
@@ -89,8 +89,8 @@
     </div>
     <div class="admin-card-body">
         {% if page_obj %}
-            <div class="table-responsive">
-                <table class="table table-hover">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 capitanes-table admin-table">
                     <thead class="table-light">
                         <tr>
                             <th>Capitán</th>
@@ -157,8 +157,34 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
-            {% if page_obj.has_other_pages %}
+        </div>
+        <style>
+        @media (max-width: 768px) {
+            .capitanes-table th, .capitanes-table td {
+                font-size: 0.93rem;
+                padding: 0.45rem 0.4rem;
+            }
+            .admin-card-header h3 {
+                font-size: 1.1rem;
+            }
+            .admin-card-header .badge-admin {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.7rem;
+            }
+            .stat-card {
+                padding: 1rem;
+                min-height: 90px;
+            }
+            .stat-number {
+                font-size: 1.3rem;
+            }
+            .stat-label {
+                font-size: 0.85rem;
+            }
+        }
+        </style>
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
             <div class="d-flex justify-content-between align-items-center mt-4">
                 <div class="text-muted">
                     Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} capitanes

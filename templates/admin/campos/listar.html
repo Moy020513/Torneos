@@ -13,7 +13,8 @@
     </div>
 </form>
 <div class="admin-table">
-    <table class="table table-hover">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 campos-table admin-table">
         <thead>
             <tr>
                 <th>Nombre</th>
@@ -57,5 +58,17 @@
             <li class="page-item"><a class="page-link" href="?page={{ campos.next_page_number }}&search={{ search }}">Siguiente</a></li>
         {% endif %}
     </ul>
+        </div>
+        <style>
+        @media (max-width: 768px) {
+            .campos-table th, .campos-table td {
+                font-size: 0.93rem;
+                padding: 0.45rem 0.4rem;
+            }
+            .admin-table {
+                border-radius: 10px;
+            }
+        }
+        </style>
 </nav>
 {% endblock %}

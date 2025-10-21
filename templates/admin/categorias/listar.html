@@ -64,8 +64,8 @@
     </div>
     <div class="admin-card-body p-0" id="categoriesContainer">
         {% if categorias %}
-            <div class="admin-table">
-                <table class="table table-hover mb-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 categorias-table admin-table">
                     <thead>
                         <tr>
                             <th>Nombre</th>
@@ -145,6 +145,22 @@
                 </table>
             </div>
         {% else %}
+        </div>
+        <style>
+        @media (max-width: 768px) {
+            .categorias-table th, .categorias-table td {
+                font-size: 0.93rem;
+                padding: 0.45rem 0.4rem;
+            }
+            .admin-card-header h3 {
+                font-size: 1.1rem;
+            }
+            .admin-card-header .badge-admin {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.7rem;
+            }
+        }
+        </style>
             <div class="text-center py-5">
                 <i class="fas fa-tags text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
                 <h4 class="text-muted mt-3">No se encontraron categorías</h4>
