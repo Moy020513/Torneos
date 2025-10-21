@@ -63,7 +63,7 @@
                     </div>
                     <div style="margin-top: 12px; text-align: right;">
                         <span style="color: #08F7FE; font-size: 0.95em;">Fecha de registro: {{ jugador.fecha_creacion|date:'d/m/Y H:i' }}</span><br>
-                        <span style="color: #08F7FE; font-size: 0.95em;">Partidos jugados: {{ jugador.participaciones.count }}</span>
+                       
                         <a href="{% url 'jugador_detalle' jugador.id %}" class="btn btn-outline-info btn-sm ms-2" title="Ver detalles">
                             <i class="fas fa-eye"></i> Detalles
                         </a>

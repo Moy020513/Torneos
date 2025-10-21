@@ -169,6 +169,11 @@ class Jugador(models.Model):
         return f"{self.nombre} {self.apellido}"
     
     def save(self, *args, **kwargs):
+        # Forzar mayúsculas antes de guardar
+        if self.nombre:
+            self.nombre = self.nombre.upper()
+        if self.apellido:
+            self.apellido = self.apellido.upper()
         super().save(*args, **kwargs)
         if self.foto:
             img = Image.open(self.foto.path)

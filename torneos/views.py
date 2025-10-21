@@ -121,6 +121,9 @@ def capitan_jugador_create(request):
         if form.is_valid():
             jugador = form.save(commit=False)
             jugador.equipo = equipo
+            # Forzar mayúsculas en el nombre y apellido
+            jugador.nombre = jugador.nombre.upper() if jugador.nombre else ''
+            jugador.apellido = jugador.apellido.upper() if jugador.apellido else ''
             jugador.save()
             messages.success(request, 'Jugador creado exitosamente.')
             return redirect('capitan_panel')
@@ -137,7 +140,11 @@ def capitan_jugador_update(request, jugador_id):
     if request.method == 'POST':
         form = CapitanJugadorForm(request.POST, request.FILES, instance=jugador)
         if form.is_valid():
-            form.save()
+            jugador = form.save(commit=False)
+            # Forzar mayúsculas en el nombre y apellido
+            jugador.nombre = jugador.nombre.upper() if jugador.nombre else ''
+            jugador.apellido = jugador.apellido.upper() if jugador.apellido else ''
+            jugador.save()
             messages.success(request, 'Jugador actualizado.')
             return redirect('capitan_panel')
     else:
