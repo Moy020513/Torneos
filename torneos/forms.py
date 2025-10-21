@@ -57,6 +57,7 @@ class ParticipacionJugadorForm(AdminFormMixin, forms.ModelForm):
 
 
 class TorneoForm(AdminFormMixin, forms.ModelForm):
+    # Eliminar la asignación manual de value; dejar que Django maneje los valores de fecha
     class Meta:
         model = Torneo
         fields = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'logo', 'activo']

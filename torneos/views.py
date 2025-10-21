@@ -183,10 +183,13 @@ def index(request):
 def torneo_detalle(request, torneo_id):
     torneo = get_object_or_404(Torneo, id=torneo_id)
     categorias = Categoria.objects.filter(torneo=torneo)
-    
+    # Calcular el total de equipos en todas las categorías del torneo
+    from .models import Equipo
+    total_equipos = Equipo.objects.filter(categoria__in=categorias).count()
     context = {
         'torneo': torneo,
-        'categorias': categorias
+        'categorias': categorias,
+        'total_equipos': total_equipos
     }
     return render(request, 'torneos/torneo_detalle.html', context)
 

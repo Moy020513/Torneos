@@ -536,7 +536,10 @@ def admin_crear_torneo(request):
 @user_passes_test(is_admin)
 def admin_editar_torneo(request, torneo_id):
     torneo = get_object_or_404(Torneo, id=torneo_id)
-    
+    # Calcular el total de equipos de todas las categorías de este torneo
+    categorias = torneo.categoria_set.all()
+    total_equipos = sum(c.equipo_set.count() for c in categorias)
+
     if request.method == 'POST':
         form = TorneoForm(request.POST, request.FILES, instance=torneo)
         if form.is_valid():
@@ -545,11 +548,12 @@ def admin_editar_torneo(request, torneo_id):
             return redirect('admin_torneos')
     else:
         form = TorneoForm(instance=torneo)
-    
+
     context = {
         'form': form,
         'torneo': torneo,
         'action': 'Editar',
+        'total_equipos': total_equipos,
     }
     return render(request, 'admin/torneos/form.html', context)
 

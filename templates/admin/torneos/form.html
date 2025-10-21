@@ -75,7 +75,12 @@
                                 <label class="admin-form-label" for="{{ form.fecha_inicio.id_for_label }}">
                                     {{ form.fecha_inicio.label }} <span class="text-danger">*</span>
                                 </label>
-                                {{ form.fecha_inicio }}
+                                {# Renderizar el input con value en formato yyyy-mm-dd si es necesario #}
+                                {% if form.fields.fecha_inicio.widget.input_type == 'date' %}
+                                    <input type="date" name="{{ form.fecha_inicio.name }}" id="{{ form.fecha_inicio.id_for_label }}" class="{{ form.fields.fecha_inicio.widget.attrs.class }}" value="{% if form.fecha_inicio.value %}{{ form.fecha_inicio.value|date:'Y-m-d' }}{% endif %}" required>
+                                {% else %}
+                                    {{ form.fecha_inicio }}
+                                {% endif %}
                                 {% if form.fecha_inicio.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.fecha_inicio.errors %}
@@ -90,7 +95,11 @@
                                 <label class="admin-form-label" for="{{ form.fecha_fin.id_for_label }}">
                                     {{ form.fecha_fin.label }} <span class="text-danger">*</span>
                                 </label>
-                                {{ form.fecha_fin }}
+                                {% if form.fields.fecha_fin.widget.input_type == 'date' %}
+                                    <input type="date" name="{{ form.fecha_fin.name }}" id="{{ form.fecha_fin.id_for_label }}" class="{{ form.fields.fecha_fin.widget.attrs.class }}" value="{% if form.fecha_fin.value %}{{ form.fecha_fin.value|date:'Y-m-d' }}{% endif %}" required>
+                                {% else %}
+                                    {{ form.fecha_fin }}
+                                {% endif %}
                                 {% if form.fecha_fin.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.fecha_fin.errors %}
@@ -213,13 +222,7 @@
                         <div class="d-flex justify-content-between mb-1">
                             <span>Equipos:</span>
                             <span class="fw-semibold">
-                                {% with torneo.categoria_set.all as categorias %}
-                                    {% if categorias %}
-                                        {{ categorias.0.equipo_set.count|add:categorias.1.equipo_set.count|default:0 }}
-                                    {% else %}
-                                        0
-                                    {% endif %}
-                                {% endwith %}
+                                {{ total_equipos }}
                             </span>
                         </div>
                         <div class="d-flex justify-content-between">
