@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Panel de Administración{% endblock %}</title>
     
@@ -123,7 +124,7 @@
         }
         
         .admin-sidebar .brand img {
-            width: 50px;
+            width: auto;
             height: 50px;
             filter: brightness(0) invert(1);
             margin-bottom: 0.5rem;
@@ -552,39 +553,284 @@
             background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
         }
         
-        /* Responsive */
-        @media (max-width: 1400px) {
+        /* Responsive - Tablets */
+        @media (max-width: 1200px) {
             .stat-compact-value {
-                font-size: 1.5rem;
+                font-size: 1.6rem;
             }
+            
             .stat-compact i {
-                font-size: 1.25rem;
+                font-size: 1.35rem;
+            }
+            
+            .stat-compact-label {
+                font-size: 0.72rem;
             }
         }
         
+        /* Responsive - Móviles */
         @media (max-width: 768px) {
+            /* Botón hamburguesa más pequeño */
+            .hamburger-btn {
+                width: 42px;
+                height: 42px;
+                top: 0.75rem;
+                left: 0.75rem;
+                border-radius: 10px;
+            }
+            
+            .hamburger-btn i {
+                font-size: 1.1rem;
+            }
+            
+            /* Sidebar más estrecho */
+            .admin-sidebar {
+                width: 260px;
+                left: -260px;
+            }
+            
+            .admin-sidebar .brand {
+                padding: 1.25rem 1rem;
+                margin-top: 2.5rem;
+            }
+            
+            .admin-sidebar .brand img {
+                height: 40px;
+            }
+            
+            .admin-sidebar .brand h3 {
+                font-size: 1rem;
+            }
+            
+            .admin-sidebar .brand p {
+                font-size: 0.75rem;
+            }
+            
+            .nav-section-title {
+                font-size: 0.65rem;
+                padding: 0.5rem 1.5rem 0.25rem;
+                margin-top: 0.75rem;
+            }
+            
+            .admin-nav-item {
+                margin: 0.1rem 0.75rem;
+            }
+            
+            .admin-nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+                border-radius: 8px;
+            }
+            
+            .admin-nav-link i {
+                width: 18px;
+                margin-right: 0.6rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Header compacto */
             .admin-header {
-                padding: 1rem;
-                padding-left: 4.5rem;
+                padding: 0.75rem 0.75rem;
+                padding-left: 3.5rem;
             }
             
             .admin-header h1 {
-                font-size: 1.25rem;
+                font-size: 1.1rem;
+                line-height: 1.3;
+            }
+            
+            .admin-header-actions {
+                gap: 0.5rem;
+            }
+            
+            .admin-header-actions span {
+                display: none; /* Ocultar texto de bienvenida en móvil */
+            }
+            
+            .admin-header-actions .btn {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.85rem;
+            }
+            
+            /* Contenido compacto */
+            .admin-content {
+                padding: 0.75rem;
+            }
+            
+            /* Cards compactas */
+            .admin-card {
+                border-radius: 12px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .admin-card-header {
+                padding: 1rem 1.25rem;
+            }
+            
+            .admin-card-header h3 {
+                font-size: 1rem;
+            }
+            
+            .admin-card-body {
+                padding: 1.25rem;
+            }
+            
+            /* Stats más compactas */
+            .stat-card {
+                padding: 1.25rem;
+                border-radius: 12px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2rem;
+                margin-bottom: 0.75rem;
+                border-radius: 12px;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+                margin-bottom: 0.35rem;
+            }
+            
+            .stat-label {
+                font-size: 0.85rem;
+            }
+            
+            /* Stats compactas optimizadas */
+            .stat-compact {
+                min-height: 85px;
+                padding: 0.65rem 0.5rem;
+                border-radius: 10px;
+                margin-bottom: 0.5rem;
+            }
+            
+            .stat-compact::before {
+                height: 2.5px;
+            }
+            
+            .stat-compact i {
+                font-size: 1.15rem;
+                margin-bottom: 0.35rem;
+            }
+            
+            .stat-compact-value {
+                font-size: 1.3rem;
+                margin-bottom: 0.2rem;
+            }
+            
+            .stat-compact-label {
+                font-size: 0.65rem;
+                line-height: 1.1;
+            }
+            
+            /* Botones compactos */
+            .btn-admin, .btn-outline-admin {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+                border-radius: 10px;
+            }
+            
+            /* Tablas responsive */
+            .admin-table {
+                border-radius: 12px;
+            }
+            
+            .admin-table thead th {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .admin-table tbody td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+            }
+            
+            /* Formularios compactos */
+            .admin-form-group {
+                margin-bottom: 1rem;
+            }
+            
+            .admin-form-label {
+                font-size: 0.9rem;
+                margin-bottom: 0.4rem;
+            }
+            
+            .admin-form-control {
+                padding: 0.65rem 0.85rem;
+                font-size: 0.9rem;
+                border-radius: 10px;
+            }
+            
+            /* Badges compactos */
+            .badge-admin {
+                padding: 0.35rem 0.75rem;
+                font-size: 0.7rem;
+                border-radius: 6px;
+            }
+            
+            /* Alertas compactas */
+            .alert {
+                padding: 0.75rem;
+                font-size: 0.85rem;
+                border-radius: 10px;
+                margin-bottom: 0.75rem;
+            }
+        }
+        
+        /* Responsive - Móviles pequeños */
+        @media (max-width: 576px) {
+            .hamburger-btn {
+                width: 38px;
+                height: 38px;
+                top: 0.6rem;
+                left: 0.6rem;
+            }
+            
+            .admin-sidebar {
+                width: 240px;
+                left: -240px;
+            }
+            
+            .admin-header {
+                padding: 0.6rem;
+                padding-left: 3.25rem;
+            }
+            
+            .admin-header h1 {
+                font-size: 1rem;
             }
             
             .admin-content {
-                padding: 1rem;
+                padding: 0.6rem;
             }
             
             .stat-compact {
-                min-height: 90px;
-                padding: 0.75rem;
+                min-height: 78px;
+                padding: 0.55rem 0.4rem;
             }
+            
+            .stat-compact i {
+                font-size: 1rem;
+                margin-bottom: 0.3rem;
+            }
+            
             .stat-compact-value {
-                font-size: 1.4rem;
+                font-size: 1.2rem;
             }
+            
             .stat-compact-label {
-                font-size: 0.7rem;
+                font-size: 0.6rem;
+            }
+            
+            .admin-card-header {
+                padding: 0.85rem 1rem;
+            }
+            
+            .admin-card-body {
+                padding: 1rem;
             }
         }
     </style>
@@ -728,7 +974,7 @@
     <main class="admin-main">
         <header class="admin-header">
             <div class="admin-header-content">
-                <h1>{% block page_title %}Panel de Administración{% endblock %}</h1>
+                <h1>{% block page_title %}SuperAdministrador{% endblock %}</h1>
                 <div class="admin-header-actions">
                     <span class="text-muted">Bienvenido, {{ user.get_full_name|default:user.username }}</span>
                     <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm">
