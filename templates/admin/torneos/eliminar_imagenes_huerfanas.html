@@ -6,20 +6,34 @@
         <h3><i class="fas fa-trash-alt me-2"></i>Eliminar Imágenes Huérfanas</h3>
     </div>
     <div class="admin-card-body">
-        <p>Se eliminarán las referencias a imágenes que ya no existen en el sistema de archivos.</p>
-        {% if eliminadas %}
-            <div class="alert alert-success">
-                <strong>Imágenes eliminadas:</strong>
-                <ul>
-                    {% for img in eliminadas %}
-                        <li>{{ img }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% else %}
-            <div class="alert alert-info">No se encontraron imágenes huérfanas.</div>
-        {% endif %}
-        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
+        <p>Esta acción eliminará permanentemente las siguientes imágenes y logos huérfanos del sistema:</p>
+        <form method="post" id="confirmDeleteForm">
+            {% csrf_token %}
+            {% if eliminadas %}
+                <div class="alert alert-warning">
+                    <strong>¿Estás seguro de eliminar las siguientes imágenes?</strong>
+                    <ul>
+                        {% for img in eliminadas %}
+                            <li>{{ img }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <button type="submit" class="btn btn-danger mt-2" onclick="return confirm('¿Estás seguro de eliminar todas estas imágenes y logos huérfanos? Esta acción no se puede deshacer.')">
+                    <i class="fas fa-trash-alt"></i> Confirmar Eliminación
+                </button>
+            {% else %}
+                <div class="alert alert-info">No se encontraron imágenes huérfanas.</div>
+            {% endif %}
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
+        </form>
     </div>
 </div>
+<script>
+    // Si quieres una confirmación extra, puedes usar este script
+    document.getElementById('confirmDeleteForm')?.addEventListener('submit', function(e) {
+        if (!confirm('¿Estás seguro de eliminar todas estas imágenes y logos huérfanos? Esta acción no se puede deshacer.')) {
+            e.preventDefault();
+        }
+    });
+</script>
 {% endblock %}
