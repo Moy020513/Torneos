@@ -15,33 +15,34 @@ def admin_eliminar_imagenes_huerfanas(request):
     media_root = settings.MEDIA_ROOT
     eliminadas = []
     from .models import Jugador, Equipo, Torneo
-    # Eliminar fotos de jugadores huérfanas
-    jugadores = Jugador.objects.exclude(foto='')
-    for jugador in jugadores:
-        if jugador.foto and os.path.exists(jugador.foto.path):
-            os.remove(jugador.foto.path)
-            eliminadas.append(f"Foto de jugador {jugador.nombre} {jugador.apellido} eliminada: {jugador.foto.path}")
-        jugador.foto = None
-        jugador.save(update_fields=['foto'])
-    # Eliminar logos de equipos huérfanos
-    equipos = Equipo.objects.exclude(logo='')
-    for equipo in equipos:
-        if equipo.logo and os.path.exists(equipo.logo.path):
-            os.remove(equipo.logo.path)
-            eliminadas.append(f"Logo de equipo {equipo.nombre} eliminado: {equipo.logo.path}")
-        equipo.logo = None
-        equipo.save(update_fields=['logo'])
-    # Eliminar logos de torneos huérfanos
-    torneos = Torneo.objects.exclude(logo='')
-    for torneo in torneos:
-        if torneo.logo and os.path.exists(torneo.logo.path):
-            os.remove(torneo.logo.path)
-            eliminadas.append(f"Logo de torneo {torneo.nombre} eliminado: {torneo.logo.path}")
-        torneo.logo = None
-        torneo.color1 = None
-        torneo.color2 = None
-        torneo.color3 = None
-        torneo.save(update_fields=['logo', 'color1', 'color2', 'color3'])
+    # Solo eliminar archivos huérfanos (no asociados en la base de datos)
+    # Jugadores
+    fotos_dir = os.path.join(settings.MEDIA_ROOT, 'jugadores/fotos')
+    if os.path.exists(fotos_dir):
+        for fname in os.listdir(fotos_dir):
+            fpath = os.path.join(fotos_dir, fname)
+            if os.path.isfile(fpath):
+                if not Jugador.objects.filter(foto__endswith=f'jugadores/fotos/{fname}').exists():
+                    os.remove(fpath)
+                    eliminadas.append(f"Foto huérfana eliminada: {fpath}")
+    # Equipos
+    logos_dir = os.path.join(settings.MEDIA_ROOT, 'equipos/logos')
+    if os.path.exists(logos_dir):
+        for fname in os.listdir(logos_dir):
+            fpath = os.path.join(logos_dir, fname)
+            if os.path.isfile(fpath):
+                if not Equipo.objects.filter(logo__endswith=f'equipos/logos/{fname}').exists():
+                    os.remove(fpath)
+                    eliminadas.append(f"Logo huérfano de equipo eliminado: {fpath}")
+    # Torneos
+    tlogos_dir = os.path.join(settings.MEDIA_ROOT, 'torneos/logos')
+    if os.path.exists(tlogos_dir):
+        for fname in os.listdir(tlogos_dir):
+            fpath = os.path.join(tlogos_dir, fname)
+            if os.path.isfile(fpath):
+                if not Torneo.objects.filter(logo__endswith=f'torneos/logos/{fname}').exists():
+                    os.remove(fpath)
+                    eliminadas.append(f"Logo huérfano de torneo eliminado: {fpath}")
 
     # Buscar archivos huérfanos en el sistema de archivos que no estén en la base de datos
     # Jugadores

@@ -11,8 +11,9 @@
             {% csrf_token %}
             {% if eliminadas %}
                 <div class="alert alert-warning">
-                    <strong>¿Estás seguro de eliminar las siguientes imágenes?</strong>
-                    <ul>
+                    <strong>¿Estás seguro de eliminar las siguientes imágenes?</strong><br>
+                    <span class="badge bg-danger">Total: {{ eliminadas|length }}</span>
+                    <ul class="mt-2">
                         {% for img in eliminadas %}
                             <li>{{ img }}</li>
                         {% endfor %}
