@@ -171,6 +171,24 @@
                         <div class="form-text">Los jugadores inactivos no aparecerán en las listas</div>
                     </div>
                     
+                    <!-- Verificado por admin -->
+                    <div class="admin-form-group mt-2">
+                        <div class="form-check">
+                            {{ form.verificado }}
+                            <label class="form-check-label" for="{{ form.verificado.id_for_label }}">
+                                {{ form.verificado.label }}
+                            </label>
+                        </div>
+                        {% if form.verificado.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.verificado.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Marque si ha verificado los datos del jugador</div>
+                    </div>
+                    
                     <!-- Botones de acción -->
                     <div class="d-flex justify-content-between mt-4 pt-3 border-top">
                         <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary">

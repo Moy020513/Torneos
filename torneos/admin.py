@@ -378,9 +378,22 @@ class EquipoAdmin(admin.ModelAdmin):
 
 @admin.register(Jugador)
 class JugadorAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'apellido', 'equipo', 'numero_camiseta', 'posicion', 'activo')
-    list_filter = ('equipo', 'posicion', 'activo')
+    list_display = ('nombre', 'apellido', 'equipo', 'numero_camiseta', 'posicion', 'activo', 'verificado')
+    list_filter = ('equipo', 'posicion', 'activo', 'verificado')
     search_fields = ('nombre', 'apellido')
+    actions = ['marcar_como_verificado', 'desmarcar_como_verificado']
+
+    @admin.action(description="Marcar seleccionados como verificados")
+    def marcar_como_verificado(self, request, queryset):
+        updated = queryset.update(verificado=True)
+        from django.contrib import messages
+        messages.success(request, f"{updated} jugador(es) marcados como verificados.")
+
+    @admin.action(description="Desmarcar verificados")
+    def desmarcar_como_verificado(self, request, queryset):
+        updated = queryset.update(verificado=False)
+        from django.contrib import messages
+        messages.success(request, f"{updated} jugador(es) desmarcados como verificados.")
 
 @admin.register(Capitan)
 class CapitanAdmin(admin.ModelAdmin):

@@ -91,6 +91,7 @@
                             <th>Posición</th>
                             <th>Edad</th>
                             <th>Estado</th>
+                            <th>Verificado</th>
                             <th width="120">Acciones</th>
                         </tr>
                     </thead>
@@ -145,6 +146,16 @@
                                     <span class="badge badge-warning">
                                         <i class="fas fa-pause me-1"></i>Inactivo
                                     </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if jugador.verificado %}
+                                    <span class="badge" style="background:#28a745; color:#fff;
+                                                display:inline-flex; align-items:center; gap:6px;">
+                                        <i class="fas fa-check-circle"></i> Verificado
+                                    </span>
+                                {% else %}
+                                    <span class="badge" style="background:#6c757d; color:#fff;">No</span>
                                 {% endif %}
                             </td>
                             <td>

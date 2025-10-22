@@ -114,9 +114,11 @@ class EquipoForm(AdminFormMixin, forms.ModelForm):
 class JugadorForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Jugador
-        fields = ['equipo', 'nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion', 'activo']
+        # Incluir el campo 'verificado' para que los administradores puedan marcarlo desde el admin personalizado
+        fields = ['equipo', 'nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion', 'activo', 'verificado']
         widgets = {
-            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
+            # Usar formato compatible con input[type=date] (YYYY-MM-DD)
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
         labels = {
             'equipo': 'Equipo',
@@ -127,7 +129,18 @@ class JugadorForm(AdminFormMixin, forms.ModelForm):
             'numero_camiseta': 'Número de Camiseta',
             'posicion': 'Posición',
             'activo': 'Jugador Activo',
+            'verificado': 'Verificado por Admin',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Si viene una instancia con fecha_nacimiento, formatearla para que el input[type=date] la muestre correctamente
+        instance = getattr(self, 'instance', None)
+        if instance and getattr(instance, 'fecha_nacimiento', None):
+            try:
+                self.fields['fecha_nacimiento'].initial = instance.fecha_nacimiento.strftime('%Y-%m-%d')
+            except Exception:
+                pass
 
 # Formulario para el capitán (sin campo equipo)
 class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
@@ -148,6 +161,14 @@ class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
             'posicion': 'Posición',
             'activo': 'Jugador Activo',
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and getattr(instance, 'fecha_nacimiento', None):
+            try:
+                self.fields['fecha_nacimiento'].initial = instance.fecha_nacimiento.strftime('%Y-%m-%d')
+            except Exception:
+                pass
 
 
 class PartidoForm(AdminFormMixin, forms.ModelForm):

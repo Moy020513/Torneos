@@ -154,6 +154,8 @@ class Jugador(models.Model):
         blank=True, 
         null=True
     )
+    # Campo que indica si un administrador verificó los datos del jugador
+    verificado = models.BooleanField(default=False, help_text='Indica si el jugador fue verificado por un administrador')
     fecha_nacimiento = models.DateField()
     numero_camiseta = models.PositiveIntegerField()
     posicion = models.CharField(max_length=50, choices=[
