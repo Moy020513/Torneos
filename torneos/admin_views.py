@@ -1885,7 +1885,7 @@ def admin_generar_calendario(request, categoria_id):
                         jornada=jornada,
                         equipo_local=local,
                         equipo_visitante=visitante,
-                        campo='Por definir'
+                        ubicacion=None
                     )
                     total += 1
             equipos_rr.insert(1, equipos_rr.pop())
@@ -1904,7 +1904,7 @@ def admin_generar_calendario(request, categoria_id):
                             jornada=total_jornadas + jornada,
                             equipo_local=local,
                             equipo_visitante=visitante,
-                            campo='Por definir'
+                            ubicacion=None
                         )
                         total += 1
                 equipos_rr.insert(1, equipos_rr.pop())

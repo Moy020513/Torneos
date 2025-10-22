@@ -151,7 +151,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                         jornada=1,
                         equipo_local=nuevo_equipo,
                         equipo_visitante=nuevo_equipo,
-                        campo='Descansa',
+                        ubicacion=None,
                         fecha=None
                     )
                     # Jornadas siguientes: modificar un partido por jornada
@@ -173,7 +173,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                             jornada=jornada,
                             equipo_local=equipo_descansa,
                             equipo_visitante=equipo_descansa,
-                            campo='Descansa',
+                            ubicacion=None,
                             fecha=None
                         )
                     messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente. Descansa en la J1 y en cada jornada un equipo original descansa y el nuevo juega en su lugar.")
@@ -202,7 +202,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                                 jornada=jornada,
                                 equipo_local=equipo_descanso,
                                 equipo_visitante=nuevo_equipo,
-                                campo='Por definir',
+                                ubicacion=None,
                                 fecha=None
                             )
                     messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente enfrentando al equipo que descansaba en cada jornada. El número de partidos por jornada aumentó.")
@@ -218,7 +218,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                         jornada=jornada,
                         equipo_local=nuevo_equipo,
                         equipo_visitante=None,
-                        campo='Descanso',
+                        ubicacion=None,
                         fecha=None
                     )
                 # Para jornadas futuras, recalcular round-robin con todos los equipos
@@ -241,7 +241,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                                 jornada=jornada,
                                 equipo_local=local,
                                 equipo_visitante=visitante,
-                                campo='Por definir',
+                                ubicacion=None,
                                 fecha=None
                             )
                     equipos_rr.insert(1, equipos_rr.pop())
@@ -300,7 +300,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                             jornada=jornada,
                             equipo_local=local,
                             equipo_visitante=visitante,
-                            campo='Por definir'
+                            ubicacion=None
                         )
                         total += 1
                 equipos_rr.insert(1, equipos_rr.pop())
@@ -343,7 +343,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                             jornada=jornada,
                             equipo_local=local,
                             equipo_visitante=visitante,
-                            campo='Por definir'
+                            ubicacion=None
                         )
                         total += 1
                 temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
@@ -359,7 +359,7 @@ class CategoriaAdmin(admin.ModelAdmin):
                             jornada=total_jornadas + jornada,
                             equipo_local=visitante,
                             equipo_visitante=local,
-                            campo='Por definir'
+                            ubicacion=None
                         )
                         total += 1
                 temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]

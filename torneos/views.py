@@ -383,14 +383,14 @@ def integrar_nuevo_equipo(request, categoria_id):
                 partido_descanso.delete()
             # Crear partido entre el nuevo equipo y el que descansaba
             if equipo_descanso is not None:
-                Partido.objects.create(
-                    grupo=grupo,
-                    jornada=jornada,
-                    equipo_local=equipo_descanso,
-                    equipo_visitante=nuevo_equipo,
-                    campo='Por definir',
-                    fecha=None
-                )
+                    Partido.objects.create(
+                        grupo=grupo,
+                        jornada=jornada,
+                        equipo_local=equipo_descanso,
+                        equipo_visitante=nuevo_equipo,
+                        ubicacion=None,
+                        fecha=None
+                    )
         messages.success(request, f"El nuevo equipo '{nuevo_equipo.nombre}' fue integrado correctamente enfrentando al equipo que descansaba en cada jornada. El número de partidos por jornada aumentó.")
         return redirect('administrar_torneo', torneo_id=categoria.torneo.id)
     else:
@@ -563,7 +563,7 @@ def generar_calendario(request, categoria_id):
                         jornada=jornada,
                         equipo_local=eq_descansa,
                         equipo_visitante=eq_descansa,
-                        campo='Descansa',
+                        ubicacion=None,
                         fecha=None
                     )
             temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
@@ -598,7 +598,7 @@ def generar_calendario(request, categoria_id):
                         jornada=total_jornadas + jornada,
                         equipo_local=eq_descansa,
                         equipo_visitante=eq_descansa,
-                        campo='Descansa',
+                        ubicacion=None,
                         fecha=None
                     )
             temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
