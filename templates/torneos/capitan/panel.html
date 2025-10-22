@@ -101,13 +101,22 @@
                   <span class="status-badge active">Activo</span>
                 </td>
                 <td class="col-actions">
-                  <div class="action-buttons">
-                    <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn-action btn-edit" title="Editar jugador">
-                      <i class="fas fa-edit"></i>
-                    </a>
-                    <button class="btn-action btn-delete" onclick="confirmDelete({{ jugador.id }}, '{{ jugador.nombre }}')" title="Eliminar jugador">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="action-buttons">
+                    {% if jugador.verificado %}
+                        <span class="badge bg-success" title="Verificado por admin">
+                            <i class="fas fa-check-circle"></i> Verificado
+                        </span>
+                        <button class="btn-action btn-delete" onclick="confirmDelete({{ jugador.id }}, '{{ jugador.nombre }}')" title="Eliminar jugador">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                    {% else %}
+                        <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn-action btn-edit" title="Editar jugador">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn-action btn-delete" onclick="confirmDelete({{ jugador.id }}, '{{ jugador.nombre }}')" title="Eliminar jugador">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                    {% endif %}
                   </div>
                 </td>
               </tr>

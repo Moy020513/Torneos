@@ -156,6 +156,9 @@ class Jugador(models.Model):
     )
     # Campo que indica si un administrador verificó los datos del jugador
     verificado = models.BooleanField(default=False, help_text='Indica si el jugador fue verificado por un administrador')
+    # Auditoría: quién verificó y cuándo (opcional)
+    verificado_por = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='jugadores_verificados')
+    fecha_verificacion = models.DateTimeField(null=True, blank=True)
     fecha_nacimiento = models.DateField()
     numero_camiseta = models.PositiveIntegerField()
     posicion = models.CharField(max_length=50, choices=[

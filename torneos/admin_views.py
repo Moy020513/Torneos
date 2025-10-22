@@ -100,6 +100,8 @@ def admin_detalle_jugador(request, jugador_id):
         'jugador': jugador,
         'participaciones': participaciones,
         'partidos_jugados': partidos_jugados,
+        'verificado_por': jugador.verificado_por,
+        'fecha_verificacion': jugador.fecha_verificacion,
     }
     return render(request, 'admin/jugadores/detalle.html', context)
 
@@ -882,7 +884,14 @@ def admin_crear_jugador(request):
     if request.method == 'POST':
         form = JugadorForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            jugador = form.save(commit=False)
+            # Asegurar que los jugadores siempre se creen como activos
+            jugador.activo = True
+            # Si el admin marca verificado al crear, registrar auditoría
+            if form.cleaned_data.get('verificado'):
+                jugador.verificado_por = request.user
+                jugador.fecha_verificacion = timezone.now()
+            jugador.save()
             messages.success(request, 'Jugador creado exitosamente.')
             return redirect('admin_jugadores')
     else:
@@ -902,7 +911,17 @@ def admin_editar_jugador(request, jugador_id):
     if request.method == 'POST':
         form = JugadorForm(request.POST, request.FILES, instance=jugador)
         if form.is_valid():
-            form.save()
+            jugador = form.save(commit=False)
+            # Mantener siempre activo
+            jugador.activo = True
+            # Actualizar auditoría de verificación según el checkbox
+            if form.cleaned_data.get('verificado'):
+                jugador.verificado_por = request.user
+                jugador.fecha_verificacion = timezone.now()
+            else:
+                jugador.verificado_por = None
+                jugador.fecha_verificacion = None
+            jugador.save()
             messages.success(request, 'Jugador actualizado exitosamente.')
             return redirect('admin_jugadores')
     else:

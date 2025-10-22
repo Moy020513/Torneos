@@ -114,8 +114,8 @@ class EquipoForm(AdminFormMixin, forms.ModelForm):
 class JugadorForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Jugador
-        # Incluir el campo 'verificado' para que los administradores puedan marcarlo desde el admin personalizado
-        fields = ['equipo', 'nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion', 'activo', 'verificado']
+        # No exponer el campo 'activo' para que los jugadores siempre queden activos al registrarse
+        fields = ['equipo', 'nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion', 'verificado']
         widgets = {
             # Usar formato compatible con input[type=date] (YYYY-MM-DD)
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
@@ -128,7 +128,6 @@ class JugadorForm(AdminFormMixin, forms.ModelForm):
             'fecha_nacimiento': 'Fecha de Nacimiento',
             'numero_camiseta': 'Número de Camiseta',
             'posicion': 'Posición',
-            'activo': 'Jugador Activo',
             'verificado': 'Verificado por Admin',
         }
 
@@ -146,7 +145,8 @@ class JugadorForm(AdminFormMixin, forms.ModelForm):
 class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Jugador
-        fields = ['nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion', 'activo']
+        # Los capitanes no pueden inactivar jugadores desde su formulario
+        fields = ['nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion']
         widgets = {
             'nombre': forms.TextInput(attrs={'style': 'text-transform:uppercase;', 'oninput': "this.value = this.value.toUpperCase();"}),
             'apellido': forms.TextInput(attrs={'style': 'text-transform:uppercase;', 'oninput': "this.value = this.value.toUpperCase();"}),
@@ -159,7 +159,7 @@ class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
             'fecha_nacimiento': 'Fecha de Nacimiento',
             'numero_camiseta': 'Número de Camiseta',
             'posicion': 'Posición',
-            'activo': 'Jugador Activo',
+            
         }
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

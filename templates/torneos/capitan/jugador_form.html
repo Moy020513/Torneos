@@ -24,14 +24,24 @@
                     
                     <!-- Información del jugador (si es edición) -->
                     {% if jugador %}
+                    {% if jugador.verificado %}
+                    <div class="alert alert-warning" role="alert">
+                        <strong><i class="fas fa-lock"></i> Edición bloqueada</strong><br>
+                        Este jugador fue verificado por un administrador y no puede ser editado desde el panel del capitán. Solo puedes eliminarlo.
+                    </div>
+                    {% else %}
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         <strong><i class="fas fa-info-circle"></i> Modo Edición</strong><br>
                         Modificando datos del jugador: <strong>{{ jugador.nombre }}</strong>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                     {% endif %}
+                    {% endif %}
 
                     <!-- Formulario -->
+                    {% if jugador and jugador.verificado %}
+                        <!-- No mostrar el formulario si está verificado -->
+                    {% else %}
                     <form method="post" enctype="multipart/form-data" novalidate>
                         {% csrf_token %}
 

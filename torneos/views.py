@@ -136,6 +136,10 @@ def capitan_jugador_create(request):
 def capitan_jugador_update(request, jugador_id):
     equipo = request.user.capitan.equipo
     jugador = get_object_or_404(Jugador, id=jugador_id, equipo=equipo)
+    # Si el jugador ya está verificado por un administrador, impedir edición por capitán
+    if getattr(jugador, 'verificado', False):
+        messages.warning(request, 'Este jugador ha sido verificado por un administrador y no puede ser editado por el capitán. Solo puede ser eliminado.')
+        return redirect('capitan_panel')
     from .forms import CapitanJugadorForm
     if request.method == 'POST':
         form = CapitanJugadorForm(request.POST, request.FILES, instance=jugador)

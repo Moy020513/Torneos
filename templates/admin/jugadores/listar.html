@@ -92,6 +92,8 @@
                             <th>Edad</th>
                             <th>Estado</th>
                             <th>Verificado</th>
+                            <th>Verificado por</th>
+                            <th>Fecha verificación</th>
                             <th width="120">Acciones</th>
                         </tr>
                     </thead>
@@ -138,15 +140,9 @@
                                 <span class="text-muted">{{ jugador.edad }} años</span>
                             </td>
                             <td>
-                                {% if jugador.activo %}
-                                    <span class="badge badge-success">
-                                        <i class="fas fa-check me-1"></i>Activo
-                                    </span>
-                                {% else %}
-                                    <span class="badge badge-warning">
-                                        <i class="fas fa-pause me-1"></i>Inactivo
-                                    </span>
-                                {% endif %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check me-1"></i>Activo
+                                </span>
                             </td>
                             <td>
                                 {% if jugador.verificado %}
@@ -156,6 +152,20 @@
                                     </span>
                                 {% else %}
                                     <span class="badge" style="background:#6c757d; color:#fff;">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if jugador.verificado_por %}
+                                    {{ jugador.verificado_por.get_full_name|default:jugador.verificado_por.username }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if jugador.fecha_verificacion %}
+                                    {{ jugador.fecha_verificacion|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    -
                                 {% endif %}
                             </td>
                             <td>

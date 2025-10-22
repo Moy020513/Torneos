@@ -378,21 +378,34 @@ class EquipoAdmin(admin.ModelAdmin):
 
 @admin.register(Jugador)
 class JugadorAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'apellido', 'equipo', 'numero_camiseta', 'posicion', 'activo', 'verificado')
+    list_display = ('nombre', 'apellido', 'equipo', 'numero_camiseta', 'posicion', 'activo', 'verificado', 'verificado_por', 'fecha_verificacion')
     list_filter = ('equipo', 'posicion', 'activo', 'verificado')
     search_fields = ('nombre', 'apellido')
     actions = ['marcar_como_verificado', 'desmarcar_como_verificado']
 
     @admin.action(description="Marcar seleccionados como verificados")
     def marcar_como_verificado(self, request, queryset):
-        updated = queryset.update(verificado=True)
+        from django.utils import timezone
         from django.contrib import messages
+        updated = 0
+        for jugador in queryset:
+            jugador.verificado = True
+            jugador.verificado_por = request.user
+            jugador.fecha_verificacion = timezone.now()
+            jugador.save(update_fields=['verificado', 'verificado_por', 'fecha_verificacion'])
+            updated += 1
         messages.success(request, f"{updated} jugador(es) marcados como verificados.")
 
     @admin.action(description="Desmarcar verificados")
     def desmarcar_como_verificado(self, request, queryset):
-        updated = queryset.update(verificado=False)
         from django.contrib import messages
+        updated = 0
+        for jugador in queryset:
+            jugador.verificado = False
+            jugador.verificado_por = None
+            jugador.fecha_verificacion = None
+            jugador.save(update_fields=['verificado', 'verificado_por', 'fecha_verificacion'])
+            updated += 1
         messages.success(request, f"{updated} jugador(es) desmarcados como verificados.")
 
 @admin.register(Capitan)

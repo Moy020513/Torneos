@@ -153,22 +153,9 @@
                         </div>
                     </div>
                     
-                    <!-- Estado activo -->
+                    <!-- Nota: los jugadores se crean siempre como activos; la opción de inactivar se eliminó -->
                     <div class="admin-form-group">
-                        <div class="form-check">
-                            {{ form.activo }}
-                            <label class="form-check-label" for="{{ form.activo.id_for_label }}">
-                                {{ form.activo.label }}
-                            </label>
-                        </div>
-                        {% if form.activo.errors %}
-                            <div class="text-danger small mt-1">
-                                {% for error in form.activo.errors %}
-                                    <div>{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">Los jugadores inactivos no aparecerán en las listas</div>
+                        <div class="form-text">Los jugadores se crean automáticamente como <strong>activos</strong>.</div>
                     </div>
                     
                     <!-- Verificado por admin -->
@@ -187,6 +174,9 @@
                             </div>
                         {% endif %}
                         <div class="form-text">Marque si ha verificado los datos del jugador</div>
+                        {% if jugador and jugador.verificado and jugador.verificado_por %}
+                            <div class="mt-2 small text-muted">Verificado por: <strong>{{ jugador.verificado_por.get_full_name|default:jugador.verificado_por.username }}</strong> el {{ jugador.fecha_verificacion|date:"d/m/Y H:i" }}</div>
+                        {% endif %}
                     </div>
                     
                     <!-- Botones de acción -->
