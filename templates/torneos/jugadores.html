@@ -40,7 +40,7 @@
                  style="background: rgba(10, 35, 66, 0.9); border: 1px solid #08F7FE; border-radius: 12px; padding: 16px; width: auto; min-width: 300px; max-width: 500px; display:block;">
                     <div style="position: relative;">
                         {% if jugador.verificado %}
-                            <div style="position:absolute; top:8px; right:8px; background: #28a745; color: white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; box-shadow: 0 0 6px rgba(0,0,0,0.4);">V</div>
+                            <div class="badge-verificado">V</div>
                         {% endif %}
                         <div class="d-flex align-items-center">
                         {% if jugador.foto %}
@@ -79,6 +79,29 @@
     </div>
     <div class="w-100 d-flex justify-content-center mt-4" id="paginacionJugadores" style="display: block; min-height: 50px;"></div>
         <style>
+        /* Badge verificado: positioned toward the outer corner so it doesn't overlap team logo */
+        .badge-verificado {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #28a745;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 0 6px rgba(0,0,0,0.4);
+            z-index: 10;
+            border: 2px solid rgba(255,255,255,0.06);
+        }
+
+        @media (max-width: 600px) {
+            .badge-verificado { width:24px; height:24px; top: -6px; right: -6px; font-size:0.9em; }
+        }
+
         #paginacionJugadores {
             flex-wrap: wrap;
             gap: 0.5rem;
