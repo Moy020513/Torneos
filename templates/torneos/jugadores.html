@@ -26,6 +26,16 @@
             <label for="buscadorNombre" class="form-label" style="color: white;">Buscar por nombre:</label>
             <input type="text" id="buscadorNombre" class="form-control" placeholder="Escribe el nombre del jugador...">
         </div>
+        {% if user.is_superuser %}
+        <div class="col-md-4">
+            <label for="ordenJugadores" class="form-label" style="color: white;">Orden:</label>
+            <select id="ordenJugadores" class="form-select">
+                <option value="default">Por defecto</option>
+                <option value="ultimos">Últimos agregados</option>
+                <option value="antiguos">Más antiguos</option>
+            </select>
+        </div>
+        {% endif %}
     </div>
     <div class="mb-3">
         <p id="contadores" class="text-muted" style="color: white !important;">Total de jugadores: <span id="totalJugadores">0</span> | Jugadores mostrados: <span id="jugadoresMostrados">0</span></p>
@@ -36,7 +46,8 @@
              <div class="card jugador-item" 
                  data-equipo-id="{{ equipo.id }}" 
                  data-posicion="{{ jugador.get_posicion_display }}" 
-                 data-nombre="{{ jugador.nombre }} {{ jugador.apellido }}">
+                 data-nombre="{{ jugador.nombre }} {{ jugador.apellido }}"
+                 data-fecha="{{ jugador.fecha_creacion|date:'c' }}">
                     <div style="position: relative;">
                         {% if jugador.verificado %}
                             <div class="badge-verificado">V</div>
@@ -57,6 +68,9 @@
                         {% endif %}
                         <div class="flex-grow-1">
                             <strong class="text-white">{{ jugador.nombre }} {{ jugador.apellido }}</strong><br>
+                            {% if user.is_superuser %}
+                            <small class="text-white-50">Registrado: {{ jugador.fecha_creacion|date:'d/m/Y H:i' }}</small><br>
+                            {% endif %}
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <ul class="list-unstyled mb-0 text-white" style="font-size:0.95em; margin:0; padding-left:0;">
                                     <li>#{{ jugador.numero_camiseta }}</li>
@@ -87,6 +101,7 @@
         {% endfor %}
     </div>
     <div class="w-100 d-flex justify-content-center mt-4" id="paginacionJugadores" style="display: block; min-height: 50px;"></div>
+    
         <style>
         /* Jugador card visual styles (professional look) */
         .jugador-item {
@@ -248,6 +263,42 @@
             }
         }
     }
+
+    // Reordena las tarjetas según el select de admin
+    function sortJugadores(order) {
+        const container = document.getElementById('jugadoresLista');
+        if (!container) return;
+        const items = Array.from(container.querySelectorAll('.jugador-item'));
+        if (order === 'default') {
+            // opcional: devolver al orden DOM original (por equipo) — aquí simplemente no hacemos nada
+            // para mantener la consistencia, podríamos reload = true; pero dejamos el orden actual
+        } else {
+            items.sort((a, b) => {
+                const fa = a.getAttribute('data-fecha') || '';
+                const fb = b.getAttribute('data-fecha') || '';
+                if (!fa || !fb) return 0;
+                const da = new Date(fa);
+                const db = new Date(fb);
+                if (order === 'ultimos') return db - da; // descendente
+                if (order === 'antiguos') return da - db; // ascendente
+                return 0;
+            });
+            // Re-append en el nuevo orden
+            items.forEach(item => container.appendChild(item));
+        }
+        // después de reordenar, recalcula filtrado y paginación
+        filtrarJugadores();
+    }
+
+    // Event listener para el select admin
+    document.addEventListener('DOMContentLoaded', function() {
+        const ordenSelect = document.getElementById('ordenJugadores');
+        if (ordenSelect) {
+            ordenSelect.addEventListener('change', function(e) {
+                sortJugadores(e.target.value);
+            });
+        }
+    });
 
     function filtrarJugadores() {
         var filtroEquipo = document.getElementById('equipoFiltro').value.trim();
