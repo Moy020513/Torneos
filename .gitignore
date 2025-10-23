@@ -41,3 +41,7 @@ Thumbs.db
 # */migrations/
 
 torneos_modified.sql
+docker-compose.yml
+Dockerfile
+media/jugadores/fotos/
+media/equipos/logos/
