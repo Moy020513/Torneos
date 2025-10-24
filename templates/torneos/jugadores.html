@@ -81,10 +81,29 @@
                                     {% if equipo.logo %}
                                         <div style="display: inline-block; text-align: center; width: fit-content;">
                                             <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="height:42px; display:block; margin:0 auto 2px auto; object-fit:contain; image-rendering:auto;">
-                                            <span style="display:block; line-height:1; font-size:0.85em; white-space: nowrap; color: white;">{{ equipo.nombre }}</span>
+                                           
                                         </div>
                                     {% else %}
-                                        <span class="text-white">{{ equipo.nombre }}</span>
+                                        <div style="display:inline-block; text-align:center; width: fit-content;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="{{ equipo.nombre }} escudo"
+                                                 style="height:42px; display:block; margin:0 auto 2px auto; object-fit:contain; image-rendering:auto;">
+                                                <!-- Shield background -->
+                                                <path d="M32 2 L10 10 v14 c0 18 12 30 22 36 10-6 22-18 22-36V10L32 2z"
+                                                      fill="#999999ff"/>
+                                                <!-- Shield inner highlight -->
+                                                <path d="M32 6 L14 13 v10 c0 15 10 26 18 31 8-5 18-16 18-31V13L32 6z"
+                                                      fill="rgba(255,255,255,0.06)"/>
+                                                <!-- Soccer ball (stylized) -->
+                                                <g transform="translate(18,18)" fill="#ffffff">
+                                                    <circle cx="14" cy="14" r="9" fill="#ffffff" />
+                                                    <path d="M14 6 L17.5 8.5 L16.5 12 L14 14 L11.5 12 L10.5 8.5 Z" fill="#0b3b6f"/>
+                                                    <path d="M14 22 L17.5 19.5 L16.5 16 L14 14 L11.5 16 L10.5 19.5 Z" fill="#0b3b6f"/>
+                                                    <path d="M6 14 L8.5 17.5 L11 16 L11.5 14 L11 12 L8.5 10.5 Z" fill="#0b3b6f"/>
+                                                    <path d="M22 14 L19.5 17.5 L17 16 L16.5 14 L17 12 L19.5 10.5 Z" fill="#0b3b6f"/>
+                                                    <path d="M10.5 8.5 L13 6 L15.5 8.5 L14 10.5 L11.5 8.5 Z" fill="rgba(11,59,111,0.8)"/>
+                                                </g>
+                                            </svg>
+                                        </div>
                                     {% endif %}
                                 </b>
                             </div>
