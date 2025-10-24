@@ -517,6 +517,8 @@ def goleadores_view(request, categoria_id):
         data['promedio_goles'] = round(data['total_goles'] / partidos_reales, 2)
         # Efectividad: porcentaje de partidos jugados en los que anotó al menos 1 gol
         data['porcentaje_efectividad'] = int(round((partidos_con_goles / partidos_reales) * 100))
+        # Partidos jugados efectivos que usaremos en la tabla (al menos 1)
+        data['partidos_jugados'] = partidos_reales
         goleadores_data.append(data)
 
     goleadores_data = sorted(goleadores_data, key=lambda x: -x['total_goles'])

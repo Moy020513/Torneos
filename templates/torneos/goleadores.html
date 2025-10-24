@@ -6,207 +6,646 @@
 {% block extra_css %}
 {{ block.super }}
 <style>
-    .goleador-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid #ffc107;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
+    /* Contenedor principal */
+    .goleadores-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
     }
-    .goleador-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+
+    /* Card principal */
+    .card-gradient {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .goleador-rank {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: #ffc107;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    }
-    .goleador-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #ffc107;
-    }
-    .goleador-stats {
-        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-        border-radius: 10px;
-        padding: 15px;
-    }
-    .goal-badge {
-        font-size: 1.8em;
-        font-weight: bold;
-        color: #198754;
-    }
-    .stats-badge {
-        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+
+    .card-gradient .card-header {
+        background: #000c44ff;
         color: white;
-        border-radius: 20px;
-        padding: 5px 15px;
-        font-weight: bold;
+        padding: 20px 24px;
+        border: none;
     }
-    .progress {
-        height: 8px;
-        border-radius: 4px;
+
+    .card-gradient .card-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
     }
-    .team-logo-med {
+
+    /* Card del primer lugar - PREMIUM */
+    .top-scorer-card {
+        background: #e3e1ffff;
+        border-radius: 12px;
+        border: 2px solid #000296ff;
+        padding: 20px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(2, 0, 124, 0.3);
+    }
+
+    .top-scorer-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255, 193, 7, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .top-scorer-card::after {
+        content: '👑';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 48px;
+        opacity: 0.55;
+        transform: rotate(-15deg);
+    }
+
+    /* Avatar/Foto */
+    .scorer-avatar {
+        width: 100%;
+        max-width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 3px solid #000661ff !important;
+        margin: 0 auto;
+        display: block;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+        position: relative;
+        z-index: 1;
+    }
+
+    .scorer-avatar-placeholder {
+        width: 100%;
+        max-width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #ccc;
+        margin: 0 auto;
+        border: 3px solid #06005aff;
+        box-shadow: 0 4px 12px rgba(0, 8, 114, 0.42);
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Medalla de posición */
+    .position-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #cf0202ff;
+        color: #ffffffff;
+        font-weight: 900;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    /* Estadísticas del primer lugar */
+    .top-scorer-goals {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #198754;
+        line-height: 1;
+    }
+
+    .top-scorer-stats {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 12px;
+        border: 1px solid #e9ecef;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        font-size: 0.95rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    /* Logo del equipo */
+    .team-logo {
         width: 40px;
         height: 40px;
         object-fit: contain;
-        margin-right: 10px;
+        flex-shrink: 0;
+    }
+
+    .team-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 12px 0;
+        flex-wrap: wrap;
+    }
+
+    .goals-mobile {
+        margin-left: auto;
+    }
+
+    .goals-mobile .top-scorer-goals {
+        font-size: 1.8rem;
+        margin-bottom: 2px;
+    }
+
+    .goals-mobile small {
+        font-size: 0.7rem;
+    }
+
+    .team-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .player-details {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    /* Tabla de goleadores */
+    .scorers-table {
+        margin-top: 24px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        margin: 0;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .table td,
+    .table th {
+        padding: 14px 12px;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #495057;
+        padding: 14px 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        padding: 14px 12px;
+        vertical-align: middle;
+        font-size: 0.95rem;
+    }
+
+    .position-cell {
+        font-weight: 700;
+        color: #667eea;
+        font-size: 1.1rem;
+    }
+
+    .player-avatar-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .team-logo-small {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        margin-right: 8px;
+    }
+
+    .goals-cell {
+        font-weight: 700;
+        color: #27ae60;
+        font-size: 1.1rem;
+    }
+
+    /* Alert personalizado */
+    .custom-alert {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 32px;
+        text-align: center;
+    }
+
+    .custom-alert i {
+        color: #2196f3;
+        margin-bottom: 16px;
+    }
+
+    .custom-alert h4 {
+        color: #1976d2;
+        font-weight: 700;
+    }
+
+    .custom-alert p {
+        color: #546e7a;
+        margin: 0;
+    }
+
+    /* Responsive Mobile - FOTO OPTIMIZADA */
+    @media (max-width: 768px) {
+        .goleadores-container {
+            padding: 0 8px;
+        }
+
+        .card-gradient .card-header {
+            padding: 10px 12px;
+        }
+
+        .card-gradient .card-header h3 {
+            font-size: 0.95rem;
+        }
+
+        .card-gradient .card-header i {
+            font-size: 0.9rem;
+        }
+
+        .card-gradient .card-body {
+            padding: 12px;
+        }
+
+        .top-scorer-card {
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .top-scorer-card::after {
+            font-size: 32px;
+            top: 5px;
+            right: 5px;
+        }
+
+        /* Layout horizontal para móvil */
+        .top-scorer-card .row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-scorer-card .col-12.col-md-4 {
+            flex: 0 0 auto;
+            width: auto;
+            margin-bottom: 0 !important;
+        }
+
+        .top-scorer-card .col-12.col-md-8 {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* FOTO MÁS GRANDE EN MÓVIL */
+        .scorer-avatar,
+        .scorer-avatar-placeholder {
+            max-width: 110px !important;
+            height: 110px !important;
+            width: 110px !important;
+            margin-bottom: 0;
+            border-width: 2px;
+            border-radius: 12px;
+        }
+
+        .scorer-avatar-placeholder {
+            font-size: 36px;
+        }
+
+        .position-badge {
+            width: 24px;
+            height: 24px;
+            font-size: 11px;
+        }
+
+        .top-scorer-card h2 {
+            font-size: 0.9rem !important;
+            line-height: 1.2;
+        }
+
+        .top-scorer-card .d-flex.align-items-center.gap-3 {
+            gap: 8px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .top-scorer-goals {
+            font-size: 1.8rem;
+        }
+
+        .goals-mobile {
+            margin-left: 0;
+            text-align: left;
+        }
+
+        .goals-mobile .top-scorer-goals {
+            font-size: 1.8rem;
+            margin-bottom: 0;
+        }
+
+        .goals-mobile small {
+            font-size: 0.65rem;
+        }
+
+        .top-scorer-stats {
+            padding: 8px;
+            margin-top: 8px;
+        }
+
+        .stat-item {
+            font-size: 0.7rem;
+            padding: 2px 0;
+        }
+
+        .team-logo {
+            width: 20px;
+            height: 20px;
+        }
+
+        .team-name {
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .player-details {
+            font-size: 0.65rem;
+            line-height: 1.2;
+        }
+
+        .team-info {
+            gap: 6px;
+            margin: 6px 0;
+        }
+
+        /* Tabla compacta en móvil */
+        .table thead th {
+            padding: 6px 8px;
+            font-size: 0.65rem;
+            letter-spacing: 0.3px;
+        }
+
+        .table td {
+            padding: 6px 8px;
+            font-size: 0.7rem;
+        }
+
+        .position-cell {
+            font-size: 0.8rem;
+        }
+
+        .player-avatar-small {
+            width: 24px;
+            height: 24px;
+            margin-right: 4px;
+        }
+
+        .team-logo-small {
+            width: 18px;
+            height: 18px;
+            margin-right: 3px;
+        }
+
+        .goals-cell {
+            font-size: 0.85rem;
+        }
+
+        .fw-semibold {
+            font-size: 0.7rem;
+        }
+
+        .team-logo-small + span {
+            font-size: 0.7rem;
+        }
+
+        .text-muted small {
+            font-size: 0.65rem;
+        }
+
+        /* Ocultar columnas menos importantes en móvil */
+        .hide-mobile {
+            display: none;
+        }
+
+        .custom-alert {
+            padding: 16px 12px;
+        }
+
+        .custom-alert h4 {
+            font-size: 1rem;
+        }
+
+        .custom-alert p {
+            font-size: 0.8rem;
+        }
+
+        .custom-alert i {
+            font-size: 2rem !important;
+        }
+
+        .scorers-table {
+            margin-top: 16px;
+        }
+
+        .table-responsive {
+            margin: 0 -12px;
+            padding: 0 12px;
+        }
+
+        .table {
+            width: auto;
+            table-layout: auto;
+        }
+
+        .table th,
+        .table td {
+            white-space: nowrap;
+        }
+
+        .table th:nth-child(1) {
+            width: auto;
+        }
+
+        .table th:nth-child(4),
+        .table th:nth-child(5) {
+            width: auto;
+        }
+
+        .table td,
+        .table th {
+            padding: 6px 8px;
+        }
+    }
+
+    /* Tablets */
+    @media (min-width: 769px) and (max-width: 991px) {
+        .scorer-avatar,
+        .scorer-avatar-placeholder {
+            max-width: 120px;
+            height: 120px;
+        }
+
+        .top-scorer-goals {
+            font-size: 2.75rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block categoria_content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <!-- Encabezado/nav heredados desde torneos/base.html -->
+<div class="goleadores-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <!-- Encabezado/nav heredados desde torneos/base.html -->
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card card-gradient mb-4">
-            <div class="card-header">
-                <h3><i class="fa-solid fa-crown"></i> Ranking de Goleadores</h3>
-            </div>
-            <div class="card-body">
-                {% if goleadores_data %}
-                    {% for goleador in goleadores_data %}
-                    <div class="goleador-card">
-                        <div class="row align-items-center">
-                            <div class="col-md-1 text-center">
-                                <div class="goleador-rank">#{{ forloop.counter }}</div>
-                            </div>
-                            
-                            <div class="col-md-2 text-center">
-                                {% if goleador.jugador.foto %}
-                                <img src="{{ goleador.jugador.foto.url }}" alt="{{ goleador.jugador.nombre }}" class="goleador-avatar">
-                                {% else %}
-                                <div class="goleador-avatar bg-secondary d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-user fa-2x text-white"></i>
-                                </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-5">
-                                <h4 class="mb-1">{{ goleador.jugador.nombre }} {{ goleador.jugador.apellido }}</h4>
-                                <div class="d-flex align-items-center">
-                                    {% if goleador.jugador.equipo.logo %}
-                                    <img src="{{ goleador.jugador.equipo.logo.url }}" alt="{{ goleador.jugador.equipo.nombre }}" class="team-logo-med">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-gradient mb-4">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-crown me-2"></i>Ranking de Goleadores</h3>
+                </div>
+                <div class="card-body">
+                    {% if goleadores_data %}
+                        {# Destacar al primer lugar #}
+                        {% with top=goleadores_data.0 %}
+                        <div class="top-scorer-card">
+                            <div class="row align-items-center">
+                                <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
+                                    {% if top.jugador.foto %}
+                                        <img src="{{ top.jugador.foto.url }}" alt="{{ top.jugador.nombre }}" class="scorer-avatar">
+                                    {% else %}
+                                        <div class="scorer-avatar-placeholder">
+                                            <i class="fa-solid fa-user"></i>
+                                        </div>
                                     {% endif %}
-                                    <span class="text-muted">{{ goleador.jugador.equipo.nombre }}</span>
                                 </div>
-                                <small class="text-muted">#{{ goleador.jugador.numero_camiseta }} | {{ goleador.jugador.get_posicion_display }}</small>
-                            </div>
-                            
-                            <div class="col-md-4">
-                                <div class="goleador-stats text-center">
-                                    <div class="goal-badge">{{ goleador.total_goles }}</div>
-                                    <small class="text-muted">Goles totales</small>
-                                    <div class="mt-2">
-                                        <span class="stats-badge">
-                                            {{ goleador.promedio_goles }} gol/es por partido
-                                        </span>
+                                <div class="col-12 col-md-8">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <span class="position-badge">1º</span>
+                                        <h2 class="mb-0 h3">{{ top.jugador.nombre }} {{ top.jugador.apellido }}</h2>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">Efectividad de gol</small>
-                                    <small class="text-muted">{{ goleador.porcentaje_efectividad }}%</small>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-warning" role="progressbar" 
-                                         style="width: {{ goleador.porcentaje_efectividad }}%">
+                                    
+                                    <div class="team-info">
+                                        {% if top.jugador.equipo.logo %}
+                                        <img src="{{ top.jugador.equipo.logo.url }}" alt="{{ top.jugador.equipo.nombre }}" class="team-logo">
+                                        {% endif %}
+                                        <div class="flex-grow-1">
+                                            <p class="team-name">{{ top.jugador.equipo.nombre }}</p>
+                                            <p class="player-details"> {{ top.jugador.get_posicion_display }}</p>
+                                            <p class="player-details">Partidos jugados: {{ top.partidos_jugados }}</p>
+                                        </div>
+                                        <div class="goals-mobile d-md-none text-center">
+                                            <div class="top-scorer-goals">{{ top.total_goles }}</div>
+                                            <small class="text-muted d-block">Goles</small>
+                                        </div>
                                     </div>
+
+                                    <div class="d-none d-md-flex align-items-center gap-3 mt-3">
+                                        <div class="top-scorer-goals">{{ top.total_goles }}</div>
+                                        <div class="flex-grow-1">
+                                            <small class="text-muted d-block">Goles totales</small>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                <div class="alert alert-info text-center">
-                    <i class="fa-solid fa-info-circle fa-2x mb-3"></i>
-                    <h4>No hay datos de goleadores</h4>
-                    <p>No se han registrado goles para esta categoría todavía.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+                        {% endwith %}
 
-    <div class="col-md-4">
-        <div class="card card-gradient mb-4">
-            <div class="card-header">
-                <h3><i class="fa-solid fa-chart-pie"></i> Estadísticas</h3>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-4">
-                    <div class="display-4 text-primary">{{ total_goles }}</div>
-                    <p class="text-muted">Goles totales en la categoría</p>
-                </div>
-                
-                <div class="stats-badge mb-3">
-                    <i class="fa-solid fa-people-group"></i> {{ total_jugadores }} Jugadores
-                </div>
-                
-                <div class="stats-badge mb-3">
-                    <i class="fa-solid fa-shield"></i> {{ total_equipos }} Equipos
-                </div>
-                
-                <div class="stats-badge mb-3">
-                    <i class="fa-solid fa-gamepad"></i> {{ total_partidos }} Partidos
-                </div>
-                
-                <div class="stats-badge">
-                    <i class="fa-solid fa-futbol"></i> {{ promedio_goles }} Goles/partido
-                </div>
-            </div>
-        </div>
-
-        <div class="card card-gradient">
-            <div class="card-header">
-                <h3><i class="fa-solid fa-star"></i> Destacados</h3>
-            </div>
-            <div class="card-body">
-                {% if goleadores %}
-                <div class="list-group">
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <span>Máximo goleador:</span>
-                            <strong>{{ goleadores_data.0.jugador.nombre }} ({{ goleadores_data.0.total_goles }} goles)</strong>
+                        {# Tabla con el resto de goleadores #}
+                        <div class="scorers-table">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width:60px;">Pos</th>
+                                            <th>Jugador</th>
+                                            <th>Equipo</th>
+                                            <th class="text-center" style="width:80px;">PJ</th>
+                                            <th class="text-center" style="width:80px;">Goles</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for goleador in goleadores_data|slice:"1:20" %}
+                                        <tr>
+                                            <td class="position-cell text-center">{{ forloop.counter|add:"1" }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if goleador.jugador.foto %}
+                                                    <img src="{{ goleador.jugador.foto.url }}" alt="{{ goleador.jugador.nombre }}" class="player-avatar-small">
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-semibold">{{ goleador.jugador.nombre }} {{ goleador.jugador.apellido }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if goleador.jugador.equipo.logo %}
+                                                    <img src="{{ goleador.jugador.equipo.logo.url }}" alt="{{ goleador.jugador.equipo.nombre }}" class="team-logo-small">
+                                                    {% endif %}
+                                                    <span>{{ goleador.jugador.equipo.nombre }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">{{ goleador.partidos_jugados }}</td>
+                                            <td class="text-center goals-cell">{{ goleador.total_goles }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <span>Mejor promedio:</span>
-                            <strong>{{ mejor_promedio.jugador.nombre }} ({{ mejor_promedio.promedio_goles }})</strong>
+                    {% else %}
+                        <div class="custom-alert">
+                            <i class="fa-solid fa-info-circle fa-3x"></i>
+                            <h4 class="mt-3">No hay datos de goleadores</h4>
+                            <p>No se han registrado goles para esta categoría todavía.</p>
                         </div>
-                    </div>
-                    
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <span>Equipo con más goles:</span>
-                            <strong>{{ equipo_mas_goles }} ({{ max_goles_equipo }})</strong>
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="alert alert-warning">
-                    <i class="fa-solid fa-exclamation-triangle"></i>
-                    No hay datos suficientes
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
