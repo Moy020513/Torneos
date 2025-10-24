@@ -12,8 +12,10 @@ class ParticipacionMultipleForm(forms.Form):
         super().__init__(*args, **kwargs)
         if equipo_id:
             self.fields['jugadores'].queryset = Jugador.objects.filter(equipo_id=equipo_id)
+            # Mostrar sólo partidos en los que participa el equipo y que ya fueron jugados
             self.fields['partido'].queryset = Partido.objects.filter(
-                (models.Q(equipo_local__id=equipo_id) | models.Q(equipo_visitante__id=equipo_id))
+                (models.Q(equipo_local__id=equipo_id) | models.Q(equipo_visitante__id=equipo_id)),
+                jugado=True
             )
             # Establecer el valor inicial del campo equipo si no viene en POST
             if not self.data.get('equipo'):

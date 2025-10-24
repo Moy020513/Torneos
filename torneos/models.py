@@ -289,3 +289,11 @@ class GoleadorJornada(models.Model):
     def __str__(self):
         target = self.partido or self.partido_eliminatoria
         return f"{self.goleador.jugador} - {self.goles} goles en {target}"
+
+
+# Importar señales para asegurar que handlers se registren cuando se cargue models
+try:
+    from . import signals  # noqa: F401
+except Exception:
+    # Evitar romper la importación si signals usa modelos que aún no están listos en algunos contextos
+    pass

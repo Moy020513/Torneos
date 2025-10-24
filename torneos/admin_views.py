@@ -112,11 +112,18 @@ from django.views.decorators.http import require_POST
 @login_required
 @user_passes_test(is_admin)
 def admin_eliminar_participacion(request, participacion_id):
-    participacion = get_object_or_404(ParticipacionJugador, id=participacion_id)
+    try:
+        participacion = ParticipacionJugador.objects.get(id=participacion_id)
+    except ParticipacionJugador.DoesNotExist:
+        # Si ya no existe, redirigir con mensaje amigable en lugar de 404
+        messages.warning(request, 'La participación que intentas eliminar ya no existe.')
+        return redirect('admin_participaciones')
+
     if request.method == 'POST':
         participacion.delete()
         messages.success(request, 'Participación eliminada exitosamente.')
         return redirect('admin_participaciones')
+
     context = {'participacion': participacion}
     return render(request, 'admin/participaciones/eliminar.html', context)
 
@@ -140,6 +147,27 @@ def admin_crear_participaciones_multiples(request):
             obj, created = ParticipacionJugador.objects.get_or_create(jugador=jugador, partido=partido)
             if created:
                 creadas += 1
+                # Si el partido ya está marcado como jugado, crear registro de goleador con 0 goles (si no existe)
+                try:
+                    from .models import Goleador, GoleadorJornada
+                    if partido.jugado:
+                        # Determinar categoría si el partido pertenece a un grupo
+                        categoria = None
+                        if getattr(partido, 'grupo', None) and getattr(partido.grupo, 'categoria', None):
+                            categoria = partido.grupo.categoria
+                        # Obtener o crear Goleador padre
+                        goleador, gcreated = Goleador.objects.get_or_create(jugador=jugador, categoria=categoria, defaults={'goles': 0})
+                        # Si no existe jornada para ese partido, crear con 0 goles
+                        exists = GoleadorJornada.objects.filter(goleador=goleador, partido=partido).exists()
+                        if not exists:
+                            GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=0)
+                            # actualizar total de goles en padre (suma de jornadas)
+                            total = GoleadorJornada.objects.filter(goleador=goleador).aggregate(total=Sum('goles'))['total'] or 0
+                            goleador.goles = total
+                            goleador.save()
+                except Exception:
+                    # No bloquear flujo por errores no críticos al crear goleador inicial
+                    pass
         messages.success(request, f'Se registraron {creadas} participaciones.')
         return redirect('admin_participaciones')
     context = {'form': form, 'action': 'Registrar múltiples', 'equipo_id': equipo_id}
@@ -177,7 +205,25 @@ def admin_crear_participacion(request):
     if request.method == 'POST':
         form = ParticipacionJugadorForm(request.POST)
         if form.is_valid():
-            form.save()
+            participacion = form.save()
+            # Si el partido ya está marcado como jugado, crear un registro de goleador padre y jornada con 0 goles
+            try:
+                partido = participacion.partido
+                from .models import Goleador, GoleadorJornada
+                if getattr(partido, 'jugado', False):
+                    categoria = None
+                    if getattr(partido, 'grupo', None) and getattr(partido.grupo, 'categoria', None):
+                        categoria = partido.grupo.categoria
+                    jugador = participacion.jugador
+                    goleador, gcreated = Goleador.objects.get_or_create(jugador=jugador, categoria=categoria, defaults={'goles': 0})
+                    exists = GoleadorJornada.objects.filter(goleador=goleador, partido=partido).exists()
+                    if not exists:
+                        GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=0)
+                        total = GoleadorJornada.objects.filter(goleador=goleador).aggregate(total=Sum('goles'))['total'] or 0
+                        goleador.goles = total
+                        goleador.save()
+            except Exception:
+                pass
             messages.success(request, 'Participación registrada exitosamente.')
             return redirect('admin_participaciones')
     else:
@@ -1717,12 +1763,9 @@ def admin_crear_goleador(request):
             jugador = get_object_or_404(Jugador, id=jugador_id)
             categoria = get_object_or_404(Categoria, id=categoria_id)
 
-            # Crear un único registro Goleador
-            goleador = Goleador.objects.create(jugador=jugador, categoria=categoria, goles=0)
-
-            errors = []
-            created = 0
-            total_goles = 0
+            # Primero validar que la suma de goles por partido no exceda el resultado oficial
+            partidos_sum = {}
+            partidos_elim_sum = {}
             for i in range(len(goles_list)):
                 try:
                     g = int(goles_list[i])
@@ -1731,34 +1774,73 @@ def admin_crear_goleador(request):
                 p = partido_list[i] if i < len(partido_list) else ''
                 pe = partido_elim_list[i] if i < len(partido_elim_list) else ''
                 if p and not pe:
-                    partido = Partido.objects.filter(id=p).first()
-                    if partido:
-                        # Crear registro de jornada
-                        from .models import GoleadorJornada
-                        GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=g)
-                        created += 1
-                        total_goles += g
+                    partidos_sum[p] = partidos_sum.get(p, 0) + g
                 elif pe and not p:
-                    partido_elim = PartidoEliminatoria.objects.filter(id=pe).first()
-                    if partido_elim:
-                        from .models import GoleadorJornada
-                        GoleadorJornada.objects.create(goleador=goleador, partido_eliminatoria=partido_elim, goles=g)
-                        created += 1
-                        total_goles += g
-                else:
-                    errors.append(f'Fila {i+1}: debe seleccionar exactamente un partido regular o de eliminatoria.')
+                    partidos_elim_sum[pe] = partidos_elim_sum.get(pe, 0) + g
 
-            # Actualizar total de goles en el registro padre
-            goleador.goles = total_goles
-            goleador.save()
+            errors = []
+            from .models import GoleadorJornada
+            # Validar partidos regulares
+            for pid, sum_g in partidos_sum.items():
+                partido = Partido.objects.filter(id=pid).first()
+                if not partido:
+                    errors.append(f'Partido con id {pid} no encontrado.')
+                    continue
+                partido_total = (partido.goles_local or 0) + (partido.goles_visitante or 0)
+                existing_total = GoleadorJornada.objects.filter(partido=partido).aggregate(total=Sum('goles'))['total'] or 0
+                proposed_total = existing_total + sum_g
+                if proposed_total > partido_total:
+                    errors.append(f'El total de goles para el partido {partido.equipo_local} vs {partido.equipo_visitante} sería {proposed_total} — el resultado oficial es {partido_total}. Ajusta las jornadas.')
 
-            if created:
-                messages.success(request, f'Se crearon {created} jornada(s) para el goleador.')
-                return redirect('admin_goleadores')
-            else:
+            # Validar partidos de eliminatoria
+            for peid, sum_g in partidos_elim_sum.items():
+                partido_elim = PartidoEliminatoria.objects.filter(id=peid).first()
+                if not partido_elim:
+                    errors.append(f'Partido de eliminatoria con id {peid} no encontrado.')
+                    continue
+                partido_total = (partido_elim.goles_local or 0) + (partido_elim.goles_visitante or 0)
+                existing_total = GoleadorJornada.objects.filter(partido_eliminatoria=partido_elim).aggregate(total=Sum('goles'))['total'] or 0
+                proposed_total = existing_total + sum_g
+                if proposed_total > partido_total:
+                    errors.append(f'El total de goles para el partido {partido_elim.equipo_local} vs {partido_elim.equipo_visitante} sería {proposed_total} — el resultado oficial es {partido_total}. Ajusta las jornadas.')
+
+            if errors:
                 for err in errors:
                     messages.error(request, err)
                 form = GoleadorForm(request.POST)
+            else:
+                # Crear un único registro Goleador
+                goleador = Goleador.objects.create(jugador=jugador, categoria=categoria, goles=0)
+
+                created = 0
+                total_goles = 0
+                for i in range(len(goles_list)):
+                    try:
+                        g = int(goles_list[i])
+                    except (ValueError, TypeError):
+                        continue
+                    p = partido_list[i] if i < len(partido_list) else ''
+                    pe = partido_elim_list[i] if i < len(partido_elim_list) else ''
+                    if p and not pe:
+                        partido = Partido.objects.filter(id=p).first()
+                        if partido:
+                            GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=g)
+                            created += 1
+                            total_goles += g
+                    elif pe and not p:
+                        partido_elim = PartidoEliminatoria.objects.filter(id=pe).first()
+                        if partido_elim:
+                            GoleadorJornada.objects.create(goleador=goleador, partido_eliminatoria=partido_elim, goles=g)
+                            created += 1
+                            total_goles += g
+
+                # Actualizar total de goles en el registro padre
+                goleador.goles = total_goles
+                goleador.save()
+
+                if created:
+                    messages.success(request, f'Se crearon {created} jornada(s) para el goleador.')
+                    return redirect('admin_goleadores')
     else:
         form = GoleadorForm()
 
@@ -1795,13 +1877,9 @@ def admin_editar_goleador(request, goleador_id):
             form = GoleadorForm(request.POST, instance=goleador)
             if form.is_valid():
                 goleador = form.save(commit=False)
-                # Eliminamos jornadas previas y recreamos según las filas del formulario
-                from .models import GoleadorJornada
-                GoleadorJornada.objects.filter(goleador=goleador).delete()
-
-                errors = []
-                total_goles = 0
-                created = 0
+                # Primero validar que la suma de goles por partido no exceda el resultado oficial
+                partidos_sum = {}
+                partidos_elim_sum = {}
                 for i in range(len(goles_list)):
                     try:
                         g = int(goles_list[i])
@@ -1810,29 +1888,69 @@ def admin_editar_goleador(request, goleador_id):
                     p = partido_list[i] if i < len(partido_list) else ''
                     pe = partido_elim_list[i] if i < len(partido_elim_list) else ''
                     if p and not pe:
-                        partido = Partido.objects.filter(id=p).first()
-                        if partido:
-                            GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=g)
-                            total_goles += g
-                            created += 1
+                        partidos_sum[p] = partidos_sum.get(p, 0) + g
                     elif pe and not p:
-                        partido_elim = PartidoEliminatoria.objects.filter(id=pe).first()
-                        if partido_elim:
-                            GoleadorJornada.objects.create(goleador=goleador, partido_eliminatoria=partido_elim, goles=g)
-                            total_goles += g
-                            created += 1
-                    else:
-                        errors.append(f'Fila {i+1}: debe seleccionar exactamente un partido regular o de eliminatoria.')
+                        partidos_elim_sum[pe] = partidos_elim_sum.get(pe, 0) + g
 
-                goleador.goles = total_goles
-                goleador.save()
+                errors = []
+                from .models import GoleadorJornada
+                # Validar partidos regulares (excluir contribuciones del goleador actual)
+                for pid, sum_g in partidos_sum.items():
+                    partido = Partido.objects.filter(id=pid).first()
+                    if not partido:
+                        errors.append(f'Partido con id {pid} no encontrado.')
+                        continue
+                    partido_total = (partido.goles_local or 0) + (partido.goles_visitante or 0)
+                    existing_total = GoleadorJornada.objects.filter(partido=partido).exclude(goleador=goleador).aggregate(total=Sum('goles'))['total'] or 0
+                    proposed_total = existing_total + sum_g
+                    if proposed_total > partido_total:
+                        errors.append(f'El total de goles para el partido {partido.equipo_local} vs {partido.equipo_visitante} sería {proposed_total} — el resultado oficial es {partido_total}. Ajusta las jornadas.')
+
+                # Validar partidos de eliminatoria
+                for peid, sum_g in partidos_elim_sum.items():
+                    partido_elim = PartidoEliminatoria.objects.filter(id=peid).first()
+                    if not partido_elim:
+                        errors.append(f'Partido de eliminatoria con id {peid} no encontrado.')
+                        continue
+                    partido_total = (partido_elim.goles_local or 0) + (partido_elim.goles_visitante or 0)
+                    existing_total = GoleadorJornada.objects.filter(partido_eliminatoria=partido_elim).exclude(goleador=goleador).aggregate(total=Sum('goles'))['total'] or 0
+                    proposed_total = existing_total + sum_g
+                    if proposed_total > partido_total:
+                        errors.append(f'El total de goles para el partido {partido_elim.equipo_local} vs {partido_elim.equipo_visitante} sería {proposed_total} — el resultado oficial es {partido_total}. Ajusta las jornadas.')
 
                 if errors:
                     for err in errors:
                         messages.error(request, err)
-                    # Rebuild form to show errors
-                    # fall through to render
+                    # fall through to render with errors
                 else:
+                    # Eliminamos jornadas previas y recreamos según las filas del formulario
+                    GoleadorJornada.objects.filter(goleador=goleador).delete()
+
+                    total_goles = 0
+                    created = 0
+                    for i in range(len(goles_list)):
+                        try:
+                            g = int(goles_list[i])
+                        except (ValueError, TypeError):
+                            continue
+                        p = partido_list[i] if i < len(partido_list) else ''
+                        pe = partido_elim_list[i] if i < len(partido_elim_list) else ''
+                        if p and not pe:
+                            partido = Partido.objects.filter(id=p).first()
+                            if partido:
+                                GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=g)
+                                total_goles += g
+                                created += 1
+                        elif pe and not p:
+                            partido_elim = PartidoEliminatoria.objects.filter(id=pe).first()
+                            if partido_elim:
+                                GoleadorJornada.objects.create(goleador=goleador, partido_eliminatoria=partido_elim, goles=g)
+                                total_goles += g
+                                created += 1
+
+                    goleador.goles = total_goles
+                    goleador.save()
+
                     messages.success(request, f'Goleador "{goleador.jugador.nombre}" actualizado exitosamente.')
                     return redirect('admin_goleadores')
             # si form no válido, se mostrará con errores
