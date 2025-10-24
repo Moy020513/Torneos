@@ -486,14 +486,37 @@ def goleadores_view(request, categoria_id):
         if jugador.id not in ranking:
             ranking[jugador.id] = {
                 'jugador': jugador,
-                'total_goles': 0
+                'total_goles': 0,
+                'partidos_con_goles': set(),
             }
         ranking[jugador.id]['total_goles'] += goleador.goles
+        # Registrar partido donde anotó (puede venir de partido o partido_eliminatoria)
+        pid = None
+        if getattr(goleador, 'partido_id', None):
+            pid = f"p_{goleador.partido_id}"
+        elif getattr(goleador, 'partido_eliminatoria_id', None):
+            pid = f"pe_{goleador.partido_eliminatoria_id}"
+        # Solo agregar si tenemos un identificador de partido
+        if pid:
+            ranking[jugador.id]['partidos_con_goles'].add(pid)
 
     goleadores_data = []
     for data in ranking.values():
-        data['promedio_goles'] = round(data['total_goles'] / max(total_partidos, 1), 2)
-        data['porcentaje_efectividad'] = min(100, data['total_goles'] * 10)  # Simulado
+        # Partidos donde anotó
+        partidos_con_goles = len(data.get('partidos_con_goles', []))
+        jugador = data['jugador']
+        # Partidos jugados por el jugador en esta categoría (participaciones)
+        partidos_jugados = ParticipacionJugador.objects.filter(
+            jugador=jugador,
+            partido__grupo__categoria=categoria,
+            partido__jugado=True
+        ).values('partido').distinct().count()
+        # Si no hay registro de participaciones, usar al menos los partidos en los que anotó
+        partidos_reales = max(partidos_jugados, partidos_con_goles, 1)
+        # Promedio de goles por partido del jugador (por sus partidos jugados)
+        data['promedio_goles'] = round(data['total_goles'] / partidos_reales, 2)
+        # Efectividad: porcentaje de partidos jugados en los que anotó al menos 1 gol
+        data['porcentaje_efectividad'] = int(round((partidos_con_goles / partidos_reales) * 100))
         goleadores_data.append(data)
 
     goleadores_data = sorted(goleadores_data, key=lambda x: -x['total_goles'])

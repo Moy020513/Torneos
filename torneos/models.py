@@ -273,3 +273,19 @@ class Goleador(models.Model):
     
     def __str__(self):
         return f"{self.jugador} - {self.goles} goles"
+
+
+class GoleadorJornada(models.Model):
+    """Entradas por jornada asociadas a un Goleador único.
+
+    Guarda el partido (regular o eliminatoria) y la cantidad de goles en esa jornada.
+    """
+    goleador = models.ForeignKey(Goleador, on_delete=models.CASCADE, related_name='jornadas')
+    partido = models.ForeignKey(Partido, on_delete=models.CASCADE, null=True, blank=True)
+    partido_eliminatoria = models.ForeignKey(PartidoEliminatoria, on_delete=models.CASCADE, null=True, blank=True)
+    goles = models.PositiveIntegerField(default=0)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        target = self.partido or self.partido_eliminatoria
+        return f"{self.goleador.jugador} - {self.goles} goles en {target}"

@@ -135,7 +135,6 @@
                                 <th>Equipo</th>
                                 <th>Goles</th>
                                 <th>Categoría</th>
-                                <th>Partido</th>
                                 <th>Fecha</th>
                                 <th class="text-end">Acciones</th>
                             </tr>
@@ -180,23 +179,6 @@
                                     <td>
                                         <strong class="text-primary">{{ goleador.categoria.nombre }}</strong>
                                         <small class="d-block text-muted">{{ goleador.categoria.torneo.nombre }}</small>
-                                    </td>
-                                    <td>
-                                        {% if goleador.partido %}
-                                            <div class="partido-info">
-                                                <span class="badge bg-info">Regular</span>
-                                                <small class="d-block">
-                                                    {{ goleador.partido.equipo_local.nombre }} vs {{ goleador.partido.equipo_visitante.nombre }}
-                                                </small>
-                                            </div>
-                                        {% elif goleador.partido_eliminatoria %}
-                                            <div class="partido-info">
-                                                <span class="badge bg-danger">Eliminatoria</span>
-                                                <small class="d-block">
-                                                    {{ goleador.partido_eliminatoria.equipo_local.nombre }} vs {{ goleador.partido_eliminatoria.equipo_visitante.nombre }}
-                                                </small>
-                                            </div>
-                                        {% endif %}
                                     </td>
                                     <td>
                                         <small class="text-muted">
@@ -368,7 +350,7 @@
 
 .admin-table th:nth-child(6),
 .admin-table td:nth-child(6) {
-    min-width: 160px; /* Partido */
+    min-width: 120px; /* Fecha */
 }
 
 /* Scroll bar personalizada */

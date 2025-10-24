@@ -1698,18 +1698,76 @@ def admin_goleadores(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_goleador(request):
+    # Ahora mantendremos un único Goleador y varias entradas tipo "jornada" relacionadas
+    partidos = Partido.objects.all().order_by('jornada', 'fecha')
+    partidos_elim = PartidoEliminatoria.objects.all().order_by('eliminatoria__orden', 'fecha')
+
     if request.method == 'POST':
-        form = GoleadorForm(request.POST)
-        if form.is_valid():
-            goleador = form.save()
-            messages.success(request, f'Goleador "{goleador.jugador.nombre}" creado exitosamente.')
-            return redirect('admin_goleadores')
+        partido_list = request.POST.getlist('partido')
+        partido_elim_list = request.POST.getlist('partido_eliminatoria')
+        goles_list = request.POST.getlist('goles')
+
+        jugador_id = request.POST.get('jugador')
+        categoria_id = request.POST.get('categoria')
+
+        if not jugador_id or not categoria_id:
+            messages.error(request, 'Debe seleccionar jugador y categoría.')
+            form = GoleadorForm(request.POST)
+        else:
+            jugador = get_object_or_404(Jugador, id=jugador_id)
+            categoria = get_object_or_404(Categoria, id=categoria_id)
+
+            # Crear un único registro Goleador
+            goleador = Goleador.objects.create(jugador=jugador, categoria=categoria, goles=0)
+
+            errors = []
+            created = 0
+            total_goles = 0
+            for i in range(len(goles_list)):
+                try:
+                    g = int(goles_list[i])
+                except (ValueError, TypeError):
+                    continue
+                p = partido_list[i] if i < len(partido_list) else ''
+                pe = partido_elim_list[i] if i < len(partido_elim_list) else ''
+                if p and not pe:
+                    partido = Partido.objects.filter(id=p).first()
+                    if partido:
+                        # Crear registro de jornada
+                        from .models import GoleadorJornada
+                        GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=g)
+                        created += 1
+                        total_goles += g
+                elif pe and not p:
+                    partido_elim = PartidoEliminatoria.objects.filter(id=pe).first()
+                    if partido_elim:
+                        from .models import GoleadorJornada
+                        GoleadorJornada.objects.create(goleador=goleador, partido_eliminatoria=partido_elim, goles=g)
+                        created += 1
+                        total_goles += g
+                else:
+                    errors.append(f'Fila {i+1}: debe seleccionar exactamente un partido regular o de eliminatoria.')
+
+            # Actualizar total de goles en el registro padre
+            goleador.goles = total_goles
+            goleador.save()
+
+            if created:
+                messages.success(request, f'Se crearon {created} jornada(s) para el goleador.')
+                return redirect('admin_goleadores')
+            else:
+                for err in errors:
+                    messages.error(request, err)
+                form = GoleadorForm(request.POST)
     else:
         form = GoleadorForm()
-    
+
     context = {
         'form': form,
         'action': 'Crear',
+        'partidos': partidos,
+        'partidos_elim': partidos_elim,
+        'jugadores': Jugador.objects.select_related('equipo').all().order_by('nombre'),
     }
     return render(request, 'admin/goleadores/form.html', context)
 
@@ -1717,20 +1775,77 @@ def admin_crear_goleador(request):
 @user_passes_test(is_admin)
 def admin_editar_goleador(request, goleador_id):
     goleador = get_object_or_404(Goleador, id=goleador_id)
-    
+    partidos = Partido.objects.all().order_by('jornada', 'fecha')
+    partidos_elim = PartidoEliminatoria.objects.all().order_by('eliminatoria__orden', 'fecha')
+
     if request.method == 'POST':
-        form = GoleadorForm(request.POST, instance=goleador)
-        if form.is_valid():
-            goleador = form.save()
-            messages.success(request, f'Goleador "{goleador.jugador.nombre}" actualizado exitosamente.')
-            return redirect('admin_goleadores')
+        partido_list = request.POST.getlist('partido')
+        partido_elim_list = request.POST.getlist('partido_eliminatoria')
+        goles_list = request.POST.getlist('goles')
+
+        # Si no vienen listas, fallback al form tradicional
+        if not goles_list:
+            form = GoleadorForm(request.POST, instance=goleador)
+            if form.is_valid():
+                goleador = form.save()
+                messages.success(request, f'Goleador "{goleador.jugador.nombre}" actualizado exitosamente.')
+                return redirect('admin_goleadores')
+        else:
+            # Rebuild/validate form to update jugador/categoria si vienen en POST
+            form = GoleadorForm(request.POST, instance=goleador)
+            if form.is_valid():
+                goleador = form.save(commit=False)
+                # Eliminamos jornadas previas y recreamos según las filas del formulario
+                from .models import GoleadorJornada
+                GoleadorJornada.objects.filter(goleador=goleador).delete()
+
+                errors = []
+                total_goles = 0
+                created = 0
+                for i in range(len(goles_list)):
+                    try:
+                        g = int(goles_list[i])
+                    except (ValueError, TypeError):
+                        continue
+                    p = partido_list[i] if i < len(partido_list) else ''
+                    pe = partido_elim_list[i] if i < len(partido_elim_list) else ''
+                    if p and not pe:
+                        partido = Partido.objects.filter(id=p).first()
+                        if partido:
+                            GoleadorJornada.objects.create(goleador=goleador, partido=partido, goles=g)
+                            total_goles += g
+                            created += 1
+                    elif pe and not p:
+                        partido_elim = PartidoEliminatoria.objects.filter(id=pe).first()
+                        if partido_elim:
+                            GoleadorJornada.objects.create(goleador=goleador, partido_eliminatoria=partido_elim, goles=g)
+                            total_goles += g
+                            created += 1
+                    else:
+                        errors.append(f'Fila {i+1}: debe seleccionar exactamente un partido regular o de eliminatoria.')
+
+                goleador.goles = total_goles
+                goleador.save()
+
+                if errors:
+                    for err in errors:
+                        messages.error(request, err)
+                    # Rebuild form to show errors
+                    # fall through to render
+                else:
+                    messages.success(request, f'Goleador "{goleador.jugador.nombre}" actualizado exitosamente.')
+                    return redirect('admin_goleadores')
+            # si form no válido, se mostrará con errores
     else:
         form = GoleadorForm(instance=goleador)
-    
+
     context = {
         'form': form,
         'goleador': goleador,
         'action': 'Editar',
+        'partidos': partidos,
+        'partidos_elim': partidos_elim,
+        'jugadores': Jugador.objects.select_related('equipo').all().order_by('nombre'),
     }
     return render(request, 'admin/goleadores/form.html', context)
 

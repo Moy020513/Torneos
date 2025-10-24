@@ -111,33 +111,84 @@
                                 <i class="fas fa-futbol me-2"></i>
                                 Información del Partido
                             </h6>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        {{ form.partido.label_tag }}
-                                        {{ form.partido }}
-                                        {% if form.partido.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {{ form.partido.errors.0 }}
+                            <p class="text-muted">Puede agregar goles por jornada. Use <strong>Añadir jornada</strong> para agregar más filas.</p>
+
+                            <div id="jornadasContainer">
+                                {% if goleador and goleador.jornadas.exists %}
+                                    {% for j in goleador.jornadas.all %}
+                                        <div class="row jornada-block mb-2">
+                                            <div class="col-md-5">
+                                                <div class="mb-3">
+                                                    <label>Partido (Regular)</label>
+                                                    <select name="partido" class="form-select">
+                                                        <option value="">-- Ninguno --</option>
+                                                        {% for p in partidos %}
+                                                            <option value="{{ p.id }}" data-local="{{ p.equipo_local.id }}" data-visitante="{{ p.equipo_visitante.id }}" {% if p.id == j.partido_id %}selected{% endif %}>J{{ p.jornada }} - {{ p.equipo_local }} vs {{ p.equipo_visitante }}{% if p.fecha %} ({{ p.fecha|date:'d/m/Y H:i' }}){% endif %}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
                                             </div>
-                                        {% endif %}
-                                        <div class="form-text">{{ form.partido.help_text }}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        {{ form.partido_eliminatoria.label_tag }}
-                                        {{ form.partido_eliminatoria }}
-                                        {% if form.partido_eliminatoria.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {{ form.partido_eliminatoria.errors.0 }}
+                                            <div class="col-md-5">
+                                                <div class="mb-3">
+                                                    <label>Partido (Eliminatoria)</label>
+                                                    <select name="partido_eliminatoria" class="form-select">
+                                                        <option value="">-- Ninguno --</option>
+                                                        {% for pe in partidos_elim %}
+                                                            <option value="{{ pe.id }}" data-local="{{ pe.equipo_local.id }}" data-visitante="{{ pe.equipo_visitante.id }}" {% if pe.id == j.partido_eliminatoria_id %}selected{% endif %}>{{ pe.equipo_local }} vs {{ pe.equipo_visitante }} - {{ pe.eliminatoria.get_nombre_display }}{% if pe.fecha %} ({{ pe.fecha|date:'d/m/Y H:i' }}){% endif %}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
                                             </div>
-                                        {% endif %}
-                                        <div class="form-text">{{ form.partido_eliminatoria.help_text }}</div>
+                                            <div class="col-md-2 d-flex align-items-center">
+                                                <div class="mb-3 w-100">
+                                                    <label>Goles</label>
+                                                    <input type="number" name="goles" class="form-control" min="0" value="{{ j.goles }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <!-- Bloque inicial (se puede clonar) -->
+                                    <div class="row jornada-block mb-2">
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label>Partido (Regular)</label>
+                                                <select name="partido" class="form-select">
+                                                    <option value="">-- Selecciona partido --</option>
+                                                    {% for p in partidos %}
+                                                        <option value="{{ p.id }}" data-local="{{ p.equipo_local.id }}" data-visitante="{{ p.equipo_visitante.id }}">J{{ p.jornada }} - {{ p.equipo_local }} vs {{ p.equipo_visitante }}{% if p.fecha %} ({{ p.fecha|date:'d/m/Y H:i' }}){% endif %}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label>Partido (Eliminatoria)</label>
+                                                <select name="partido_eliminatoria" class="form-select">
+                                                    <option value="">-- Selecciona partido de eliminatoria --</option>
+                                                    {% for pe in partidos_elim %}
+                                                        <option value="{{ pe.id }}" data-local="{{ pe.equipo_local.id }}" data-visitante="{{ pe.equipo_visitante.id }}">{{ pe.equipo_local }} vs {{ pe.equipo_visitante }} - {{ pe.eliminatoria.get_nombre_display }}{% if pe.fecha %} ({{ pe.fecha|date:'d/m/Y H:i' }}){% endif %}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-center">
+                                            <div class="mb-3 w-100">
+                                                <label>Goles</label>
+                                                <input type="number" name="goles" class="form-control" min="0" value="1">
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <button type="button" id="addJornadaBtn" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-plus me-1"></i> Añadir jornada
+                                </button>
+                                <button type="button" id="removeJornadaBtn" class="btn btn-sm btn-outline-danger ms-2">
+                                    <i class="fas fa-minus me-1"></i> Eliminar última jornada
+                                </button>
                             </div>
 
                             {% if form.non_field_errors %}
@@ -149,33 +200,21 @@
                             {% endif %}
                         </div>
 
-                        <!-- Goles -->
+                        <!-- Resumen de Goles (suma de jornadas) -->
                         <div class="form-section">
                             <h6 class="section-title">
                                 <i class="fas fa-bullseye me-2"></i>
-                                Goles Anotados
+                                Goles Totales
                             </h6>
-                            
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        {{ form.goles.label_tag }}
-                                        {{ form.goles }}
-                                        {% if form.goles.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {{ form.goles.errors.0 }}
-                                            </div>
-                                        {% endif %}
-                                        <div class="form-text">{{ form.goles.help_text }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <div class="goal-preview">
+                                <div class="col-md-12 d-flex align-items-center">
+                                    <div class="goal-preview w-100">
                                         <div class="text-center">
                                             <i class="fas fa-futbol fa-3x text-success mb-2"></i>
                                             <div class="goal-count-display">
-                                                <span id="goalDisplay">0</span> goles
+                                                <span id="goalDisplay">0</span> goles (suma de jornadas)
                                             </div>
+                                            <div class="form-text">Los goles totales se calculan a partir de las jornadas listadas arriba.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -203,55 +242,187 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('goleadorForm');
-    const partidoRegular = form.querySelector('#id_partido');
-    const partidoEliminatoria = form.querySelector('#id_partido_eliminatoria');
-    const golesInput = form.querySelector('#id_goles');
     const goalDisplay = document.getElementById('goalDisplay');
 
-    // Actualizar display de goles
+    function sumJornadaGoles() {
+        const inputs = Array.from(form.querySelectorAll('input[name="goles"]'));
+        let sum = 0;
+        inputs.forEach(i => {
+            const v = parseInt(i.value, 10);
+            if (!isNaN(v)) sum += v;
+        });
+        return sum;
+    }
+
     function updateGoalDisplay() {
-        const goles = golesInput.value || 0;
-        goalDisplay.textContent = goles;
+        goalDisplay.textContent = sumJornadaGoles();
     }
 
-    // Validación de partidos mutuamente exclusivos
-    function validatePartidos() {
-        if (partidoRegular.value && partidoEliminatoria.value) {
-            partidoEliminatoria.setCustomValidity('No puede seleccionar tanto un partido regular como un partido de eliminatoria');
-            partidoEliminatoria.classList.add('is-invalid');
-        } else if (!partidoRegular.value && !partidoEliminatoria.value) {
-            partidoRegular.setCustomValidity('Debe seleccionar un partido regular o un partido de eliminatoria');
-            partidoEliminatoria.setCustomValidity('Debe seleccionar un partido regular o un partido de eliminatoria');
-            partidoRegular.classList.add('is-invalid');
-            partidoEliminatoria.classList.add('is-invalid');
-        } else {
-            partidoRegular.setCustomValidity('');
-            partidoEliminatoria.setCustomValidity('');
-            partidoRegular.classList.remove('is-invalid');
-            partidoEliminatoria.classList.remove('is-invalid');
-        }
+    function validateJornadas() {
+        let valid = true;
+        const blocks = Array.from(form.querySelectorAll('.jornada-block'));
+        blocks.forEach((block, idx) => {
+            const selP = block.querySelector('select[name="partido"]');
+            const selPe = block.querySelector('select[name="partido_eliminatoria"]');
+            const valP = selP ? (selP.value || '') : '';
+            const valPe = selPe ? (selPe.value || '') : '';
+            // Limpiar errores anteriores
+            selP && selP.classList.remove('is-invalid');
+            selPe && selPe.classList.remove('is-invalid');
+            if ((valP && valPe) || (!valP && !valPe)) {
+                // marcar invalid
+                if (selP) selP.classList.add('is-invalid');
+                if (selPe) selPe.classList.add('is-invalid');
+                valid = false;
+            }
+        });
+        return valid;
     }
-
-    // Event listeners
-    golesInput.addEventListener('input', updateGoalDisplay);
-    partidoRegular.addEventListener('change', validatePartidos);
-    partidoEliminatoria.addEventListener('change', validatePartidos);
 
     // Validación del formulario
     form.addEventListener('submit', function(e) {
-        validatePartidos();
-        
-        if (!form.checkValidity()) {
+        const jornadasValid = validateJornadas();
+        updateGoalDisplay();
+        if (!jornadasValid) {
             e.preventDefault();
             e.stopPropagation();
+            // Mostrar mensaje genérico
+            alert('Revise las jornadas: cada fila debe tener exactamente un partido regular o uno de eliminatoria.');
         }
-        
         form.classList.add('was-validated');
     });
 
-    // Inicialización
+    // Recalcular suma cuando cambien inputs/goles/selects
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.name === 'goles') updateGoalDisplay();
+    });
+    document.addEventListener('change', function(e) {
+        if (e.target && (e.target.name === 'partido' || e.target.name === 'partido_eliminatoria')) updateGoalDisplay();
+    });
+
+    // Inicializar display
     updateGoalDisplay();
-    validatePartidos();
+});
+
+// Filtrar partidos según el equipo del jugador seleccionado
+document.addEventListener('DOMContentLoaded', function() {
+    const jugadorSelect = document.querySelector('select[name="jugador"]');
+    // Mapa jugador->equipo generado en servidor
+    const jugadorEquipoMap = {
+        {% for ju in jugadores %}
+            '{{ ju.id }}': '{% if ju.equipo %}{{ ju.equipo.id }}{% else %}{% endif %}',
+        {% endfor %}
+    };
+
+    function filterPartidosByJugador(equipoId) {
+        const selects = document.querySelectorAll('select[name="partido"]');
+        selects.forEach(sel => {
+            const options = Array.from(sel.options);
+            options.forEach(opt => {
+                const local = opt.getAttribute('data-local');
+                const visita = opt.getAttribute('data-visitante');
+                if (!local && !visita) return; // keep non-data options
+                if (equipoId && (local === equipoId || visita === equipoId)) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                } else {
+                    // if it's currently selected, keep it visible so value isn't lost
+                    if (opt.selected) {
+                        opt.hidden = false;
+                        opt.disabled = false;
+                    } else {
+                        opt.hidden = true;
+                        opt.disabled = true;
+                    }
+                }
+            });
+        });
+
+        // igual para partidos de eliminatoria
+        const selectsElim = document.querySelectorAll('select[name="partido_eliminatoria"]');
+        selectsElim.forEach(sel => {
+            const options = Array.from(sel.options);
+            options.forEach(opt => {
+                const local = opt.getAttribute('data-local');
+                const visita = opt.getAttribute('data-visitante');
+                if (!local && !visita) return;
+                if (equipoId && (local === equipoId || visita === equipoId)) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                } else {
+                    if (opt.selected) {
+                        opt.hidden = false;
+                        opt.disabled = false;
+                    } else {
+                        opt.hidden = true;
+                        opt.disabled = true;
+                    }
+                }
+            });
+        });
+    }
+
+    if (jugadorSelect) {
+        jugadorSelect.addEventListener('change', function() {
+            const jId = this.value;
+            const equipoId = jugadorEquipoMap[jId] || '';
+            filterPartidosByJugador(equipoId);
+        });
+
+        // trigger initial filter if a jugador is preselected
+        const initial = jugadorSelect.value;
+        if (initial) {
+            filterPartidosByJugador(jugadorEquipoMap[initial] || '');
+        }
+    }
+
+    // Cuando clonamos una jornada, aplicar el filtro al nuevo bloque
+    const addBtn = document.getElementById('addJornadaBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            setTimeout(function() {
+                const currentJugador = document.querySelector('select[name="jugador"]').value;
+                filterPartidosByJugador(jugadorEquipoMap[currentJugador] || '');
+            }, 50);
+        });
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('jornadasContainer');
+    const addBtn = document.getElementById('addJornadaBtn');
+    const removeBtn = document.getElementById('removeJornadaBtn');
+
+    function cloneJornadaBlock() {
+        const blocks = container.querySelectorAll('.jornada-block');
+        const last = blocks[blocks.length - 1];
+        const clone = last.cloneNode(true);
+        // Limpiar valores y quitar ids duplicados
+        const selects = clone.querySelectorAll('select');
+        selects.forEach(sel => {
+            sel.selectedIndex = 0;
+            sel.removeAttribute('id');
+        });
+        const inputGoles = clone.querySelector('input[name="goles"]');
+        if (inputGoles) {
+            inputGoles.value = 1;
+            inputGoles.removeAttribute('id');
+        }
+        container.appendChild(clone);
+    }
+
+    addBtn.addEventListener('click', function() {
+        cloneJornadaBlock();
+    });
+
+    removeBtn.addEventListener('click', function() {
+        const blocks = container.querySelectorAll('.jornada-block');
+        if (blocks.length > 1) {
+            blocks[blocks.length - 1].remove();
+        }
+    });
 });
 </script>
 
