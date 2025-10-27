@@ -38,16 +38,19 @@ def estadisticas_view(request, categoria_id):
         Q(grupo=None, equipo_local__categoria=categoria) |
         Q(grupo=None, equipo_visitante__categoria=categoria)
     )
+    # Excluir partidos de descanso (local == visitante) de las estadísticas
+    partidos_sin_descanso = partidos.exclude(equipo_local=F('equipo_visitante'))
+
     # Partidos válidos como jugados: jugado=True o con goles cargados
-    partidos_jugados_query = partidos.filter(
+    partidos_jugados_query = partidos_sin_descanso.filter(
         Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
     )
-    # Próximos partidos: no jugados y sin goles
-    proximos_partidos = partidos.filter(jugado=False, goles_local=0, goles_visitante=0).order_by('fecha')[:10]
+    # Próximos partidos: no jugados y sin goles (sin incluir descansos)
+    proximos_partidos = partidos_sin_descanso.filter(jugado=False, goles_local=0, goles_visitante=0).order_by('fecha')[:10]
     ultimos_resultados = partidos_jugados_query.order_by('-fecha')[:10]
-    total_partidos = partidos.count()
+    total_partidos = partidos_sin_descanso.count()
     partidos_jugados = partidos_jugados_query.count()
-    partidos_pendientes = partidos.filter(jugado=False, goles_local=0, goles_visitante=0).count()
+    partidos_pendientes = partidos_sin_descanso.filter(jugado=False, goles_local=0, goles_visitante=0).count()
     total_goles_local = partidos_jugados_query.aggregate(Sum('goles_local'))['goles_local__sum'] or 0
     total_goles_visitante = partidos_jugados_query.aggregate(Sum('goles_visitante'))['goles_visitante__sum'] or 0
     total_goles = total_goles_local + total_goles_visitante
