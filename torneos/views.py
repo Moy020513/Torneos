@@ -224,21 +224,23 @@ def categoria_detalle(request, categoria_id):
         return (dt_use, p.jornada or 9999)
 
     proximos_partidos.sort(key=_proximo_sort_key)
-    # Excluir partidos de descanso de próximos cuando la jornada ya no tenga
-    # partidos pendientes (es decir, si en la misma jornada no hay ningún
-    # partido no-jugado que NO sea de descanso). De esta forma, el partido
-    # de descanso pasará a considerarse parte de resultados una vez se
-    # jugaron/eliminaron todos los demás partidos de la jornada.
+    # Incluir partidos de descanso entre los próximos sólo si en la misma
+    # jornada existen otros partidos pendientes (no-descanso).
+    # Construimos el set de jornadas que tienen al menos un partido
+    # pendiente que NO sea de descanso.
     jornadas_con_partidos_pendientes = set()
     for p in partidos.filter(jugado=False, goles_local=0, goles_visitante=0):
-        # Considerar sólo partidos que NO sean descanso
+        # si no es descanso, marcar la jornada como con pendientes
         if not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante):
             if p.jornada is not None:
                 jornadas_con_partidos_pendientes.add(p.jornada)
 
+    # Filtrar proximos_partidos: mantener partidos normales; mantener
+    # partidos de descanso sólo si su jornada está en jornadas_con_partidos_pendientes
     proximos_partidos = [
         p for p in proximos_partidos
-        if not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante and (p.jornada not in jornadas_con_partidos_pendientes))
+        if not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante)
+        or (p.jornada in jornadas_con_partidos_pendientes)
     ]
     # Últimos resultados (partidos con goles cargados o marcados como jugados)
     partidos_jugados_query = partidos.filter(
