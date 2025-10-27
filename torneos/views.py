@@ -31,6 +31,9 @@ def resultados_view(request, categoria_id):
 from django.contrib.auth.decorators import user_passes_test
 
 def estadisticas_view(request, categoria_id):
+    # Determinar si el usuario actual es admin; si no lo es, se le mostrará
+    # únicamente las gráficas (sin las tarjetas de totales/paneles).
+    is_admin_view = request.user.is_authenticated and request.user.is_superuser
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = Equipo.objects.filter(categoria=categoria)
     partidos = Partido.objects.filter(
@@ -62,7 +65,8 @@ def estadisticas_view(request, categoria_id):
         'total_partidos': total_partidos,
         'partidos_jugados': partidos_jugados,
         'partidos_pendientes': partidos_pendientes,
-        'total_goles': total_goles
+        'total_goles': total_goles,
+        'is_admin_view': is_admin_view,
     }
     return render(request, 'torneos/estadisticas.html', context)
 # AJAX para filtrar categorías por torneo en el admin
@@ -326,7 +330,7 @@ def categoria_detalle(request, categoria_id):
         'partidos_jugados': partidos_jugados,
         'partidos_pendientes': partidos_pendientes,
         'total_goles': total_goles,
-        'jornadas': jornadas
+        'jornadas': jornadas,
     }
     return render(request, 'torneos/categoria_detalle.html', context)
 @login_required

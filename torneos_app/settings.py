@@ -99,6 +99,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+# Login URL used by @login_required decorator. The project defines a named
+# login view at /login/ in `torneos_app.urls`, so point LOGIN_URL there to
+# avoid redirecting to the default `/accounts/login/` which produced 404.
+LOGIN_URL = '/login/'
 # Configuración CSRF para producción
 CSRF_TRUSTED_ORIGINS = [
     'https://tecnoy.me',

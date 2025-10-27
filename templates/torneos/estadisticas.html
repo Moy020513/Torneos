@@ -1,6 +1,7 @@
 {% extends 'torneos/base.html' %}
 {% block categoria_content %}
     <!-- Encabezado/nav heredados desde torneos/base.html -->
+    {% if is_admin_view %}
     <div class="card mb-4">
         <div class="card-header">
             <h3><i class="fa-solid fa-chart-simple"></i> Estadísticas Generales</h3>
@@ -34,6 +35,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     <!-- Gráfica de goles por jornada -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
