@@ -39,19 +39,44 @@
     .match-card .col-md-7,
     .match-card .col-md-4{ flex:0 0 auto; width:auto; }
 }
+
+/* Optimización para móvil - Más compacto y profesional */
 @media (max-width: 576px){
-    .team-logo-small{ width:36px; height:36px; }
-    .match-card{ padding:12px; width:100%; }
+    .team-logo-small{ width:32px; height:32px; }
+    .match-card{ 
+        padding:8px 10px; 
+        width:100%; 
+        margin-bottom:4px;
+        box-shadow:0 0 0 2px rgba(8,247,254,.12), 0 4px 8px rgba(0,0,0,.08);
+    }
+    .match-card:hover{
+        box-shadow:0 0 0 3px rgba(8,247,254,.18), 0 6px 12px rgba(0,0,0,.10);
+    }
+    .team-name{ 
+        font-size:0.85em; 
+        font-weight:700;
+        line-height:1.2;
+    }
+    .team-score{ 
+        font-size:1.1em; 
+        font-weight:800;
+    }
+    .team-row{ 
+        padding:4px 0; 
+        gap:8px;
+    }
+    .team-info{ gap:8px; }
     .match-date-chip, .match-time-chip, .match-loc, .match-status {
-        font-size: 0.58em;
+        font-size: 0.55em;
         margin-right: 2px;
-        height: 28px;
+        height: 24px;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         line-height: 1;
+        padding: 4px 8px;
     }
-    .match-date-chip i, .match-time-chip i {
+    .match-date-chip i, .match-time-chip i, .match-loc i {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -60,9 +85,9 @@
         line-height: 1;
     }
     .match-loc a.btn.btn-sm.btn-outline-admin {
-        padding: 0 rem;
-        font-size: 0.8rem;
-        height: 28px;
+        padding: 0;
+        font-size: 0.75rem;
+        height: 24px;
         display: inline-flex;
         align-items: center;
         border-radius: 999px;
@@ -75,7 +100,7 @@
     .match-meta-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 4px;
+        gap: 3px;
         justify-content: flex-end;
         align-items: center;
     }
@@ -87,8 +112,12 @@
         height: 100%;
     }
 }
+
 /* Grid de resultados: 1 columna en móvil, 2 en desktop */
 #ultimos-resultados-lista{ display:grid; grid-template-columns: 1fr; gap:16px; justify-content:center; }
+@media (max-width: 576px){
+    #ultimos-resultados-lista{ gap:4px; }
+}
 @media (min-width: 992px){
     #ultimos-resultados-lista{ grid-template-columns: repeat(2, max-content); }
 }
