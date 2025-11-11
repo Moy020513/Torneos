@@ -115,6 +115,32 @@
     min-width: 20px;
   }
 
+  /* Centrado en móvil */
+  @media (max-width: 768px) {
+    .torneos-header .header-left {
+      position: relative !important;
+      left: auto !important;
+      width: auto;
+      margin-bottom: 0.5rem;
+    }
+
+    .torneos-header .card-body {
+      flex-direction: column !important;
+      text-align: center;
+    }
+
+    .torneos-header .header-center {
+      margin-left: 0 !important;
+      width: 100%;
+    }
+
+    .torneos-header .header-logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto;
+    }
+  }
+
   @media (max-width: 991px) {
     .torneos-nav {
       display: none;
@@ -136,6 +162,56 @@
     .torneos-nav-mobile-container {
       display: none;
     }
+  }
+
+  /* CSS para tabla de clasificación en móvil */
+  @media (max-width: 576px) {
+    .tabla-posiciones-card {
+      margin: 0 -12px !important;
+      width: calc(100% + 24px) !important;
+      max-width: calc(100% + 24px) !important;
+      border-radius: 0 !important;
+    }
+    
+    .tabla-posiciones-card .card-body {
+      padding: 0 !important;
+    }
+    
+    .tabla-posiciones {
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+    
+    .table-responsive {
+      margin: 0 !important;
+      border-radius: 0 !important;
+    }
+    
+    .tabla-simbolos li {
+      font-size: 0.55rem !important;
+    }
+    
+    .tabla-posiciones th,
+    .tabla-posiciones td {
+      font-size: 0.65rem !important;
+    }
+  }
+
+  /* Centrar todos los td y th excepto la columna Equipo */
+  .tabla-posiciones th:not(:nth-child(2)),
+  .tabla-posiciones td:not(:nth-child(2)) {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+
+  /* Reducir altura de las filas de la tabla de posiciones */
+  .tabla-posiciones th,
+  .tabla-posiciones td {
+    padding-top: 0.01rem !important;
+    padding-bottom: 0.01rem !important;
+    font-size: 0.80em !important;
   }
 </style>
 {% endblock %}
