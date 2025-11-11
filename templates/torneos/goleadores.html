@@ -8,7 +8,7 @@
 <style>
     /* Contenedor principal */
     .goleadores-container {
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
         padding: 0 15px;
     }
@@ -38,12 +38,12 @@
     .top-scorer-card {
         background: #e3e1ffff;
         border-radius: 12px;
-        border: 2px solid #000296ff;
+        border: 2px solid #00379eff;
         padding: 20px;
         margin-bottom: 24px;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 8px 24px rgba(2, 0, 124, 0.3);
+        box-shadow: 0 8px 24px rgba(0, 100, 194, 1);
     }
 
     .top-scorer-card::before {
@@ -60,11 +60,13 @@
     .top-scorer-card::after {
         content: '👑';
         position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 48px;
+        top: 1px !important;
+        right: 1px;
+        margin-top: 0;
+        margin-right: 4px;
+        font-size: 40px !important;
         opacity: 0.55;
-        transform: rotate(-15deg);
+        transform: rotate(20deg);
     }
 
     /* Avatar/Foto */
@@ -94,8 +96,8 @@
         font-size: 40px;
         color: #ccc;
         margin: 0 auto;
-        border: 3px solid #06005aff;
-        box-shadow: 0 4px 12px rgba(0, 8, 114, 0.42);
+        border: 3px solid #0092e7ff;
+        box-shadow: 0 4px 12px rgba(0, 17, 255, 1);
         position: relative;
         z-index: 1;
     }
@@ -119,7 +121,7 @@
     .top-scorer-goals {
         font-size: 2.5rem;
         font-weight: 800;
-        color: #198754;
+        color: #009e00ff;
         line-height: 1;
     }
 
@@ -212,11 +214,12 @@
     }
 
     .table thead th {
-        background: #f8f9fa;
+        background: #001636ff;
         border-bottom: 2px solid #dee2e6;
+        text-align: center;
         font-weight: 700;
         font-size: 0.9rem;
-        color: #495057;
+        color: #ffffffff;
         padding: 14px 12px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -291,8 +294,23 @@
     /* Responsive Mobile - FOTO OPTIMIZADA */
     @media (max-width: 768px) {
         .goleadores-container {
-            padding: 0 8px;
+            padding: 0;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
         }
+         /* También asegura que el card ocupe todo el ancho */
+    .card-gradient {
+        margin: 0 -12px !important;  /* Compensa el padding del container */
+        width: calc(100% + 24px) !important;
+        border-radius: 0 !important;
+    }
+        
+        <!-- <h3><i class="fa-solid fa-crown me-2" -->
+        h3 i.fa-crown {
+            margin: 0.5 rem !important;
+        }    
 
         .card-gradient .card-header {
             padding: 10px 12px;
@@ -484,13 +502,17 @@
             font-size: 2rem !important;
         }
 
-        .scorers-table {
-            margin-top: 16px;
+          .scorers-table {
+            margin-top: 0;
+            margin-left: -12px;
+            margin-right: -12px;
+            width: calc(100% + 24px);
         }
 
         .table-responsive {
-            margin: 0 -12px;
-            padding: 0 12px;
+            margin: 0;
+            padding: 0;
+            border-radius: 0;
         }
 
         .table {
@@ -514,7 +536,7 @@
 
         .table td,
         .table th {
-            padding: 6px 8px;
+            padding: 4px 4px;
         }
     }
 
@@ -534,7 +556,7 @@
 {% endblock %}
 
 {% block categoria_content %}
-<div class="goleadores-container">
+<div class="goleadores-container w-100">
     <div class="row mb-4">
         <div class="col-12">
             <!-- Encabezado/nav heredados desde torneos/base.html -->
@@ -545,7 +567,7 @@
         <div class="col-12">
             <div class="card card-gradient mb-4">
                 <div class="card-header">
-                    <h3><i class="fa-solid fa-crown me-2"></i>Ranking de Goleadores</h3>
+                    <h3><i class="fa-solid fa-crown me-1"></i>Ranking de Goleadores</h3>
                 </div>
                 <div class="card-body">
                     {% if goleadores_data %}
