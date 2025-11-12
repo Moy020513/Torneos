@@ -117,27 +117,53 @@
 
   /* Centrado en móvil */
   @media (max-width: 768px) {
-    .torneos-header .header-left {
-      position: relative !important;
-      left: auto !important;
-      width: auto;
-      margin-bottom: 0.5rem;
-    }
-
     .torneos-header .card-body {
       flex-direction: column !important;
       text-align: center;
+      padding: 0.75rem !important;
+    }
+
+    .torneos-header .header-left {
+      position: static !important;
+      left: auto !important;
+      width: auto;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .torneos-header .header-center {
       margin-left: 0 !important;
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .torneos-header .header-center h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     .torneos-header .header-logo {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto;
+      width: 50px;
+      height: 50px;
+      margin: 0;
+    }
+
+    /* Mover el logo dentro del h2 visualmente */
+    .torneos-header .card-body {
+      display: flex;
+      flex-direction: row !important;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
   }
 

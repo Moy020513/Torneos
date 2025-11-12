@@ -65,7 +65,7 @@
         margin-top: 0;
         margin-right: 4px;
         font-size: 40px !important;
-        opacity: 0.55;
+        opacity: 0.85;
         transform: rotate(20deg);
     }
 
@@ -587,7 +587,7 @@
                                 <div class="col-12 col-md-8">
                                     <div class="d-flex align-items-center gap-3 mb-3">
                                         <span class="position-badge">1º</span>
-                                        <h2 class="mb-0 h3">{{ top.jugador.nombre }} {{ top.jugador.apellido }}</h2>
+                                        <h2 class="mb-0 h3">{{ top.jugador.nombre }} <br/>{{ top.jugador.apellido }}</h2>
                                     </div>
                                     
                                     <div class="team-info">
@@ -640,7 +640,7 @@
                                                     <img src="{{ goleador.jugador.foto.url }}" alt="{{ goleador.jugador.nombre }}" class="player-avatar-small">
                                                     {% endif %}
                                                     <div>
-                                                        <div class="fw-semibold">{{ goleador.jugador.nombre }} {{ goleador.jugador.apellido }}</div>
+                                                        <div class="fw-semibold">{{ goleador.jugador.nombre }}</div>
                                                     </div>
                                                 </div>
                                             </td>

@@ -64,6 +64,14 @@
         </ul>
         <style>
 @media (max-width: 576px) {
+
+    /* Reducir tamaño del logo en móvil */
+.tabla-posiciones td img {
+    width: 28px !important;
+    height: 28px !important;
+    object-fit: contain !important;
+}
+
     .tabla-posiciones-card {
         margin: 0 -12px !important;
         width: calc(100% + 24px) !important;
@@ -71,7 +79,7 @@
         border-radius: 0 !important;
     }
     .tabla-posiciones-card .card-body {
-        font-size: 0.85rem !important;
+        font-size: 0.70rem !important;
     }
     
     .tabla-posiciones-card .card-body {
@@ -98,6 +106,10 @@
     .tabla-posiciones td {
         font-size: 0.65rem !important;
     }
+  .tabla-posiciones td {
+    padding-top: 0.01rem !important;
+    padding-bottom: 0.01rem !important;
+  }
 }
 
 /* Centrar todos los td y th excepto la columna Equipo */
