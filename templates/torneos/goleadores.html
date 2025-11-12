@@ -576,6 +576,7 @@
                         <div class="top-scorer-card">
                             <div class="row align-items-center">
                                 <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
+                                    <a href="{% url 'jugador_detalle' top.jugador.id %}" title="Ver perfil de {{ top.jugador.nombre }}">
                                     {% if top.jugador.foto %}
                                         <img src="{{ top.jugador.foto.url }}" alt="{{ top.jugador.nombre }}" class="scorer-avatar">
                                     {% else %}
@@ -583,11 +584,12 @@
                                             <i class="fa-solid fa-user"></i>
                                         </div>
                                     {% endif %}
+                                    </a>
                                 </div>
                                 <div class="col-12 col-md-8">
-                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="d-flex align-items-center gap-3 mb-3">
                                         <span class="position-badge">1º</span>
-                                        <h2 class="mb-0 h3">{{ top.jugador.nombre }} <br/>{{ top.jugador.apellido }}</h2>
+                                        <h2 class="mb-0 h3"><a href="{% url 'jugador_detalle' top.jugador.id %}" class="text-decoration-none text-reset">{{ top.jugador.nombre }} <br/>{{ top.jugador.apellido }}</a></h2>
                                     </div>
                                     
                                     <div class="team-info">
@@ -637,10 +639,12 @@
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     {% if goleador.jugador.foto %}
-                                                    <img src="{{ goleador.jugador.foto.url }}" alt="{{ goleador.jugador.nombre }}" class="player-avatar-small">
+                                                    <a href="{% url 'jugador_detalle' goleador.jugador.id %}" title="Ver perfil de {{ goleador.jugador.nombre }}">
+                                                        <img src="{{ goleador.jugador.foto.url }}" alt="{{ goleador.jugador.nombre }}" class="player-avatar-small">
+                                                    </a>
                                                     {% endif %}
                                                     <div>
-                                                        <div class="fw-semibold">{{ goleador.jugador.nombre }}</div>
+                                                        <div class="fw-semibold"><a href="{% url 'jugador_detalle' goleador.jugador.id %}" class="text-decoration-none text-reset">{{ goleador.jugador.nombre }}</a></div>
                                                     </div>
                                                 </div>
                                             </td>
