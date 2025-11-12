@@ -4,9 +4,9 @@
 {% block title %}Goleadores - Panel de Administración{% endblock %}
 
 {% block content %}
-<div class="container-fluid" id="admin-goleadores">
+<div class="container-fluid px-0" id="admin-goleadores">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4" id="admin-header">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-3" id="admin-header">
         <h1 class="admin-title">
             <i class="fas fa-bullseye me-2"></i>
             Gestión de Goleadores
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Estadísticas -->
-    <div class="row mb-4" id="stadis">
+    <div class="row mb-4 mx-0 px-3" id="stadis">
         <div class="col-3 col-md-3">
             <div class="admin-card stat-card">
                 <div class="card-body text-center">
@@ -58,7 +58,7 @@
     </div>
 
     <!-- Filtros y Búsqueda -->
-    <div class="admin-card mb-4" id="seaa">
+    <div class="admin-card mb-4 mx-3" id="seaa">
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-search me-2"></i>
@@ -114,8 +114,9 @@
             </form>
         </div>
     </div>
+    
     <!-- Lista de Goleadores -->
-    <div class="admin-card">
+    <div class="admin-card mx-3">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="fas fa-list me-2"></i>
@@ -169,14 +170,13 @@
                                             <span class="fw-semibold">{{ goleador.jugador.equipo.nombre }}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="text-center">
                                         <span class="badge bg-success fs-5 goal-count">
                                             {{ goleador.goles }}
                                         </span>
                                     </td>
                                     <td>
                                         <strong class="text-primary">{{ goleador.categoria.nombre }}</strong>
-                                       
                                     </td>
                                     <td>
                                         <small class="text-muted">
@@ -266,13 +266,17 @@
 </div>
 
 <style>
-
-
-
+/* Ajustes generales para móvil */
 @media (max-width: 767.98px) {
+  /* Container principal sin padding */
+  #admin-goleadores {
+    padding: 0 !important;
+  }
+
+  /* Estadísticas compactas */
   #stadis .admin-card {
-    padding: 4px !important;     /* menos espacio interno */
-    font-size: 0.75rem !important; /* texto más pequeño */
+    padding: 4px !important;
+    font-size: 0.75rem !important;
   }
 
   #stadis .col-3 {
@@ -281,43 +285,136 @@
   }
 
   #stadis .stat-number {
-    font-size: 0.9rem !important; /* tamaño número */
+    font-size: 0.9rem !important;
   }
 
   #stadis .stat-label {
-    font-size: 0.7rem !important; /* tamaño etiqueta */
+    font-size: 0.7rem !important;
     margin-bottom: 0;
   }
 
   #stadis .stat-icon {
-    font-size: 1rem !important; /* icono más pequeño */
+    font-size: 1rem !important;
   }
 
-  /* Si quieres eliminar totalmente el espacio entre columnas */
   #stadis .row {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
 
-  #gol-table th, #gol-table td {
-    font-size: 0.75rem !important; /* texto más pequeño en tabla */
-    padding: 0.3rem !important;    /* menos padding en celdas */
+  /* Tabla de goleadores ocupa todo el ancho */
+  .admin-card {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
   }
- #gol-table td {
-    font-size: 0.55rem !important; /* texto más pequeño en tabla */
-    padding: 0.3rem !important;    /* menos padding en celdas */
-    width: auto !important;
+
+  #seaa {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
   }
-  #gol-table {
+
+  /* Tabla responsive */
+  .table-responsive {
     margin: 0 !important;
+    border-radius: 0 !important;
   }
-  
+
+  /* LA CLAVE: eliminar min-width fijo y permitir ajuste automático */
+  #gol-table {
+    width: 100% !important;
+    table-layout: auto !important;
+    margin: 0 !important;
+    min-width: auto !important;
+  }
+
+  #gol-table th, 
+  #gol-table td {
+    font-size: 0.65rem !important;
+    padding: 0.35rem 0.25rem !important;
+    white-space: nowrap !important;
+    /* ELIMINAR anchos fijos */
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Header con menos padding */
+  #admin-header {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .admin-title {
+    font-size: 1.2rem !important;
+  }
+
+  /* Botones más pequeños */
+  .admin-btn {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.8rem !important;
+  }
+
+  /* Fotos más pequeñas en móvil */
+  .player-photo {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .team-logo-small {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Badge de goles más compacto */
+  .goal-count {
+    padding: 0.25rem 0.35rem !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* Badges más pequeños */
+  .badge {
+    font-size: 0.6rem !important;
+    padding: 0.15rem 0.3rem !important;
+  }
+
+  /* Botones de acción más pequeños */
+  .btn-group-sm .btn {
+    padding: 0.15rem 0.3rem !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Iconos en botones */
+  .btn-group-sm .btn i {
+    font-size: 0.75rem !important;
+  }
+
+  /* Ajustar divs flex dentro de celdas */
+  #gol-table .d-flex {
+    gap: 0.2rem !important;
+  }
+
+  /* Texto más compacto */
+  #gol-table small {
+    font-size: 0.55rem !important;
+    line-height: 1.2 !important;
+  }
+
+  #gol-table .fw-bold {
+    font-size: 0.65rem !important;
+  }
+
+  #gol-table .text-muted {
+    font-size: 0.5rem !important;
+  }
 }
 
-
+/* Estilos generales */
 #seaa {
     padding: 10px;
 }
+
 #stadis .admin-card {
     border-radius: 1.75rem;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -325,6 +422,7 @@
     padding: 0;
     margin: 0;
 }    
+
 .player-photo {
     width: 35px;
     height: 35px;
@@ -385,7 +483,7 @@
 }
 
 .admin-table {
-    min-width: 1000px; /* Ancho mínimo para forzar scroll si es necesario */
+    min-width: 1000px;
 }
 
 .admin-table th,
@@ -394,20 +492,19 @@
     vertical-align: middle;
 }
 
-/* Hacer que ciertas columnas sean más anchas */
 .admin-table th:nth-child(2),
 .admin-table td:nth-child(2) {
-    min-width: 150px; /* Jugador */
+    min-width: 150px;
 }
 
 .admin-table th:nth-child(3),
 .admin-table td:nth-child(3) {
-    min-width: 140px; /* Equipo */
+    min-width: 140px;
 }
 
 .admin-table th:nth-child(6),
 .admin-table td:nth-child(6) {
-    min-width: 120px; /* Fecha */
+    min-width: 120px;
 }
 
 /* Scroll bar personalizada */
