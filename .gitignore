@@ -13,24 +13,18 @@ build/
 *.pyc
 *.pyo
 *.sqlite3
-
-
 # Virtualenv
 venv/
 ENV/
 .env
-
 # VSCode
 .vscode/
-
 # OS files
 .DS_Store
 Thumbs.db
-
 # Database
 *.db
 *.sqlite3
-
 # Other
 *.bak
 *.swp
@@ -43,5 +37,4 @@ Thumbs.db
 torneos_modified.sql
 docker-compose.yml
 Dockerfile
-media/jugadores/fotos/
-media/equipos/logos/
+media/
