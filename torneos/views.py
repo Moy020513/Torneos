@@ -51,6 +51,12 @@ def estadisticas_view(request, categoria_id):
     # Próximos partidos: no jugados y sin goles (sin incluir descansos)
     proximos_partidos = partidos_sin_descanso.filter(jugado=False, goles_local=0, goles_visitante=0).order_by('fecha')[:10]
     ultimos_resultados = partidos_jugados_query.order_by('-fecha')[:10]
+    # Partidos para graficar: priorizar partidos ya jugados y luego por fecha
+    # para asegurarnos de que los encuentros finalizados (con goles)
+    # estén presentes en la muestra usada por el gráfico.
+    partidos_para_grafico = partidos_sin_descanso.order_by('-jugado', '-fecha')[:50]
+    # Jornadas totales existentes en la categoría (usar para mostrar eje X completo)
+    jornadas_categoria = sorted(set(p.jornada for p in partidos_sin_descanso if p.jornada is not None))
     total_partidos = partidos_sin_descanso.count()
     partidos_jugados = partidos_jugados_query.count()
     partidos_pendientes = partidos_sin_descanso.filter(jugado=False, goles_local=0, goles_visitante=0).count()
@@ -62,6 +68,8 @@ def estadisticas_view(request, categoria_id):
         'equipos': equipos,
         'proximos_partidos': proximos_partidos,
         'ultimos_resultados': ultimos_resultados,
+    'partidos_para_grafico': partidos_para_grafico,
+    'jornadas_categoria': jornadas_categoria,
         'total_partidos': total_partidos,
         'partidos_jugados': partidos_jugados,
         'partidos_pendientes': partidos_pendientes,
