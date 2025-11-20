@@ -871,26 +871,41 @@
             </div>
             
             <div class="nav-section-title">Dashboard</div>
+            {% if user.is_superuser %}
             <div class="admin-nav-item">
                 <a href="{% url 'admin_dashboard' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
                     <i class="fas fa-tachometer-alt"></i>
                     Dashboard Principal
                 </a>
             </div>
+            {% endif %}
             
             <div class="nav-section-title">Gestión de Torneos</div>
+            {% if user.is_superuser %}
             <div class="admin-nav-item">
                 <a href="{% url 'admin_torneos' %}" class="admin-nav-link {% if 'torneo' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-trophy"></i>
                     Torneos
                 </a>
             </div>
+            {% endif %}
             <div class="admin-nav-item">
                 <a href="{% url 'admin_categorias' %}" class="admin-nav-link {% if 'categoria' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-tags"></i>
                     Categorías
                 </a>
             </div>
+
+            {# Enlace específico para administradores del torneo asignado #}
+            {% if is_torneo_admin and torneo_admin_obj and torneo_admin_obj.torneo %}
+            <div class="nav-section-title">Mi Torneo</div>
+            <div class="admin-nav-item">
+                <a href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}" class="admin-nav-link {% if request.resolver_match.url_name == 'administrar_torneo' %}active{% endif %}">
+                    <i class="fas fa-user-shield"></i>
+                    Panel del Torneo: {{ torneo_admin_obj.torneo.nombre }}
+                </a>
+            </div>
+            {% endif %}
             
             <div class="nav-section-title">Gestión de Equipos</div>
             <div class="admin-nav-item">
@@ -963,6 +978,14 @@
                     Usuarios
                 </a>
             </div>
+            {% if user.is_superuser %}
+            <div class="admin-nav-item">
+                <a href="{% url 'admin:torneos_administradortorneo_changelist' %}" class="admin-nav-link {% if 'administradortorneo' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-user-shield"></i>
+                    Administradores Torneo
+                </a>
+            </div>
+            {% endif %}
             <div class="admin-nav-item">
                 <a href="{% url 'admin_reportes' %}" class="admin-nav-link {% if 'reporte' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-chart-bar"></i>

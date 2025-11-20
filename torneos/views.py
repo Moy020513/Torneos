@@ -90,7 +90,7 @@ def get_categorias_by_torneo(request):
     return JsonResponse({'categorias': categorias})
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.decorators import login_required, user_passes_test
+from .decorators import admin_torneo_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q, Sum, Count, F
@@ -103,7 +103,20 @@ from django.conf import settings
 
 
 def is_admin(user):
-    return user.is_superuser
+    # Un administrador del sistema (superuser) o un usuario asignado como
+    # AdministradorTorneo activo deben considerarse administradores.
+    try:
+        if user.is_superuser:
+            return True
+    except Exception:
+        # user may be None or not fully populated
+        return False
+
+    if not getattr(user, 'is_authenticated', False):
+        return False
+
+    # AdministradorTorneo viene de models (imported with *)
+    return AdministradorTorneo.objects.filter(usuario=user, activo=True).exists()
 
 def is_capitan(user):
     return hasattr(user, 'capitan') and user.capitan.activo
@@ -344,10 +357,24 @@ def categoria_detalle(request, categoria_id):
 @login_required
 @user_passes_test(is_admin)
 def administracion_dashboard(request):
-    torneos = Torneo.objects.all()
-    categorias = Categoria.objects.all()
-    equipos = Equipo.objects.all()
-    jugadores = Jugador.objects.all()
+    # Si el usuario es AdministradorTorneo, limitar a su torneo
+    assigned_torneo = None
+    try:
+        if not request.user.is_superuser:
+            assigned_torneo = AdministradorTorneo.objects.filter(usuario=request.user, activo=True).values_list('torneo_id', flat=True).first()
+    except Exception:
+        assigned_torneo = None
+
+    if assigned_torneo:
+        torneos = Torneo.objects.filter(id=assigned_torneo)
+        categorias = Categoria.objects.filter(torneo_id=assigned_torneo)
+        equipos = Equipo.objects.filter(categoria__torneo_id=assigned_torneo)
+        jugadores = Jugador.objects.filter(equipo__categoria__torneo_id=assigned_torneo)
+    else:
+        torneos = Torneo.objects.all()
+        categorias = Categoria.objects.all()
+        equipos = Equipo.objects.all()
+        jugadores = Jugador.objects.all()
     
     context = {
         'torneos': torneos,
@@ -358,7 +385,7 @@ def administracion_dashboard(request):
     return render(request, 'torneos/admin/dashboard.html', context)
 
 @login_required
-@user_passes_test(is_admin)
+@admin_torneo_required
 def administrar_torneo(request, torneo_id):
     torneo = get_object_or_404(Torneo, id=torneo_id)
     categorias = Categoria.objects.filter(torneo=torneo)
@@ -381,7 +408,7 @@ def administrar_torneo(request, torneo_id):
     }
     return render(request, 'torneos/admin/administrar_torneo.html', context)
 
-@user_passes_test(is_admin)
+@admin_torneo_required
 def integrar_nuevo_equipo(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = list(Equipo.objects.filter(categoria=categoria))
@@ -570,7 +597,7 @@ def goleadores_view(request, categoria_id):
     }
     return render(request, 'torneos/goleadores.html', context)
 @login_required
-@user_passes_test(is_admin)
+@admin_torneo_required
 def generar_calendario(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = list(Equipo.objects.filter(categoria=categoria))

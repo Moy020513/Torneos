@@ -3,9 +3,27 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 import os
 
-# Definir is_admin antes de cualquier uso en decoradores
+# is_admin: permite acceso a superusuarios del sistema y a los
+# usuarios que hayan sido marcados como AdministradorTorneo (instancia)
+from .models import AdministradorTorneo
+
 def is_admin(user):
-    return user.is_superuser
+    try:
+        if user and getattr(user, 'is_superuser', False):
+            return True
+        # Usuarios asignados como administrador de torneo pueden acceder
+        return AdministradorTorneo.objects.filter(usuario=user, activo=True).exists()
+    except Exception:
+        return False
+
+
+def get_assigned_torneo_id(user):
+    """Devuelve el id del torneo asignado al AdministradorTorneo activo del usuario, o None."""
+    try:
+        at = AdministradorTorneo.objects.filter(usuario=user, activo=True).values_list('torneo_id', flat=True).first()
+        return at
+    except Exception:
+        return None
 
 # =================== ELIMINAR IMÁGENES HUÉRFANAS ===================
 @login_required
@@ -75,9 +93,8 @@ def admin_eliminar_imagenes_huerfanas(request):
     context = {'eliminadas': eliminadas}
     return render(request, 'admin/torneos/eliminar_imagenes_huerfanas.html', context)
 
-# Definir is_admin antes de cualquier uso en decoradores
-def is_admin(user):
-    return user.is_superuser
+# Reusar la implementación de is_admin definida arriba
+# (evitamos redefinirlo accidentalmente)
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
@@ -129,9 +146,8 @@ def admin_eliminar_participacion(request, participacion_id):
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-# Definir is_admin antes de cualquier uso en decoradores
-def is_admin(user):
-    return user.is_superuser
+# Reusar la implementación de is_admin definida arriba
+# (evitamos redefinirlo accidentalmente)
 
 # Vista para registrar participaciones múltiples
 @login_required
@@ -183,6 +199,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 def admin_participaciones(request):
     search = request.GET.get('search', '')
     participaciones = ParticipacionJugador.objects.select_related('jugador', 'partido').order_by('-fecha_creacion')
+    # Si el usuario es AdministradorTorneo, limitar a las participaciones de partidos del torneo asignado
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            participaciones = participaciones.filter(
+                Q(partido__grupo__categoria__torneo_id=assigned_torneo) |
+                Q(partido__equipo_local__categoria__torneo_id=assigned_torneo) |
+                Q(partido__equipo_visitante__categoria__torneo_id=assigned_torneo)
+            )
     if search:
         participaciones = participaciones.filter(
             Q(jugador__nombre__icontains=search) |
@@ -347,7 +373,20 @@ from .forms import AdminFormMixin
 @user_passes_test(is_admin)
 def admin_campos(request):
     search = request.GET.get('search', '')
-    campos = UbicacionCampo.objects.all()
+    # Si el usuario es AdministradorTorneo, mostrar solo campos asociados a partidos del torneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    if assigned_torneo:
+        campos = UbicacionCampo.objects.filter(
+            Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
+            Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
+            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+        ).distinct()
+    else:
+        campos = UbicacionCampo.objects.all()
+
     if search:
         campos = campos.filter(nombre__icontains=search)
     paginator = Paginator(campos, 15)
@@ -430,11 +469,22 @@ import json
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
-    # Estadísticas generales
-    total_torneos = Torneo.objects.count()
-    total_equipos = Equipo.objects.count()
-    total_jugadores = Jugador.objects.count()
-    total_partidos = Partido.objects.count()
+    # Si el usuario es AdministradorTorneo, limitar estadísticas a su torneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    # Estadísticas generales (filtradas si aplica)
+    if assigned_torneo:
+        total_torneos = Torneo.objects.filter(id=assigned_torneo).count()
+        total_equipos = Equipo.objects.filter(categoria__torneo_id=assigned_torneo).count()
+        total_jugadores = Jugador.objects.filter(equipo__categoria__torneo_id=assigned_torneo).count()
+        total_partidos = Partido.objects.filter(Q(grupo__categoria__torneo_id=assigned_torneo) | Q(grupo=None, equipo_local__categoria__torneo_id=assigned_torneo) | Q(grupo=None, equipo_visitante__categoria__torneo_id=assigned_torneo)).count()
+    else:
+        total_torneos = Torneo.objects.count()
+        total_equipos = Equipo.objects.count()
+        total_jugadores = Jugador.objects.count()
+        total_partidos = Partido.objects.count()
     
     # Nuevas estadísticas
     total_grupos = Grupo.objects.count()
@@ -467,7 +517,12 @@ def admin_dashboard(request):
     
     # Equipos completos (con al menos 8 jugadores)
     equipos_completos = 0
-    for equipo in Equipo.objects.all():
+    if assigned_torneo:
+        equipos_iter = Equipo.objects.filter(categoria__torneo_id=assigned_torneo)
+    else:
+        equipos_iter = Equipo.objects.all()
+
+    for equipo in equipos_iter:
         if equipo.jugador_set.count() >= 8:
             equipos_completos += 1
     
@@ -686,6 +741,12 @@ def admin_integrar_equipo_calendario(request, categoria_id):
 @user_passes_test(is_admin)
 def admin_categorias(request):
     categorias = Categoria.objects.all().select_related('torneo').order_by('-id')
+    # Si el usuario es un AdministradorTorneo, limitar a su torneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            categorias = categorias.filter(torneo_id=assigned_torneo)
     
     # Filtros
     torneo_id = request.GET.get('torneo')
@@ -706,8 +767,11 @@ def admin_categorias(request):
     page_number = request.GET.get('page')
     categorias = paginator.get_page(page_number)
     
-    # Para el filtro
-    torneos = Torneo.objects.all()
+    # Para el filtro: si es admin de torneo, solo incluir su torneo
+    if assigned_torneo:
+        torneos = Torneo.objects.filter(id=assigned_torneo)
+    else:
+        torneos = Torneo.objects.all()
     
     context = {
         'categorias': categorias,
@@ -777,6 +841,12 @@ def admin_eliminar_categoria(request, categoria_id):
 @user_passes_test(is_admin)
 def admin_equipos(request):
     equipos = Equipo.objects.all().select_related('categoria', 'categoria__torneo').order_by('-fecha_creacion')
+    # Limitar por torneo si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            equipos = equipos.filter(categoria__torneo_id=assigned_torneo)
     
     # Filtros
     categoria_id = request.GET.get('categoria')
@@ -804,9 +874,13 @@ def admin_equipos(request):
     page_number = request.GET.get('page')
     equipos = paginator.get_page(page_number)
     
-    # Para filtros
-    torneos = Torneo.objects.all()
-    categorias = Categoria.objects.all()
+    # Para filtros: si es admin de torneo, limitar opciones
+    if assigned_torneo:
+        torneos = Torneo.objects.filter(id=assigned_torneo)
+        categorias = Categoria.objects.filter(torneo_id=assigned_torneo)
+    else:
+        torneos = Torneo.objects.all()
+        categorias = Categoria.objects.all()
     
     context = {
         'equipos': equipos,
@@ -878,6 +952,12 @@ def admin_eliminar_equipo(request, equipo_id):
 @user_passes_test(is_admin)
 def admin_jugadores(request):
     jugadores = Jugador.objects.all().select_related('equipo', 'equipo__categoria', 'equipo__categoria__torneo').order_by('-fecha_creacion')
+    # Limitar por torneo si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            jugadores = jugadores.filter(equipo__categoria__torneo_id=assigned_torneo)
     
     # Filtros
     equipo_id = request.GET.get('equipo')
@@ -910,9 +990,13 @@ def admin_jugadores(request):
     page_number = request.GET.get('page')
     jugadores = paginator.get_page(page_number)
     
-    # Para filtros
-    equipos = Equipo.objects.all()
-    categorias = Categoria.objects.all()
+    # Para filtros (limitar si es admin de torneo)
+    if assigned_torneo:
+        equipos = Equipo.objects.filter(categoria__torneo_id=assigned_torneo)
+        categorias = Categoria.objects.filter(torneo_id=assigned_torneo)
+    else:
+        equipos = Equipo.objects.all()
+        categorias = Categoria.objects.all()
     
     context = {
         'jugadores': jugadores,
@@ -1034,11 +1118,22 @@ def admin_partidos(request):
             Q(equipo_visitante__nombre__icontains=search)
         )
     
-    # Obtener todas las categorías para el filtro
-    categorias = Categoria.objects.select_related('torneo').all()
+    # Limitar por torneo si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            partidos = partidos.filter(grupo__categoria__torneo_id=assigned_torneo)
+
+    # Obtener todas las categorías para el filtro (limitadas si aplica)
+    if assigned_torneo:
+        categorias = Categoria.objects.select_related('torneo').filter(torneo_id=assigned_torneo)
+    else:
+        categorias = Categoria.objects.select_related('torneo').all()
     
-    # Obtener todas las jornadas disponibles (sin duplicados, ordenadas)
-    jornadas = Partido.objects.values_list('jornada', flat=True).distinct().order_by('jornada')
+    # Obtener todas las jornadas disponibles (sin duplicados, ordenadas) — considerar filtro aplicado
+    jornadas_qs = partidos.values_list('jornada', flat=True).distinct().order_by('jornada')
+    jornadas = jornadas_qs
     
     # Paginación
     paginator = Paginator(partidos, 20)  # 20 partidos por página
@@ -1158,6 +1253,12 @@ def admin_grupos(request):
     categoria_id = request.GET.get('categoria')
     
     grupos = Grupo.objects.select_related('categoria', 'categoria__torneo').all()
+    # Limitar por torneo si es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            grupos = grupos.filter(categoria__torneo_id=assigned_torneo)
     
     if search:
         grupos = grupos.filter(
@@ -1176,8 +1277,11 @@ def admin_grupos(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Para el filtro de categorías
-    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+    # Para el filtro de categorías (limitar si aplica)
+    if assigned_torneo:
+        categorias = Categoria.objects.select_related('torneo').filter(torneo_id=assigned_torneo).order_by('nombre')
+    else:
+        categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
     
     context = {
         'page_obj': page_obj,
@@ -1370,6 +1474,12 @@ def admin_capitanes(request):
     activo = request.GET.get('activo')
     
     capitanes = Capitan.objects.select_related('usuario', 'equipo', 'equipo__categoria').all()
+    # Limitar por torneo si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            capitanes = capitanes.filter(equipo__categoria__torneo_id=assigned_torneo)
     
     if search:
         capitanes = capitanes.filter(
@@ -1393,7 +1503,10 @@ def admin_capitanes(request):
     page_obj = paginator.get_page(page_number)
     
     # Para filtros
-    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+    if assigned_torneo:
+        categorias = Categoria.objects.select_related('torneo').filter(torneo_id=assigned_torneo).order_by('nombre')
+    else:
+        categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
     
     context = {
         'page_obj': page_obj,
@@ -1471,6 +1584,12 @@ def admin_eliminatorias(request):
     categoria_id = request.GET.get('categoria')
     
     eliminatorias = Eliminatoria.objects.select_related('categoria', 'categoria__torneo').all()
+    # Limitar por torneo si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            eliminatorias = eliminatorias.filter(categoria__torneo_id=assigned_torneo)
     
     if search:
         eliminatorias = eliminatorias.filter(
@@ -1494,8 +1613,11 @@ def admin_eliminatorias(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Para filtros
-    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+    # Para filtros (limitar si aplica)
+    if assigned_torneo:
+        categorias = Categoria.objects.select_related('torneo').filter(torneo_id=assigned_torneo).order_by('nombre')
+    else:
+        categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
     
     context = {
         'page_obj': page_obj,
@@ -1575,6 +1697,12 @@ def admin_partidos_eliminatoria(request):
         'eliminatoria', 'eliminatoria__categoria', 'eliminatoria__categoria__torneo',
         'equipo_local', 'equipo_visitante'
     ).all()
+    # Limitar por torneo si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            partidos = partidos.filter(eliminatoria__categoria__torneo_id=assigned_torneo)
     
     if search:
         partidos = partidos.filter(
@@ -1597,8 +1725,11 @@ def admin_partidos_eliminatoria(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Para filtros
-    eliminatorias = Eliminatoria.objects.select_related('categoria', 'categoria__torneo').all().order_by('categoria__torneo__nombre', 'categoria__nombre', 'orden')
+    # Para filtros (limitar si aplica)
+    if assigned_torneo:
+        eliminatorias = Eliminatoria.objects.select_related('categoria', 'categoria__torneo').filter(categoria__torneo_id=assigned_torneo).order_by('categoria__nombre', 'orden')
+    else:
+        eliminatorias = Eliminatoria.objects.select_related('categoria', 'categoria__torneo').all().order_by('categoria__torneo__nombre', 'categoria__nombre', 'orden')
     
     # Estadísticas
     total_partidos_eliminatoria = PartidoEliminatoria.objects.count()
@@ -1688,6 +1819,12 @@ def admin_goleadores(request):
     goleadores = Goleador.objects.select_related(
         'jugador', 'jugador__equipo', 'categoria', 'partido', 'partido_eliminatoria'
     ).all()
+    # Limitar por torneo si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            goleadores = goleadores.filter(Q(categoria__torneo_id=assigned_torneo) | Q(jugador__equipo__categoria__torneo_id=assigned_torneo))
     
     if search:
         goleadores = goleadores.filter(
@@ -1715,15 +1852,26 @@ def admin_goleadores(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Para filtros
-    categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
-    equipos = Equipo.objects.all().order_by('nombre')
+    # Para filtros (limitar si aplica)
+    if assigned_torneo:
+        categorias = Categoria.objects.select_related('torneo').filter(torneo_id=assigned_torneo).order_by('nombre')
+        equipos = Equipo.objects.filter(categoria__torneo_id=assigned_torneo).order_by('nombre')
+    else:
+        categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+        equipos = Equipo.objects.all().order_by('nombre')
     
-    # Estadísticas
-    total_goleadores = Goleador.objects.count()
-    total_goles_anotados = Goleador.objects.aggregate(total=Sum('goles'))['total'] or 0
-    max_goles = goleadores.aggregate(max_goles=Max('goles'))['max_goles'] or 0
-    categorias_count = Goleador.objects.values('categoria').distinct().count()
+    # Estadísticas (respetando el torneo asignado si aplica)
+    if assigned_torneo:
+        base_goleadores_qs = Goleador.objects.filter(
+            Q(categoria__torneo_id=assigned_torneo) | Q(jugador__equipo__categoria__torneo_id=assigned_torneo)
+        )
+    else:
+        base_goleadores_qs = Goleador.objects.all()
+
+    total_goleadores = base_goleadores_qs.count()
+    total_goles_anotados = base_goleadores_qs.aggregate(total=Sum('goles'))['total'] or 0
+    max_goles = base_goleadores_qs.aggregate(max_goles=Max('goles'))['max_goles'] or 0
+    categorias_count = base_goleadores_qs.values('categoria').distinct().count()
     
     context = {
         'goleadores': page_obj,
@@ -1745,8 +1893,17 @@ def admin_goleadores(request):
 @user_passes_test(is_admin)
 def admin_crear_goleador(request):
     # Ahora mantendremos un único Goleador y varias entradas tipo "jornada" relacionadas
-    partidos = Partido.objects.all().order_by('jornada', 'fecha')
-    partidos_elim = PartidoEliminatoria.objects.all().order_by('eliminatoria__orden', 'fecha')
+    # Limitar partidos si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    if assigned_torneo:
+        partidos = Partido.objects.filter(Q(grupo__categoria__torneo_id=assigned_torneo) | Q(grupo=None, equipo_local__categoria__torneo_id=assigned_torneo) | Q(grupo=None, equipo_visitante__categoria__torneo_id=assigned_torneo)).order_by('jornada', 'fecha')
+        partidos_elim = PartidoEliminatoria.objects.filter(eliminatoria__categoria__torneo_id=assigned_torneo).order_by('eliminatoria__orden', 'fecha')
+    else:
+        partidos = Partido.objects.all().order_by('jornada', 'fecha')
+        partidos_elim = PartidoEliminatoria.objects.all().order_by('eliminatoria__orden', 'fecha')
 
     if request.method == 'POST':
         partido_list = request.POST.getlist('partido')
@@ -1844,12 +2001,18 @@ def admin_crear_goleador(request):
     else:
         form = GoleadorForm()
 
+    # Limitar jugadores si aplica
+    if assigned_torneo:
+        jugadores_qs = Jugador.objects.select_related('equipo').filter(equipo__categoria__torneo_id=assigned_torneo).order_by('nombre')
+    else:
+        jugadores_qs = Jugador.objects.select_related('equipo').all().order_by('nombre')
+
     context = {
         'form': form,
         'action': 'Crear',
         'partidos': partidos,
         'partidos_elim': partidos_elim,
-        'jugadores': Jugador.objects.select_related('equipo').all().order_by('nombre'),
+        'jugadores': jugadores_qs,
     }
     return render(request, 'admin/goleadores/form.html', context)
 
@@ -1857,8 +2020,17 @@ def admin_crear_goleador(request):
 @user_passes_test(is_admin)
 def admin_editar_goleador(request, goleador_id):
     goleador = get_object_or_404(Goleador, id=goleador_id)
-    partidos = Partido.objects.all().order_by('jornada', 'fecha')
-    partidos_elim = PartidoEliminatoria.objects.all().order_by('eliminatoria__orden', 'fecha')
+    # Limitar partidos mostrados si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    if assigned_torneo:
+        partidos = Partido.objects.filter(Q(grupo__categoria__torneo_id=assigned_torneo) | Q(grupo=None, equipo_local__categoria__torneo_id=assigned_torneo) | Q(grupo=None, equipo_visitante__categoria__torneo_id=assigned_torneo)).order_by('jornada', 'fecha')
+        partidos_elim = PartidoEliminatoria.objects.filter(eliminatoria__categoria__torneo_id=assigned_torneo).order_by('eliminatoria__orden', 'fecha')
+    else:
+        partidos = Partido.objects.all().order_by('jornada', 'fecha')
+        partidos_elim = PartidoEliminatoria.objects.all().order_by('eliminatoria__orden', 'fecha')
 
     if request.method == 'POST':
         partido_list = request.POST.getlist('partido')
@@ -1957,13 +2129,19 @@ def admin_editar_goleador(request, goleador_id):
     else:
         form = GoleadorForm(instance=goleador)
 
+    # Limitar jugadores si aplica
+    if assigned_torneo:
+        jugadores_qs = Jugador.objects.select_related('equipo').filter(equipo__categoria__torneo_id=assigned_torneo).order_by('nombre')
+    else:
+        jugadores_qs = Jugador.objects.select_related('equipo').all().order_by('nombre')
+
     context = {
         'form': form,
         'goleador': goleador,
         'action': 'Editar',
         'partidos': partidos,
         'partidos_elim': partidos_elim,
-        'jugadores': Jugador.objects.select_related('equipo').all().order_by('nombre'),
+        'jugadores': jugadores_qs,
     }
     return render(request, 'admin/goleadores/form.html', context)
 
@@ -2004,9 +2182,23 @@ class UbicacionCampoForm(AdminFormMixin, forms.ModelForm):
 @user_passes_test(is_admin)
 def admin_campos(request):
     search = request.GET.get('search', '')
-    campos = UbicacionCampo.objects.all()
+    # Limitar UbicacionCampo a los campos asociados a partidos del torneo asignado
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    if assigned_torneo:
+        campos = UbicacionCampo.objects.filter(
+            Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
+            Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
+            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+        ).distinct()
+    else:
+        campos = UbicacionCampo.objects.all()
+
     if search:
         campos = campos.filter(nombre__icontains=search)
+
     paginator = Paginator(campos, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

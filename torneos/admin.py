@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db import models
 from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Capitan, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
+from .models import AdministradorTorneo
 from .forms import EquipoAdminForm
 
 @admin.register(Eliminatoria)
@@ -582,3 +583,12 @@ class GestionParticipacionesAdminArea(admin.AdminSite):
 
 # Si quieres que aparezca bajo "Gestión de Partidos" o con un nombre personalizado:
 ParticipacionJugadorAdmin.verbose_name_plural = "Partidos Jugados por Jugador"
+
+
+# Registro del nuevo modelo AdministradorTorneo para que el superusuario pueda
+# asignar usuarios responsables de cada torneo desde el admin estándar.
+@admin.register(AdministradorTorneo)
+class AdministradorTorneoAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'torneo', 'activo', 'fecha_creacion')
+    list_filter = ('activo', 'torneo')
+    search_fields = ('usuario__username', 'torneo__nombre')

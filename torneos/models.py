@@ -204,6 +204,26 @@ class Capitan(models.Model):
     def __str__(self):
         return f"{self.usuario.username} - {self.equipo.nombre}"
 
+
+class AdministradorTorneo(models.Model):
+    """Usuario asignado para administrar un único Torneo.
+
+    El superusuario puede crear una instancia y asignar un User (puede ser staff)
+    y un Torneo. Este usuario verá en su menú un enlace al panel del torneo y
+    tendrá acceso reducido a las vistas de administración del app (solo su torneo).
+    """
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='administrador_torneo')
+    torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE, related_name='administradores')
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Administrador de Torneo'
+        verbose_name_plural = 'Administradores de Torneos'
+
+    def __str__(self):
+        return f"{self.usuario.username} → {self.torneo.nombre}"
+
 class Grupo(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=50)

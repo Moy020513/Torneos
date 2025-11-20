@@ -154,6 +154,10 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="/admin/">Administración</a>
                             </li>
+                        {% elif is_torneo_admin %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}">Panel Torneo</a>
+                            </li>
                         {% elif user.capitan %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'capitan_panel' %}">Panel capitán</a>
@@ -177,12 +181,20 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#">Perfil</a></li>
-                                {% if user.is_superuser %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">
-                                        <i class="fas fa-cogs me-1"></i> Panel de Administración
-                                    </a></li>
-                                {% endif %}
+                                    {% if user.is_superuser %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">
+                                            <i class="fas fa-cogs me-1"></i> Panel de Administración
+                                        </a></li>
+                                    {% endif %}
+                                    {% if is_torneo_admin %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}">
+                                                <i class="fas fa-user-shield me-1"></i> Panel del Torneo
+                                            </a>
+                                        </li>
+                                    {% endif %}
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="post" action="{% url 'logout' %}" class="d-inline">
