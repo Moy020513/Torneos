@@ -9,14 +9,38 @@
         {% if form.equipo.errors %}<div class="text-danger">{{ form.equipo.errors }}</div>{% endif %}
     </div>
     <div class="mb-3">
-        {{ form.jugadores.label_tag }}
-        {{ form.jugadores }}
-        {% if form.jugadores.errors %}<div class="text-danger">{{ form.jugadores.errors }}</div>{% endif %}
-    </div>
-    <div class="mb-3">
         {{ form.partido.label_tag }}
         {{ form.partido }}
         {% if form.partido.errors %}<div class="text-danger">{{ form.partido.errors }}</div>{% endif %}
+    </div>
+    <div class="mb-2">
+        <small class="text-muted">Seleccionados: <span id="jugadores-seleccionados">0</span>/<span id="jugadores-total">{% if jugadores_list %}{{ jugadores_list|length }}{% else %}0{% endif %}</span></small>
+    </div>
+    <div class="mb-3">
+        {{ form.jugadores.label_tag }}
+        <div class="form-check">
+            {% comment %} Renderizamos manualmente la lista para asegurar orden alfabético {% endcomment %}
+            {% if jugadores_list %}
+                {% with selected=form.jugadores.value %}
+                    {% for jugador in jugadores_list %}
+                        {% with jid=jugador.id|stringformat:"s" %}
+                            <div class="form-check d-flex align-items-center">
+                                <input class="form-check-input me-2" type="checkbox" name="jugadores" id="jugador_{{ jugador.id }}" value="{{ jugador.id }}" {% if selected and jid in selected %}checked{% endif %}>
+                                {% if jugador.foto %}
+                                    <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }} {{ jugador.apellido }}" class="player-thumb rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;">
+                                {% else %}
+                                    <img src="/static/img/default_avatar.png" alt="Sin foto" class="player-thumb rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;">
+                                {% endif %}
+                                <label class="form-check-label mb-0" for="jugador_{{ jugador.id }}">{{ jugador.nombre }} {{ jugador.apellido }}</label>
+                            </div>
+                        {% endwith %}
+                    {% endfor %}
+                {% endwith %}
+            {% else %}
+                <div class="text-muted">Seleccione un equipo para ver los jugadores.</div>
+            {% endif %}
+        </div>
+        {% if form.jugadores.errors %}<div class="text-danger">{{ form.jugadores.errors }}</div>{% endif %}
     </div>
     <button type="submit" class="btn btn-success">Registrar participaciones</button>
     <a href="{% url 'admin_participaciones' %}" class="btn btn-secondary">Cancelar</a>
@@ -31,5 +55,27 @@ if (equipoSelect) {
         window.location.href = url.toString();
     });
 }
+
+// Contador dinámico de jugadores seleccionados
+function actualizarContadorJugadores() {
+    // Los inputs generados por CheckboxSelectMultiple tienen name 'jugadores'
+    const checkboxes = document.querySelectorAll('input[name="jugadores"]');
+    const contadorEl = document.getElementById('jugadores-seleccionados');
+    const totalEl = document.getElementById('jugadores-total');
+    if (!contadorEl) return;
+    let count = 0;
+    checkboxes.forEach(cb => { if (cb.checked) count++; });
+    const total = (totalEl && totalEl.textContent) ? parseInt(totalEl.textContent) : checkboxes.length;
+    // Mostrar solo el número seleccionado en el span izquierdo; el total queda en #jugadores-total
+    contadorEl.textContent = count;
+}
+
+// Añadir listeners a los checkboxes (y actualizar al cargar)
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('input[name="jugadores"]');
+    checkboxes.forEach(cb => cb.addEventListener('change', actualizarContadorJugadores));
+    // Actualizar al inicio (por si hay checkboxes pre-seleccionados)
+    actualizarContadorJugadores();
+});
 </script>
 {% endblock %}

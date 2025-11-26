@@ -20,7 +20,8 @@ class ParticipacionMultipleForm(forms.Form):
                 self.fields['equipo'].queryset = Equipo.objects.none()
 
         if equipo_id:
-            self.fields['jugadores'].queryset = Jugador.objects.filter(equipo_id=equipo_id)
+            # Ordenar jugadores alfabéticamente por nombre y apellido
+            self.fields['jugadores'].queryset = Jugador.objects.filter(equipo_id=equipo_id).order_by('nombre', 'apellido')
             # Mostrar sólo partidos en los que participa el equipo y que ya fueron jugados
             self.fields['partido'].queryset = Partido.objects.filter(
                 (models.Q(equipo_local__id=equipo_id) | models.Q(equipo_visitante__id=equipo_id)),

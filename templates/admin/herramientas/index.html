@@ -89,7 +89,7 @@
                             <p class="card-text small">
                                 Marca automáticamente como "jugados" todos los partidos que tienen resultado registrado.
                             </p>
-                            <form method="post" action="{% url 'admin_corregir_inconsistencias' %}" 
+                    <form method="post" action="{% url 'admin_herramientas' %}" 
                                   onsubmit="return confirm('¿Está seguro de marcar como jugados todos los partidos con resultado?')">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="marcar_jugados">
@@ -112,7 +112,7 @@
                             <p class="card-text small">
                                 Asigna la fecha actual a todos los partidos finalizados que no tienen fecha registrada.
                             </p>
-                            <form method="post" action="{% url 'admin_corregir_inconsistencias' %}" 
+                    <form method="post" action="{% url 'admin_herramientas' %}" 
                                   onsubmit="return confirm('¿Está seguro de asignar la fecha actual a los partidos sin fecha?')">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="asignar_fechas">
@@ -135,7 +135,7 @@
                             <p class="card-text small">
                                 Resetea a 0-0 los resultados de partidos que no están marcados como jugados.
                             </p>
-                            <form method="post" action="{% url 'admin_corregir_inconsistencias' %}" 
+                    <form method="post" action="{% url 'admin_herramientas' %}" 
                                   onsubmit="return confirm('¡ATENCIÓN! Esto borrará los resultados. ¿Está seguro?')">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="resetear_resultados">

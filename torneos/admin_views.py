@@ -198,7 +198,15 @@ def admin_crear_participaciones_multiples(request):
                     pass
         messages.success(request, f'Se registraron {creadas} participaciones.')
         return redirect('admin_participaciones')
-    context = {'form': form, 'action': 'Registrar múltiples', 'equipo_id': equipo_id}
+    # Preparar lista de jugadores ordenada para la plantilla (mejor control de orden)
+    jugadores_list = []
+    if equipo_id:
+        try:
+            jugadores_list = list(Jugador.objects.filter(equipo_id=equipo_id).order_by('nombre', 'apellido'))
+        except Exception:
+            jugadores_list = []
+
+    context = {'form': form, 'action': 'Registrar múltiples', 'equipo_id': equipo_id, 'jugadores_list': jugadores_list}
     return render(request, 'admin/participaciones/form_multiple.html', context)
 
 # ...existing code...
