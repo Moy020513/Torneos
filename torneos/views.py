@@ -391,15 +391,16 @@ def administrar_torneo(request, torneo_id):
     categorias = Categoria.objects.filter(torneo=torneo)
     
     if request.method == 'POST':
-        form = CategoriaForm(request.POST)
+        form = CategoriaForm(request.POST, assigned_torneo=torneo.id)
         if form.is_valid():
             categoria = form.save(commit=False)
+            # Forzar el torneo a la instancia del administrador
             categoria.torneo = torneo
             categoria.save()
             messages.success(request, 'Categoría creada exitosamente.')
             return redirect('administrar_torneo', torneo_id=torneo_id)
     else:
-        form = CategoriaForm()
+        form = CategoriaForm(assigned_torneo=torneo.id)
     
     context = {
         'torneo': torneo,

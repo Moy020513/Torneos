@@ -154,10 +154,22 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 @user_passes_test(is_admin)
 def admin_crear_participaciones_multiples(request):
     equipo_id = request.GET.get('equipo') or request.POST.get('equipo')
-    form = ParticipacionMultipleForm(request.POST or None, equipo_id=equipo_id)
+    # Limitar equipos si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    form = ParticipacionMultipleForm(request.POST or None, equipo_id=equipo_id, assigned_torneo=assigned_torneo)
     if request.method == 'POST' and form.is_valid():
         jugadores = form.cleaned_data['jugadores']
         partido = form.cleaned_data['partido']
+        equipo = form.cleaned_data.get('equipo')
+        # Validación servidor-side: asegurar que el equipo pertenece al torneo asignado
+        if assigned_torneo and equipo and not request.user.is_superuser:
+            if equipo.categoria.torneo_id != assigned_torneo:
+                messages.error(request, 'No puedes registrar participaciones para un equipo de otro torneo.')
+                context = {'form': form, 'action': 'Registrar múltiples', 'equipo_id': equipo_id}
+                return render(request, 'admin/participaciones/form_multiple.html', context)
         creadas = 0
         for jugador in jugadores:
             obj, created = ParticipacionJugador.objects.get_or_create(jugador=jugador, partido=partido)
@@ -784,14 +796,25 @@ def admin_categorias(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_categoria(request):
+    # Si el usuario es AdministradorTorneo, obtener su torneo asignado y pasarlo al formulario
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = CategoriaForm(request.POST)
+        form = CategoriaForm(request.POST, assigned_torneo=assigned_torneo)
         if form.is_valid():
-            form.save()
+            # Si hay torneo asignado, forzar ese valor antes de guardar porque el campo puede venir deshabilitado
+            if assigned_torneo and not request.user.is_superuser:
+                categoria = form.save(commit=False)
+                categoria.torneo_id = assigned_torneo
+                categoria.save()
+            else:
+                form.save()
             messages.success(request, 'Categoría creada exitosamente.')
             return redirect('admin_categorias')
     else:
-        form = CategoriaForm()
+        form = CategoriaForm(assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -803,15 +826,24 @@ def admin_crear_categoria(request):
 @user_passes_test(is_admin)
 def admin_editar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
-    
+    # Si el usuario es AdministradorTorneo, obtener su torneo asignado
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = CategoriaForm(request.POST, instance=categoria)
+        form = CategoriaForm(request.POST, instance=categoria, assigned_torneo=assigned_torneo)
         if form.is_valid():
-            form.save()
+            if assigned_torneo and not request.user.is_superuser:
+                categoria_obj = form.save(commit=False)
+                categoria_obj.torneo_id = assigned_torneo
+                categoria_obj.save()
+            else:
+                form.save()
             messages.success(request, 'Categoría actualizada exitosamente.')
             return redirect('admin_categorias')
     else:
-        form = CategoriaForm(instance=categoria)
+        form = CategoriaForm(instance=categoria, assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -895,14 +927,29 @@ def admin_equipos(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_equipo(request):
+    # Limitar categorías si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = EquipoForm(request.POST, request.FILES)
+        form = EquipoForm(request.POST, request.FILES, assigned_torneo=assigned_torneo)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Equipo creado exitosamente.')
-            return redirect('admin_equipos')
+            # Validar que la categoría pertenezca al torneo asignado si aplica
+            if assigned_torneo and not request.user.is_superuser:
+                categoria = form.cleaned_data.get('categoria')
+                if categoria and categoria.torneo_id != assigned_torneo:
+                    messages.error(request, 'No puedes crear un equipo en una categoría de otro torneo.')
+                else:
+                    form.save()
+                    messages.success(request, 'Equipo creado exitosamente.')
+                    return redirect('admin_equipos')
+            else:
+                form.save()
+                messages.success(request, 'Equipo creado exitosamente.')
+                return redirect('admin_equipos')
     else:
-        form = EquipoForm()
+        form = EquipoForm(assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -914,15 +961,28 @@ def admin_crear_equipo(request):
 @user_passes_test(is_admin)
 def admin_editar_equipo(request, equipo_id):
     equipo = get_object_or_404(Equipo, id=equipo_id)
-    
+    # Limitar categorías si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = EquipoForm(request.POST, request.FILES, instance=equipo)
+        form = EquipoForm(request.POST, request.FILES, instance=equipo, assigned_torneo=assigned_torneo)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Equipo actualizado exitosamente.')
-            return redirect('admin_equipos')
+            if assigned_torneo and not request.user.is_superuser:
+                categoria = form.cleaned_data.get('categoria')
+                if categoria and categoria.torneo_id != assigned_torneo:
+                    messages.error(request, 'No puedes asignar una categoría de otro torneo.')
+                else:
+                    form.save()
+                    messages.success(request, 'Equipo actualizado exitosamente.')
+                    return redirect('admin_equipos')
+            else:
+                form.save()
+                messages.success(request, 'Equipo actualizado exitosamente.')
+                return redirect('admin_equipos')
     else:
-        form = EquipoForm(instance=equipo)
+        form = EquipoForm(instance=equipo, assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -1011,21 +1071,31 @@ def admin_jugadores(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_jugador(request):
+    # Limitar equipos si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = JugadorForm(request.POST, request.FILES)
+        form = JugadorForm(request.POST, request.FILES, assigned_torneo=assigned_torneo)
         if form.is_valid():
-            jugador = form.save(commit=False)
-            # Asegurar que los jugadores siempre se creen como activos
-            jugador.activo = True
-            # Si el admin marca verificado al crear, registrar auditoría
-            if form.cleaned_data.get('verificado'):
-                jugador.verificado_por = request.user
-                jugador.fecha_verificacion = timezone.now()
-            jugador.save()
-            messages.success(request, 'Jugador creado exitosamente.')
-            return redirect('admin_jugadores')
+            # Validar que el equipo pertenezca al torneo asignado si aplica
+            equipo = form.cleaned_data.get('equipo')
+            if assigned_torneo and not request.user.is_superuser and equipo and equipo.categoria.torneo_id != assigned_torneo:
+                messages.error(request, 'No puedes crear un jugador en un equipo de otro torneo.')
+            else:
+                jugador = form.save(commit=False)
+                # Asegurar que los jugadores siempre se creen como activos
+                jugador.activo = True
+                # Si el admin marca verificado al crear, registrar auditoría
+                if form.cleaned_data.get('verificado'):
+                    jugador.verificado_por = request.user
+                    jugador.fecha_verificacion = timezone.now()
+                jugador.save()
+                messages.success(request, 'Jugador creado exitosamente.')
+                return redirect('admin_jugadores')
     else:
-        form = JugadorForm()
+        form = JugadorForm(assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -1037,25 +1107,33 @@ def admin_crear_jugador(request):
 @user_passes_test(is_admin)
 def admin_editar_jugador(request, jugador_id):
     jugador = get_object_or_404(Jugador, id=jugador_id)
-    
+    # Limitar equipos si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = JugadorForm(request.POST, request.FILES, instance=jugador)
+        form = JugadorForm(request.POST, request.FILES, instance=jugador, assigned_torneo=assigned_torneo)
         if form.is_valid():
-            jugador = form.save(commit=False)
-            # Mantener siempre activo
-            jugador.activo = True
-            # Actualizar auditoría de verificación según el checkbox
-            if form.cleaned_data.get('verificado'):
-                jugador.verificado_por = request.user
-                jugador.fecha_verificacion = timezone.now()
+            equipo = form.cleaned_data.get('equipo')
+            if assigned_torneo and not request.user.is_superuser and equipo and equipo.categoria.torneo_id != assigned_torneo:
+                messages.error(request, 'No puedes asignar un jugador a un equipo de otro torneo.')
             else:
-                jugador.verificado_por = None
-                jugador.fecha_verificacion = None
-            jugador.save()
-            messages.success(request, 'Jugador actualizado exitosamente.')
-            return redirect('admin_jugadores')
+                jugador = form.save(commit=False)
+                # Mantener siempre activo
+                jugador.activo = True
+                # Actualizar auditoría de verificación según el checkbox
+                if form.cleaned_data.get('verificado'):
+                    jugador.verificado_por = request.user
+                    jugador.fecha_verificacion = timezone.now()
+                else:
+                    jugador.verificado_por = None
+                    jugador.fecha_verificacion = None
+                jugador.save()
+                messages.success(request, 'Jugador actualizado exitosamente.')
+                return redirect('admin_jugadores')
     else:
-        form = JugadorForm(instance=jugador)
+        form = JugadorForm(instance=jugador, assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -1155,14 +1233,50 @@ def admin_partidos(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_partido(request):
+    # Limitar grupos y equipos si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = PartidoForm(request.POST)
+        form = PartidoForm(request.POST, assigned_torneo=assigned_torneo)
         if form.is_valid():
+            # Validaciones servidor-side: asegurar que los equipos y grupo pertenezcan al torneo asignado
+            if assigned_torneo and not request.user.is_superuser:
+                grupo = form.cleaned_data.get('grupo')
+                equipo_local = form.cleaned_data.get('equipo_local')
+                equipo_visitante = form.cleaned_data.get('equipo_visitante')
+                invalid = False
+                if grupo and grupo.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if equipo_local and equipo_local.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if equipo_visitante and equipo_visitante.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if invalid:
+                    messages.error(request, 'No puedes crear un partido con equipos o grupo de otro torneo.')
+                    context = {'form': form, 'action': 'Crear'}
+                    return render(request, 'admin/partidos/form.html', context)
+                # Validar ubicacion (si se seleccionó) pertenece al torneo
+                ubicacion = form.cleaned_data.get('ubicacion')
+                if ubicacion:
+                    try:
+                        from .models import UbicacionCampo
+                        if not UbicacionCampo.objects.filter(id=ubicacion.id).filter(
+                            Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
+                            Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
+                            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+                        ).exists():
+                            messages.error(request, 'La ubicación seleccionada no está asociada a tu torneo.')
+                            context = {'form': form, 'action': 'Crear'}
+                            return render(request, 'admin/partidos/form.html', context)
+                    except Exception:
+                        pass
             form.save()
             messages.success(request, 'Partido creado exitosamente.')
             return redirect('admin_partidos')
     else:
-        form = PartidoForm()
+        form = PartidoForm(assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -1174,15 +1288,49 @@ def admin_crear_partido(request):
 @user_passes_test(is_admin)
 def admin_editar_partido(request, partido_id):
     partido = get_object_or_404(Partido, id=partido_id)
-    
+    # Limitar grupos y equipos si el usuario es AdministradorTorneo
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = PartidoForm(request.POST, instance=partido)
+        form = PartidoForm(request.POST, instance=partido, assigned_torneo=assigned_torneo)
         if form.is_valid():
+            if assigned_torneo and not request.user.is_superuser:
+                grupo = form.cleaned_data.get('grupo')
+                equipo_local = form.cleaned_data.get('equipo_local')
+                equipo_visitante = form.cleaned_data.get('equipo_visitante')
+                invalid = False
+                if grupo and grupo.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if equipo_local and equipo_local.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if equipo_visitante and equipo_visitante.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if invalid:
+                    messages.error(request, 'No puedes asignar equipos o grupo de otro torneo.')
+                    context = {'form': form, 'partido': partido, 'action': 'Editar'}
+                    return render(request, 'admin/partidos/form.html', context)
+            # Validar ubicacion (si se seleccionó) pertenece al torneo
+            ubicacion = form.cleaned_data.get('ubicacion')
+            if ubicacion:
+                try:
+                    from .models import UbicacionCampo
+                    if not UbicacionCampo.objects.filter(id=ubicacion.id).filter(
+                        Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
+                        Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
+                        Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+                    ).exists():
+                        messages.error(request, 'La ubicación seleccionada no está asociada a tu torneo.')
+                        context = {'form': form, 'partido': partido, 'action': 'Editar'}
+                        return render(request, 'admin/partidos/form.html', context)
+                except Exception:
+                    pass
             form.save()
             messages.success(request, 'Partido actualizado exitosamente.')
             return redirect('admin_partidos')
     else:
-        form = PartidoForm(instance=partido)
+        form = PartidoForm(instance=partido, assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -1357,7 +1505,17 @@ def admin_usuarios(request):
     is_staff = request.GET.get('is_staff')
     is_active = request.GET.get('is_active')
     
-    usuarios = User.objects.all()
+    # Si el usuario es AdministradorTorneo, limitar la lista a los usuarios que él creó
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    if assigned_torneo:
+        from .models import UsuarioCreado
+        usuarios_ids = UsuarioCreado.objects.filter(creado_por=request.user).values_list('usuario_id', flat=True)
+        usuarios = User.objects.filter(id__in=usuarios_ids)
+    else:
+        usuarios = User.objects.all()
     
     if search:
         usuarios = usuarios.filter(
@@ -1402,14 +1560,37 @@ def admin_usuarios(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_usuario(request):
+    # Si el usuario es AdministradorTorneo, no puede crear usuarios con privilegios
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+    restrict_privileges = bool(assigned_torneo) and not request.user.is_superuser
+
     if request.method == 'POST':
-        form = UsuarioForm(request.POST)
+        form = UsuarioForm(request.POST, restrict_privileges=restrict_privileges)
         if form.is_valid():
-            user = form.save()
+            # Guardar sin commitear para forzar flags si corresponde
+            user = form.save(commit=False)
+            # Forzar que sea usuario normal si el creador es admin de torneo
+            if restrict_privileges:
+                user.is_staff = False
+                user.is_superuser = False
+            # Manejar contraseña (UsuarioForm.save hace set_password, replicamos aquí)
+            password = form.cleaned_data.get('password')
+            if password:
+                user.set_password(password)
+            user.save()
+            # Registrar que este usuario fue creado por el admin actual (si aplica)
+            try:
+                from .models import UsuarioCreado
+                UsuarioCreado.objects.create(usuario=user, creado_por=request.user)
+            except Exception:
+                # No fallar si por alguna razón no podemos registrar la relación
+                pass
             messages.success(request, f'Usuario "{user.username}" creado exitosamente.')
             return redirect('admin_usuarios')
     else:
-        form = UsuarioForm()
+        form = UsuarioForm(restrict_privileges=restrict_privileges)
     
     context = {
         'form': form,
@@ -1421,15 +1602,20 @@ def admin_crear_usuario(request):
 @user_passes_test(is_admin)
 def admin_editar_usuario(request, usuario_id):
     usuario = get_object_or_404(User, id=usuario_id)
-    
+    # Si el editor es AdministradorTorneo, ocultar/deshabilitar campos de privilegios en el formulario
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+    restrict_privileges = bool(assigned_torneo) and not request.user.is_superuser
+
     if request.method == 'POST':
-        form = UsuarioEditForm(request.POST, instance=usuario)
+        form = UsuarioEditForm(request.POST, instance=usuario, restrict_privileges=restrict_privileges)
         if form.is_valid():
             user = form.save()
             messages.success(request, f'Usuario "{user.username}" actualizado exitosamente.')
             return redirect('admin_usuarios')
     else:
-        form = UsuarioEditForm(instance=usuario)
+        form = UsuarioEditForm(instance=usuario, restrict_privileges=restrict_privileges)
     
     context = {
         'form': form,
@@ -1522,14 +1708,36 @@ def admin_capitanes(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_capitan(request):
+    # Si el usuario es AdministradorTorneo, limitar usuarios a los que él creó
+    assigned_torneo = None
+    created_by = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            created_by = request.user
+
     if request.method == 'POST':
-        form = CapitanForm(request.POST)
+        form = CapitanForm(request.POST, created_by=created_by)
         if form.is_valid():
+            # Validación adicional en servidor: asegurarnos de que el usuario seleccionado fue creado por este admin
+            if created_by and not request.user.is_superuser:
+                try:
+                    from .models import UsuarioCreado
+                    usuario_sel = form.cleaned_data.get('usuario')
+                    # permitir también mantener el usuario actual si existiera (no aplica en crear)
+                    if not UsuarioCreado.objects.filter(usuario=usuario_sel, creado_por=request.user).exists():
+                        messages.error(request, 'No puedes asignar como capitán a un usuario que no hayas creado.')
+                        # volver a mostrar formulario con errores
+                        context = {'form': form, 'action': 'Crear'}
+                        return render(request, 'admin/capitanes/form.html', context)
+                except Exception:
+                    # Si falla la comprobación, no bloquear (pero en general no debería pasar)
+                    pass
             capitan = form.save()
             messages.success(request, f'Capitán "{capitan.usuario.username}" asignado exitosamente.')
             return redirect('admin_capitanes')
     else:
-        form = CapitanForm()
+        form = CapitanForm(created_by=created_by)
     
     context = {
         'form': form,
@@ -1541,15 +1749,34 @@ def admin_crear_capitan(request):
 @user_passes_test(is_admin)
 def admin_editar_capitan(request, capitan_id):
     capitan = get_object_or_404(Capitan, id=capitan_id)
-    
+    # Si el editor es AdministradorTorneo, limitar usuarios a los que él creó
+    assigned_torneo = None
+    created_by = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            created_by = request.user
+
     if request.method == 'POST':
-        form = CapitanForm(request.POST, instance=capitan)
+        form = CapitanForm(request.POST, instance=capitan, created_by=created_by)
         if form.is_valid():
+            # Validación adicional: si el editor es admin de torneo, no permitir asignar usuarios que no haya creado
+            if created_by and not request.user.is_superuser:
+                try:
+                    from .models import UsuarioCreado
+                    usuario_sel = form.cleaned_data.get('usuario')
+                    # Permitir si el usuario fue creado por este admin o si es el usuario actual del capitan
+                    if usuario_sel.id != capitan.usuario.id and not UsuarioCreado.objects.filter(usuario=usuario_sel, creado_por=request.user).exists():
+                        messages.error(request, 'No puedes asignar como capitán a un usuario que no hayas creado.')
+                        context = {'form': form, 'capitan': capitan, 'action': 'Editar'}
+                        return render(request, 'admin/capitanes/form.html', context)
+                except Exception:
+                    pass
             capitan = form.save()
             messages.success(request, f'Capitán "{capitan.usuario.username}" actualizado exitosamente.')
             return redirect('admin_capitanes')
     else:
-        form = CapitanForm(instance=capitan)
+        form = CapitanForm(instance=capitan, created_by=created_by)
     
     context = {
         'form': form,

@@ -224,6 +224,21 @@ class AdministradorTorneo(models.Model):
     def __str__(self):
         return f"{self.usuario.username} → {self.torneo.nombre}"
 
+
+class UsuarioCreado(models.Model):
+    """Registro simple para saber qué usuario fue creado por qué administrador.
+
+    Se crea una entrada al momento de que un administrador (incluido
+    AdministradorTorneo) crea un nuevo `User`. Esto permite filtrar la lista
+    de usuarios para que un AdministradorTorneo vea solo los usuarios que él creó.
+    """
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registro_creador')
+    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, related_name='usuarios_creados')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.usuario.username} creado por {self.creado_por.username}"
+
 class Grupo(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=50)

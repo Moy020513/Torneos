@@ -156,6 +156,7 @@
                                     <div class="form-text small">El usuario puede iniciar sesión</div>
                                 </div>
                             </div>
+                            {% if form.is_staff %}
                             <div class="col-md-4">
                                 <div class="admin-form-group">
                                     <div class="form-check">
@@ -167,6 +168,8 @@
                                     <div class="form-text small">Puede acceder al panel de administración</div>
                                 </div>
                             </div>
+                            {% endif %}
+                            {% if form.is_superuser %}
                             <div class="col-md-4">
                                 <div class="admin-form-group">
                                     <div class="form-check">
@@ -178,6 +181,7 @@
                                     <div class="form-text small">Tiene todos los permisos automáticamente</div>
                                 </div>
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                     
@@ -298,6 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Advertencia para superusuario
+    {% if form.is_superuser %}
     const superuserCheck = document.getElementById('{{ form.is_superuser.id_for_label }}');
     if (superuserCheck) {
         superuserCheck.addEventListener('change', function() {
@@ -308,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    {% endif %}
 });
 </script>
 {% endblock %}

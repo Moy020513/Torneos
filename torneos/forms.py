@@ -9,7 +9,16 @@ class ParticipacionMultipleForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         equipo_id = kwargs.pop('equipo_id', None)
+        # Permitir pasar assigned_torneo (id) para limitar equipos disponibles
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
         super().__init__(*args, **kwargs)
+        # Limitar el queryset del campo 'equipo' si se proporciona assigned_torneo
+        if assigned_torneo:
+            try:
+                self.fields['equipo'].queryset = Equipo.objects.filter(categoria__torneo_id=assigned_torneo)
+            except Exception:
+                self.fields['equipo'].queryset = Equipo.objects.none()
+
         if equipo_id:
             self.fields['jugadores'].queryset = Jugador.objects.filter(equipo_id=equipo_id)
             # Mostrar sólo partidos en los que participa el equipo y que ya fueron jugados
@@ -94,6 +103,33 @@ class CategoriaForm(AdminFormMixin, forms.ModelForm):
             'num_equipos_eliminatoria': 'Equipos en Eliminatorias',
         }
 
+    def __init__(self, *args, **kwargs):
+        """Permite pasar assigned_torneo (id) para restringir y deshabilitar el campo torneo.
+
+        Si se pasa assigned_torneo (int), el campo 'torneo' queda con queryset solo de ese torneo,
+        se establece el valor inicial y se deshabilita el widget para impedir cambios desde UI.
+        Como los campos deshabilitados no se incluyen en POST, no confíes en que vengan en cleaned_data;
+        la vista que crea/edita debe forzar el torneo antes de guardar cuando corresponda.
+        """
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
+        super().__init__(*args, **kwargs)
+
+        # Si nos pasan un torneo asignado, limitar las opciones y deshabilitar selector
+        if assigned_torneo:
+            try:
+                from .models import Torneo
+                torneo_qs = Torneo.objects.filter(id=assigned_torneo)
+                self.fields['torneo'].queryset = torneo_qs
+                # Establecer initial si hay exactamente uno
+                if torneo_qs.exists():
+                    self.initial['torneo'] = torneo_qs.first()
+                # Deshabilitar el campo en la UI (no editable)
+                self.fields['torneo'].widget.attrs.update({'disabled': 'disabled'})
+                # No exigir su presencia en POST ya que estará ausente cuando esté deshabilitado
+                self.fields['torneo'].required = False
+            except Exception:
+                pass
+
 class EquipoForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Equipo
@@ -110,6 +146,29 @@ class EquipoForm(AdminFormMixin, forms.ModelForm):
             'color_secundario': 'Color Secundario',
             'activo': 'Equipo Activo',
         }
+
+    def __init__(self, *args, **kwargs):
+        """Limitar el queryset de 'categoria' cuando se pasa assigned_torneo (id).
+
+        Si assigned_torneo es proporcionado, solo se mostrarán categorías de ese torneo.
+        """
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
+        super().__init__(*args, **kwargs)
+
+        # Si se pasó assigned_torneo, limitar opciones
+        if assigned_torneo:
+            try:
+                self.fields['categoria'].queryset = Categoria.objects.filter(torneo_id=assigned_torneo)
+            except Exception:
+                # En caso de error, dejar la queryset por defecto
+                self.fields['categoria'].queryset = Categoria.objects.none()
+        else:
+            # Si ya existe una instancia con categoria, dejar al menos esa opción
+            if self.instance and getattr(self.instance, 'categoria', None):
+                torneo = self.instance.categoria.torneo
+                self.fields['categoria'].queryset = Categoria.objects.filter(torneo=torneo)
+            else:
+                self.fields['categoria'].queryset = Categoria.objects.all()
 
 
 # Formulario para el panel de administración
@@ -134,7 +193,33 @@ class JugadorForm(AdminFormMixin, forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """Permite pasar assigned_torneo (id) para mostrar solo equipos del torneo asignado.
+
+        Si assigned_torneo se proporciona, el queryset del campo 'equipo' se limitará
+        a los equipos cuyas categorías pertenecen a ese torneo. También se intenta
+        mantener comportamiento razonable al editar una instancia existente.
+        """
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
         super().__init__(*args, **kwargs)
+
+        # Limitar el queryset de 'equipo' según el torneo asignado cuando corresponda
+        if assigned_torneo:
+            try:
+                self.fields['equipo'].queryset = Equipo.objects.filter(categoria__torneo_id=assigned_torneo)
+            except Exception:
+                self.fields['equipo'].queryset = Equipo.objects.none()
+        else:
+            # Si estamos editando y la instancia tiene equipo, limitar al torneo de ese equipo
+            if self.instance and getattr(self.instance, 'equipo', None):
+                try:
+                    equipo = self.instance.equipo
+                    torneo = equipo.categoria.torneo
+                    self.fields['equipo'].queryset = Equipo.objects.filter(categoria=torneo)
+                except Exception:
+                    self.fields['equipo'].queryset = Equipo.objects.all()
+            else:
+                self.fields['equipo'].queryset = Equipo.objects.all()
+
         # Si viene una instancia con fecha_nacimiento, formatearla para que el input[type=date] la muestre correctamente
         instance = getattr(self, 'instance', None)
         if instance and getattr(instance, 'fecha_nacimiento', None):
@@ -193,7 +278,68 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # Permitir pasar assigned_torneo para limitar grupos y equipos al torneo asignado
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
         super().__init__(*args, **kwargs)
+
+        # Limitar los querysets de grupo y equipos cuando corresponda
+        if assigned_torneo:
+            try:
+                self.fields['grupo'].queryset = Grupo.objects.filter(categoria__torneo_id=assigned_torneo)
+            except Exception:
+                self.fields['grupo'].queryset = Grupo.objects.none()
+            try:
+                equipos_qs = Equipo.objects.filter(categoria__torneo_id=assigned_torneo)
+                self.fields['equipo_local'].queryset = equipos_qs
+                self.fields['equipo_visitante'].queryset = equipos_qs
+            except Exception:
+                self.fields['equipo_local'].queryset = Equipo.objects.none()
+                self.fields['equipo_visitante'].queryset = Equipo.objects.none()
+            # Limitar ubicaciones a aquellas asociadas al torneo (si existieran)
+            try:
+                from django.db.models import Q
+                ubicaciones_qs = UbicacionCampo.objects.filter(
+                    Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
+                    Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
+                    Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+                ).distinct()
+                # Si no hay ubicaciones asociadas, dejamos la queryset vacía para evitar mostrar ubicaciones de otros torneos
+                if ubicaciones_qs.exists():
+                    self.fields['ubicacion'].queryset = ubicaciones_qs
+                else:
+                    # Si no existen ubicaciones aún, permitir todas (para que el admin pueda crear la primera)
+                    self.fields['ubicacion'].queryset = UbicacionCampo.objects.none()
+            except Exception:
+                self.fields['ubicacion'].queryset = UbicacionCampo.objects.none()
+        else:
+            # Si estamos editando, asegurar que los equipos actuales estén incluidos en la queryset
+            if self.instance and getattr(self.instance, 'equipo_local', None):
+                try:
+                    equipo = self.instance.equipo_local
+                    self.fields['equipo_local'].queryset = Equipo.objects.filter(categoria=equipo.categoria)
+                except Exception:
+                    self.fields['equipo_local'].queryset = Equipo.objects.all()
+            else:
+                self.fields['equipo_local'].queryset = Equipo.objects.all()
+
+            if self.instance and getattr(self.instance, 'equipo_visitante', None):
+                try:
+                    equipo = self.instance.equipo_visitante
+                    self.fields['equipo_visitante'].queryset = Equipo.objects.filter(categoria=equipo.categoria)
+                except Exception:
+                    self.fields['equipo_visitante'].queryset = Equipo.objects.all()
+            else:
+                self.fields['equipo_visitante'].queryset = Equipo.objects.all()
+
+            if self.instance and getattr(self.instance, 'grupo', None):
+                try:
+                    grupo = self.instance.grupo
+                    self.fields['grupo'].queryset = Grupo.objects.filter(categoria=grupo.categoria)
+                except Exception:
+                    self.fields['grupo'].queryset = Grupo.objects.all()
+            else:
+                self.fields['grupo'].queryset = Grupo.objects.all()
+
         if self.instance and self.instance.fecha:
             self.fields['fecha'].initial = self.instance.fecha.strftime('%Y-%m-%dT%H:%M')
 
@@ -243,6 +389,19 @@ class UsuarioForm(AdminFormMixin, forms.ModelForm):
             user.save()
         
         return user
+
+    def __init__(self, *args, **kwargs):
+        """Si restrict_privileges=True, ocultar/deshabilitar campos de privilegios.
+
+        Esto se usa para que administradores de torneo no vean ni puedan asignar
+        is_staff/is_superuser al crear usuarios.
+        """
+        restrict_privileges = kwargs.pop('restrict_privileges', False)
+        super().__init__(*args, **kwargs)
+        if restrict_privileges:
+            # Quitar los campos por completo para que no sean visibles en la plantilla
+            self.fields.pop('is_staff', None)
+            self.fields.pop('is_superuser', None)
 
 # Formularios originales (mantenidos para compatibilidad)
 class EquipoAdminForm(forms.ModelForm):
@@ -386,6 +545,19 @@ class UsuarioEditForm(AdminFormMixin, forms.ModelForm):
         
         return user
 
+    def __init__(self, *args, **kwargs):
+        """Si restrict_privileges=True, deshabilitar campos is_staff/is_superuser en la UI.
+
+        No cambia el comportamiento de guardado; se usa para evitar que administradores
+        asignados intenten promover usuarios.
+        """
+        restrict_privileges = kwargs.pop('restrict_privileges', False)
+        super().__init__(*args, **kwargs)
+        if restrict_privileges:
+            # Quitar los campos por completo para que no aparezcan al editar
+            self.fields.pop('is_staff', None)
+            self.fields.pop('is_superuser', None)
+
 class CapitanForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Capitan
@@ -397,6 +569,8 @@ class CapitanForm(AdminFormMixin, forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        # Permitir restringir usuarios a los creados por un administrador
+        created_by = kwargs.pop('created_by', None)
         super().__init__(*args, **kwargs)
         from django.db.models import Q
         
@@ -409,7 +583,24 @@ class CapitanForm(AdminFormMixin, forms.ModelForm):
         else:
             # Al crear, solo usuarios sin capitanía
             usuarios_sin_capitan = User.objects.filter(capitan__isnull=True)
-        
+
+        # Si se pasa created_by (usuario que creó usuarios), limitar a los usuarios creados por él
+        if created_by:
+            try:
+                from .models import UsuarioCreado
+                usuarios_ids = list(UsuarioCreado.objects.filter(creado_por=created_by).values_list('usuario_id', flat=True))
+                # Si estamos editando, asegurarnos de permitir el usuario actual aunque no esté en la lista
+                if self.instance and getattr(self.instance, 'usuario', None):
+                    usuarios_ids = list(set(usuarios_ids) | {self.instance.usuario.id})
+                if usuarios_ids:
+                    usuarios_sin_capitan = usuarios_sin_capitan.filter(id__in=usuarios_ids)
+                else:
+                    # No hay usuarios creados por ese admin -> queryset vacía
+                    usuarios_sin_capitan = User.objects.none()
+            except Exception:
+                # En caso de error, no aplicar la restricción adicional
+                pass
+
         self.fields['usuario'].queryset = usuarios_sin_capitan
         
         # Filtrar equipos que no tienen capitán (excepto si estamos editando)
