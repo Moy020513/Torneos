@@ -262,6 +262,10 @@ class Partido(models.Model):
     def __str__(self):
         return f"{self.equipo_local} vs {self.equipo_visitante} - Jornada {self.jornada}"
     
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('partido_detalle', args=[str(self.id)])
+    
     class Meta:
         ordering = ['jornada', 'fecha']
 

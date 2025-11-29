@@ -138,7 +138,7 @@
         <div class="card-body" id="ultimos-resultados-lista">
             {% if ultimos_resultados %}
                 {% for partido in ultimos_resultados %}
-                <div class="match-card jugado" data-jornada="{{ partido.jornada }}">
+                <div class="match-card jugado" data-jornada="{{ partido.jornada }}" data-url="{% url 'partido_detalle' partido.id %}">
                     <div class="row align-items-center">
                         <div class="col-md-1 d-none d-sm-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
                             <span class="match-status status-jugado mb-2">J{{ partido.jornada }}</span>
@@ -232,6 +232,18 @@
                     } else {
                         card.style.display = 'none';
                     }
+                });
+            });
+
+            // Hacer las tarjetas clicables pero respetar enlaces/botones internos
+            resultados.forEach(function(card) {
+                const url = card.getAttribute('data-url');
+                if (!url) return;
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', function(e) {
+                    // Si el click fue sobre un enlace o botón, no navegamos
+                    if (e.target.closest('a') || e.target.closest('button')) return;
+                    window.location.href = url;
                 });
             });
         });

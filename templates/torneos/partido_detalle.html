@@ -1,0 +1,361 @@
+{% extends 'torneos/base.html' %}
+{% load static custom_filters %}
+
+{% block categoria_content %}
+<div class="container-fluid px-0">
+    <!-- Header Card -->
+    <div class="card shadow-sm border-0 mb-3 mb-md-4">
+        <div class="card-header bg-white border-bottom py-2 py-md-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1 fw-bold text-dark fs-5 fs-md-3">Detalle del Partido</h2>
+                    <p class="text-muted mb-0 small">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Jornada {{ partido.jornada }}
+                        {% if partido.fecha %}
+                            • <span class="d-none d-sm-inline">{{ partido.fecha|date:"d \d\e F \d\e Y" }}</span>
+                            <span class="d-inline d-sm-none">{{ partido.fecha|date:"d/m/Y" }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left d-md-none"></i>
+                    <span class="d-none d-md-inline"><i class="fas fa-arrow-left me-2"></i>Volver</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Match Overview -->
+        <div class="card-body p-2 p-md-4">
+            <!-- Teams Display -->
+            <div class="row align-items-center mb-3 mb-md-4 g-2">
+                <!-- Equipo Local -->
+                <div class="col-5 text-center">
+                    <div class="team-container">
+                        {% if partido.equipo_local.logo %}
+                            <img src="{{ partido.equipo_local.logo.url }}" 
+                                 alt="{{ partido.equipo_local.nombre }}" 
+                                 class="img-fluid mb-2 mb-md-3 team-logo"
+                                 style="max-width: 60px; height: 60px; object-fit: contain;">
+                        {% else %}
+                            <div class="team-logo-placeholder mb-2 mb-md-3 d-flex align-items-center justify-content-center mx-auto" 
+                                 style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 50%;">
+                                <i class="fas fa-shield-alt fa-2x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5">{{ partido.equipo_local.nombre }}</h5>
+                        <span class="badge bg-light text-dark mt-1 mt-md-2 small">Local</span>
+                    </div>
+                </div>
+
+                <!-- Score -->
+                <div class="col-2 text-center px-0">
+                    <div class="score-display py-2 py-md-3 d-flex flex-column align-items-center justify-content-center">
+                        {% if partido.jugado or partido.goles_local or partido.goles_visitante %}
+                            <div class="fw-bold text-primary mb-1" style="font-size: 1.75rem; line-height: 1;">
+                                {{ partido.goles_local|default:"0" }}<span class="text-muted mx-1" style="font-size: 1rem;">-</span>{{ partido.goles_visitante|default:"0" }}
+                            </div>
+                            {% if partido.jugado %}
+                                <span class="badge bg-success small" style="font-size: 0.6rem; padding: 0.2rem 0.4rem;">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-muted">
+                                <i class="far fa-clock fa-2x mb-1"></i>
+                                <p class="mb-0" style="font-size: 0.65rem; font-weight: 600;">VS</p>
+                            </div>
+                            {% if not partido.jugado %}
+                                <span class="badge bg-secondary mt-1 small" style="font-size: 0.6rem; padding: 0.2rem 0.4rem;">
+                                    <i class="far fa-calendar"></i>
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Equipo Visitante -->
+                <div class="col-5 text-center">
+                    <div class="team-container">
+                        {% if partido.equipo_visitante.logo %}
+                            <img src="{{ partido.equipo_visitante.logo.url }}" 
+                                 alt="{{ partido.equipo_visitante.nombre }}" 
+                                 class="img-fluid mb-2 mb-md-3 team-logo"
+                                 style="max-width: 60px; height: 60px; object-fit: contain;">
+                        {% else %}
+                            <div class="team-logo-placeholder mb-2 mb-md-3 d-flex align-items-center justify-content-center mx-auto" 
+                                 style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 50%;">
+                                <i class="fas fa-shield-alt fa-2x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5">{{ partido.equipo_visitante.nombre }}</h5>
+                        <span class="badge bg-light text-dark mt-1 mt-md-2 small">Visitante</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Goleadores Section -->
+            <div class="goleadores-section mt-3 mt-md-4">
+                <div class="row g-2 g-md-3">
+                    <!-- Goleadores Equipo Local -->
+                    <div class="col-6 col-md-6">
+                        <div class="team-scorers-card h-100 p-2 p-md-4 bg-light rounded">
+                            <h6 class="fw-bold text-center mb-2 mb-md-3 text-primary" style="font-size: 0.75rem;">
+                                <i class="fas fa-futbol me-1"></i>
+                                <span class="d-none d-sm-inline">{{ partido.equipo_local.nombre }}</span>
+                                <span class="d-inline d-sm-none">Local</span>
+                            </h6>
+                            {% with local_scorers=goleadores|dictsort:"jugador.equipo.id" %}
+                                {% if local_scorers %}
+                                    <div class="scorers-list">
+                                        {% for item in goleadores %}
+                                            {% if item.jugador.equipo.id == partido.equipo_local.id %}
+                                                <div class="scorer-item d-flex justify-content-between align-items-start py-2 border-bottom">
+                                                    <div class="flex-grow-1 text-truncate me-1 d-flex align-items-center">
+                                                        {% if item.jugador %}
+                                                            {% if item.jugador.foto %}
+                                                                <img src="{{ item.jugador.foto.url }}" alt="{{ item.jugador.nombre }}" class="scorer-photo rounded-circle me-1 d-none d-sm-inline" style="width:36px; height:36px; object-fit:cover;">
+                                                                <img src="{{ item.jugador.foto.url }}" alt="{{ item.jugador.nombre }}" class="scorer-photo rounded-circle me-1 d-inline d-sm-none" style="width:28px; height:28px; object-fit:cover;">
+                                                            {% else %}
+                                                                <div class="scorer-photo-placeholder rounded-circle bg-secondary me-1 d-none d-sm-inline-flex" style="width:36px; height:36px; align-items:center; justify-content:center; color:#fff; font-size:0.85rem;">{{ item.jugador.nombre|slice:":1" }}</div>
+                                                                <div class="scorer-photo-placeholder rounded-circle bg-secondary me-1 d-inline-flex d-sm-none" style="width:28px; height:28px; align-items:center; justify-content:center; color:#fff; font-size:0.7rem;">{{ item.jugador.nombre|slice:":1" }}</div>
+                                                            {% endif %}
+                                                            <a href="{% url 'jugador_detalle' item.jugador.id %}" 
+                                                               class="text-decoration-none text-dark fw-semibold text-truncate d-block" style="font-size: 0.8rem;">
+                                                                <span class="d-none d-sm-inline">{{ item.jugador.nombre }}</span>
+                                                                <span class="d-inline d-sm-none">{{ item.jugador.nombre}}</span>
+                                                            </a>
+                                                        {% else %}
+                                                            <span class="text-muted small">Desconocido</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="goals-container">
+                                                        {% for i in item.goles|times %}
+                                                            <i class="fas fa-futbol text-warning goal-ball"></i>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted py-2 py-md-3">
+                                        <i class="far fa-futbol fa-2x mb-2 opacity-50"></i>
+                                        <p class="small mb-0">Sin goles</p>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+
+                    <!-- Goleadores Equipo Visitante -->
+                    <div class="col-6 col-md-6">
+                        <div class="team-scorers-card h-100 p-2 p-md-4 bg-light rounded">
+                            <h6 class="fw-bold text-center mb-2 mb-md-3 text-danger" style="font-size: 0.75rem;">
+                                <i class="fas fa-futbol me-1"></i>
+                                <span class="d-none d-sm-inline">{{ partido.equipo_visitante.nombre }}</span>
+                                <span class="d-inline d-sm-none">Visitante</span>
+                            </h6>
+                            {% with visitante_scorers=goleadores|dictsort:"jugador.equipo.id" %}
+                                {% if visitante_scorers %}
+                                    <div class="scorers-list">
+                                        {% for item in goleadores %}
+                                            {% if item.jugador.equipo.id == partido.equipo_visitante.id %}
+                                                <div class="scorer-item d-flex justify-content-between align-items-start py-2 border-bottom">
+                                                    <div class="flex-grow-1 text-truncate me-1 d-flex align-items-center">
+                                                        {% if item.jugador %}
+                                                            {% if item.jugador.foto %}
+                                                                <img src="{{ item.jugador.foto.url }}" alt="{{ item.jugador.nombre }}" class="scorer-photo rounded-circle me-1 d-none d-sm-inline" style="width:36px; height:36px; object-fit:cover;">
+                                                                <img src="{{ item.jugador.foto.url }}" alt="{{ item.jugador.nombre }}" class="scorer-photo rounded-circle me-1 d-inline d-sm-none" style="width:28px; height:28px; object-fit:cover;">
+                                                            {% else %}
+                                                                <div class="scorer-photo-placeholder rounded-circle bg-secondary me-1 d-none d-sm-inline-flex" style="width:36px; height:36px; align-items:center; justify-content:center; color:#fff; font-size:0.85rem;">{{ item.jugador.nombre|slice:":1" }}</div>
+                                                                <div class="scorer-photo-placeholder rounded-circle bg-secondary me-1 d-inline-flex d-sm-none" style="width:28px; height:28px; align-items:center; justify-content:center; color:#fff; font-size:0.7rem;">{{ item.jugador.nombre|slice:":1" }}</div>
+                                                            {% endif %}
+                                                            <a href="{% url 'jugador_detalle' item.jugador.id %}" 
+                                                               class="text-decoration-none text-dark fw-semibold text-truncate d-block" style="font-size: 0.8rem;">
+                                                                <span class="d-none d-sm-inline">{{ item.jugador.nombre }}</span>
+                                                                <span class="d-inline d-sm-none">{{ item.jugador.nombre}}</span>
+                                                            </a>
+                                                        {% else %}
+                                                            <span class="text-muted small">Desconocido</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="goals-container">
+                                                        {% for i in item.goles|times %}
+                                                            <i class="fas fa-futbol text-warning goal-ball"></i>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted py-2 py-md-3">
+                                        <i class="far fa-futbol fa-2x mb-2 opacity-50"></i>
+                                        <p class="small mb-0">Sin goles</p>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if not goleadores %}
+                    <div class="alert alert-light border d-flex align-items-center mt-2 mt-md-3" role="alert">
+                        <i class="fas fa-info-circle text-muted me-2 me-md-3"></i>
+                        <div>
+                            <strong class="text-dark small">Sin goles registrados</strong>
+                            <p class="mb-0 small text-muted">No hay goles registrados para este partido.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+                <div class="column mb-2">
+                    <div class="info-card p-2 p-md-3 bg-light rounded">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-wrapper me-2 me-md-3">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                            </div>
+                            <div class="flex-grow-1 text-truncate">
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">Ubicación</small>
+                                <strong class="small text-truncate d-block">
+                                    {% if partido.ubicacion %}
+                                        {{ partido.ubicacion.nombre }}
+                                    {% else %}
+                                        <span class="text-muted">Por definir</span>
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
+</div>
+
+<style>
+    /* Desktop styles */
+    @media (min-width: 768px) {
+        .team-logo {
+            max-width: 100px !important;
+            height: 100px !important;
+        }
+        
+        .team-logo-placeholder {
+            width: 100px !important;
+            height: 100px !important;
+        }
+        
+        .team-logo-placeholder i {
+            font-size: 3rem !important;
+        }
+    }
+    
+    .team-logo {
+        transition: transform 0.3s ease;
+    }
+    
+    .team-logo:hover {
+        transform: scale(1.05);
+    }
+    
+    .info-card {
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .info-card:hover {
+        border-color: #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .team-scorers-card {
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .team-scorers-card:hover {
+        border-color: #dee2e6;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .scorer-item {
+        transition: background-color 0.2s ease;
+    }
+    
+    .scorer-item:hover {
+        background-color: rgba(255,255,255,0.5);
+    }
+    
+    .scorer-item:last-child {
+        border-bottom: none !important;
+    }
+    
+    /* GOALS DISPLAY - 3 per row */
+    .goals-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-content: flex-start;
+        width: 54px;
+        gap: 2px;
+    }
+    
+    .goal-ball {
+        font-size: 0.9rem;
+        width: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .scorer-photo {
+        flex-shrink: 0;
+        border: 2px solid rgba(0,0,0,0.04);
+    }
+    
+    .scorer-photo-placeholder {
+        flex-shrink: 0;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 767px) {
+        .container-fluid {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        
+        .card {
+            border-radius: 0 !important;
+            border-left: 0 !important;
+            border-right: 0 !important;
+        }
+        
+        .row.align-items-center {
+            align-items: center !important;
+        }
+        
+        .team-container h5 {
+            line-height: 1.2;
+            margin-bottom: 0.25rem !important;
+        }
+        
+        .badge {
+            white-space: nowrap;
+        }
+        
+        .goals-container {
+            width: 45px;
+            gap: 1px;
+        }
+        
+        .goal-ball {
+            font-size: 0.75rem;
+            width: 14px;
+            height: 14px;
+        }
+    }
+</style>
+{% endblock %}

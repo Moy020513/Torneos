@@ -31,3 +31,15 @@ def calcular_edad(fecha_nacimiento):
         edad -= 1
     
     return edad
+
+
+@register.filter
+def times(value):
+    """Devuelve un iterable range(0, value) para poder iterar N veces en plantillas."""
+    try:
+        n = int(value)
+        if n < 0:
+            return range(0)
+        return range(n)
+    except Exception:
+        return range(0)

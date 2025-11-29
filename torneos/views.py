@@ -814,3 +814,34 @@ def jugador_detalle(request, jugador_id):
         'categoria': categoria,
     }
     return render(request, 'torneos/jugador_detalle.html', context)
+
+
+def partido_detalle(request, partido_id):
+    partido = get_object_or_404(Partido, id=partido_id)
+    # Construir una lista única de jugadores que anotaron EN ESTE PARTIDO
+    goles_map = {}
+
+    # Entradas por jornada (registro detallado por partido)
+    for gj in GoleadorJornada.objects.filter(partido=partido).select_related('goleador__jugador'):
+        try:
+            jugador = gj.goleador.jugador
+        except Exception:
+            jugador = None
+        if not jugador:
+            continue
+        gid = jugador.id
+        goles_map.setdefault(gid, {'jugador': jugador, 'goles': 0})
+        goles_map[gid]['goles'] += (gj.goles or 0)
+
+    # NOTA: ignoramos Goleador.goles (puede ser acumulado del torneo).
+    # Nos basamos únicamente en GoleadorJornada para contar goles en este partido.
+
+    # Filtrar solo jugadores con >0 goles y ordenar por goles desc
+    goleadores = [v for v in goles_map.values() if v['goles'] and v['goles'] > 0]
+    goleadores.sort(key=lambda x: (-x['goles'], x['jugador'].apellido or ''))
+
+    context = {
+        'partido': partido,
+        'goleadores': goleadores,
+    }
+    return render(request, 'torneos/partido_detalle.html', context)
