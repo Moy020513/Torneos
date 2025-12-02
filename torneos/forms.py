@@ -72,7 +72,7 @@ class TorneoForm(AdminFormMixin, forms.ModelForm):
     # Eliminar la asignación manual de value; dejar que Django maneje los valores de fecha
     class Meta:
         model = Torneo
-        fields = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'logo', 'activo']
+        fields = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'logo', 'reglamento', 'activo']
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
             'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
@@ -85,6 +85,7 @@ class TorneoForm(AdminFormMixin, forms.ModelForm):
             'fecha_fin': 'Fecha de Finalización',
             'formato_torneo': 'Formato del Torneo',
             'logo': 'Logo del Torneo',
+            'reglamento': 'Reglamento (archivo)',
             'activo': 'Torneo Activo',
         }
 

@@ -77,6 +77,21 @@ def estadisticas_view(request, categoria_id):
         'is_admin_view': is_admin_view,
     }
     return render(request, 'torneos/estadisticas.html', context)
+
+def reglamento_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    torneo = getattr(categoria, 'torneo', None)
+
+    reglamento = None
+    if torneo and getattr(torneo, 'reglamento', None):
+        reglamento = torneo.reglamento
+
+    context = {
+        'categoria': categoria,
+        'torneo': torneo,
+        'reglamento': reglamento,
+    }
+    return render(request, 'torneos/reglamento.html', context)
 # AJAX para filtrar categorías por torneo en el admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
@@ -238,6 +253,8 @@ def categoria_detalle(request, categoria_id):
     proximos_partidos = list(partidos.filter(jugado=False, goles_local=0, goles_visitante=0))
     # Ordenar: primero por fecha si existe, si no por jornada
     def _proximo_sort_key(p):
+        
+        
         dt = p.fecha
         if settings.USE_TZ:
             if dt is None:

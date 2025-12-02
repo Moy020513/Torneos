@@ -13,6 +13,7 @@ urlpatterns = [
     path('categoria/<int:categoria_id>/tabla-posiciones/', views.tabla_posiciones_view, name='tabla_posiciones'),
     path('categoria/<int:categoria_id>/equipos/', views.equipos_view, name='equipos'),
     path('categoria/<int:categoria_id>/estadisticas/', views.estadisticas_view, name='estadisticas'),
+    path('categoria/<int:categoria_id>/reglamento/', views.reglamento_view, name='reglamento'),
     path('categoria/<int:categoria_id>/resultados/', views.resultados_view, name='resultados'),
     path('categoria/<int:categoria_id>/jugadores/', views.jugadores_view, name='jugadores'),
     path('jugador/<int:jugador_id>/', views.jugador_detalle, name='jugador_detalle'),

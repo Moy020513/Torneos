@@ -3,6 +3,7 @@ from django.db import models
 from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Capitan, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
 from .models import AdministradorTorneo
 from .forms import EquipoAdminForm
+from django.utils.html import format_html
 
 @admin.register(Eliminatoria)
 class EliminatoriaAdmin(admin.ModelAdmin):
@@ -17,7 +18,7 @@ admin.site.index_title = "Administración General"
 
 @admin.register(Torneo)
 class TorneoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'activo', 'logo')
+    list_display = ('nombre', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'activo', 'logo', 'reglamento_link')
     list_filter = ('activo', 'formato_torneo')
     search_fields = ('nombre', 'descripcion')
     actions = ['delete_images', 'cleanup_orphaned_images']
@@ -92,6 +93,12 @@ class TorneoAdmin(admin.ModelAdmin):
         messages.success(request, f'Se eliminaron {total_deleted} imágenes huérfanas.')
     
     cleanup_orphaned_images.short_description = "Limpiar imágenes huérfanas no asociadas"
+
+    def reglamento_link(self, obj):
+        if obj.reglamento:
+            return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">Descargar</a>', obj.reglamento.url)
+        return '-'
+    reglamento_link.short_description = 'Reglamento'
 
 @admin.register(Categoria)
 

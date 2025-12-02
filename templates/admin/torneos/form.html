@@ -143,6 +143,30 @@
                         <div class="form-text">Logo del torneo (opcional). Formatos: PNG, JPG, JPEG, GIF</div>
                     </div>
                     
+                                    <!-- Reglamento (archivo) -->
+                                    <div class="admin-form-group">
+                                        <label class="admin-form-label" for="{{ form.reglamento.id_for_label }}">
+                                            {{ form.reglamento.label }}
+                                        </label>
+                                        {{ form.reglamento }}
+                                        {% if form.reglamento.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.reglamento.errors %}
+                                                    <div>{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">Suba el reglamento del torneo (PDF recomendado).</div>
+
+                                        {% if action == "Editar" and torneo and torneo.reglamento %}
+                                        <div class="mt-2">
+                                            <a href="{{ torneo.reglamento.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-2"></i>Descargar reglamento actual
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                    
                     <!-- Estado activo -->
                     <div class="admin-form-group">
                         <div class="form-check">

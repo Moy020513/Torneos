@@ -45,6 +45,13 @@ class Torneo(models.Model):
         blank=True, 
         null=True
     )
+    reglamento = models.FileField(
+        upload_to='torneos/reglamentos/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx', 'odt'])],
+        blank=True,
+        null=True,
+        help_text='Sube el reglamento del torneo (PDF, DOC, DOCX, ODT)'
+    )
     color1 = models.CharField(max_length=7, blank=True, null=True)
     color2 = models.CharField(max_length=7, blank=True, null=True)
     color3 = models.CharField(max_length=7, blank=True, null=True)
