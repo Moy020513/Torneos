@@ -15,18 +15,48 @@
     </div>
     <div class="card-body">
         {% if reglamento %}
-            {% comment %}Intentar embeber PDF; si es otro tipo, mostrar enlace de descarga{% endcomment %}
             {% with url=reglamento.url %}
                 <div class="mb-3">
-                    <a href="{{ url }}" target="_blank" class="btn btn-outline-primary">
+                    <a id="reglamento-open" href="{{ url }}" target="_blank" class="btn btn-outline-primary">
                         <i class="fa-solid fa-download me-2"></i> Abrir reglamento en nueva pestaña
                     </a>
                 </div>
-                <div style="width:100%; height:800px;">
-                    <object data="{{ url }}" type="application/pdf" width="100%" height="100%">
-                        <p>Tu navegador no puede mostrar el reglamento embebido. <a href="{{ url }}" target="_blank">Descargar / Abrir</a></p>
-                    </object>
+
+                <div id="reglamento-embed" style="width:100%; height:800px; display:none;">
+                    <iframe id="reglamento-iframe" src="" width="100%" height="100%" style="border:0;">
+                        Tu navegador no soporta iframes.
+                    </iframe>
                 </div>
+
+                <div id="reglamento-fallback" style="display:none;">
+                    <p>Tu navegador no puede mostrar el reglamento embebido. <a id="reglamento-download" href="{{ url }}" target="_blank">Descargar / Abrir</a></p>
+                </div>
+
+                <script>
+                    (function(){
+                        const url = "{{ url }}";
+                        const embed = document.getElementById('reglamento-embed');
+                        const iframe = document.getElementById('reglamento-iframe');
+                        const fallback = document.getElementById('reglamento-fallback');
+
+                        // Intentar obtener el Content-Type del recurso vía HEAD
+                        fetch(url, { method: 'HEAD' }).then(function(resp){
+                            const ct = resp.headers.get('Content-Type') || '';
+                            if (ct.toLowerCase().includes('pdf')) {
+                                // Mostrar iframe con el PDF
+                                iframe.src = url;
+                                embed.style.display = 'block';
+                            } else {
+                                // No es PDF o encabezado no contiene info: mostrar fallback (link)
+                                fallback.style.display = 'block';
+                            }
+                        }).catch(function(){
+                            // Si falla la petición HEAD, intentar mostrar iframe (algunas veces funciona)
+                            iframe.src = url;
+                            embed.style.display = 'block';
+                        });
+                    })();
+                </script>
             {% endwith %}
         {% else %}
             <div class="alert alert-warning">

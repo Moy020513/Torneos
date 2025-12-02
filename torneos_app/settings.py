@@ -37,6 +37,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Permitir que recursos de la misma origin puedan mostrarse en iframes (ej: visores PDF embebidos)
+# Por defecto Django usa 'DENY'. Cambiamos a 'SAMEORIGIN' para permitir embebido en la misma aplicación.
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 ROOT_URLCONF = 'torneos_app.urls'
 
 TEMPLATES = [
