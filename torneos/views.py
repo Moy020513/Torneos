@@ -840,8 +840,23 @@ def partido_detalle(request, partido_id):
     goleadores = [v for v in goles_map.values() if v['goles'] and v['goles'] > 0]
     goleadores.sort(key=lambda x: (-x['goles'], x['jugador'].apellido or ''))
 
+    # Determinar categoría del partido (por grupo si existe, si no por equipo)
+    categoria = None
+    try:
+        if partido.grupo and getattr(partido.grupo, 'categoria', None):
+            categoria = partido.grupo.categoria
+    except Exception:
+        categoria = None
+
+    if not categoria:
+        categoria = getattr(partido.equipo_local, 'categoria', None) or getattr(partido.equipo_visitante, 'categoria', None)
+
+    torneo = getattr(categoria, 'torneo', None) if categoria else None
+
     context = {
         'partido': partido,
         'goleadores': goleadores,
+        'categoria': categoria,
+        'torneo': torneo,
     }
     return render(request, 'torneos/partido_detalle.html', context)

@@ -1,6 +1,5 @@
 {% extends 'torneos/base.html' %}
 {% load static custom_filters %}
-
 {% block categoria_content %}
 <div class="container-fluid px-0">
     <!-- Header Card -->
@@ -13,8 +12,8 @@
                         <i class="fas fa-calendar-alt me-1"></i>
                         Jornada {{ partido.jornada }}
                         {% if partido.fecha %}
-                            • <span class="d-none d-sm-inline">{{ partido.fecha|date:"d \d\e F \d\e Y" }}</span>
-                            <span class="d-inline d-sm-none">{{ partido.fecha|date:"d/m/Y" }}</span>
+                            • <span class="d-none d-sm-inline">{{ partido.fecha|date:"d \d\e F \d\e Y - H:i" }}</span>
+                            <span class="d-inline d-sm-none">{{ partido.fecha|date:"d/m/Y H:i" }}</span>
                         {% endif %}
                     </p>
                 </div>
@@ -101,11 +100,6 @@
                     <!-- Goleadores Equipo Local -->
                     <div class="col-6 col-md-6">
                         <div class="team-scorers-card h-100 p-2 p-md-4 bg-light rounded">
-                            <h6 class="fw-bold text-center mb-2 mb-md-3 text-primary" style="font-size: 0.75rem;">
-                                <i class="fas fa-futbol me-1"></i>
-                                <span class="d-none d-sm-inline">{{ partido.equipo_local.nombre }}</span>
-                                <span class="d-inline d-sm-none">Local</span>
-                            </h6>
                             {% with local_scorers=goleadores|dictsort:"jugador.equipo.id" %}
                                 {% if local_scorers %}
                                     <div class="scorers-list">
@@ -132,7 +126,7 @@
                                                     </div>
                                                     <div class="goals-container">
                                                         {% for i in item.goles|times %}
-                                                            <i class="fas fa-futbol text-warning goal-ball"></i>
+                                                            <i class="fas fa-futbol text-black goal-ball"></i>
                                                         {% endfor %}
                                                     </div>
                                                 </div>
@@ -152,11 +146,6 @@
                     <!-- Goleadores Equipo Visitante -->
                     <div class="col-6 col-md-6">
                         <div class="team-scorers-card h-100 p-2 p-md-4 bg-light rounded">
-                            <h6 class="fw-bold text-center mb-2 mb-md-3 text-danger" style="font-size: 0.75rem;">
-                                <i class="fas fa-futbol me-1"></i>
-                                <span class="d-none d-sm-inline">{{ partido.equipo_visitante.nombre }}</span>
-                                <span class="d-inline d-sm-none">Visitante</span>
-                            </h6>
                             {% with visitante_scorers=goleadores|dictsort:"jugador.equipo.id" %}
                                 {% if visitante_scorers %}
                                     <div class="scorers-list">
@@ -183,7 +172,7 @@
                                                     </div>
                                                     <div class="goals-container">
                                                         {% for i in item.goles|times %}
-                                                            <i class="fas fa-futbol text-warning goal-ball"></i>
+                                                            <i class="fas fa-futbol text-black goal-ball"></i>
                                                         {% endfor %}
                                                     </div>
                                                 </div>
@@ -223,6 +212,13 @@
                                 <strong class="small text-truncate d-block">
                                     {% if partido.ubicacion %}
                                         {{ partido.ubicacion.nombre }}
+                                        {% if partido.ubicacion.latitud and partido.ubicacion.longitud %}
+                                            <div class="mt-2">
+                                                <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-map-marked-alt me-1"></i> Ver en Google Maps
+                                                </a>
+                                            </div>
+                                        {% endif %}
                                     {% else %}
                                         <span class="text-muted">Por definir</span>
                                     {% endif %}
