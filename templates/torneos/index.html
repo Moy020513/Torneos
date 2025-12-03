@@ -49,6 +49,22 @@
         border-radius: 18px;
         transition: all 0.3s ease;
     }
+    /* Logo bubble to keep logos visible over colored headers */
+    .tournament-logo-wrap{
+        display: inline-block;
+        padding: 6px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.32);
+    }
+    .tournament-logo{
+        display:block;
+        width:64px;
+        height:64px;
+        object-fit:contain;
+    }
 </style>
 
 <!-- CSS completo externo -->
@@ -115,7 +131,7 @@
             <div class="card-header text-white text-center position-relative overflow-hidden torneos-header">
                 <div class="torneos-header-gradient"></div>
                 <h2 class="mb-0 fw-bold position-relative torneos-header-title">
-                    <i class="fa-solid fa-trophy me-2"></i>Torneos Activos
+                    <i class="fa-solid fa-trophy me-2"></i>{{ torneos|length }} Torneos Activos
                 </h2>
             </div>
             
@@ -142,7 +158,9 @@
                                     
                                     {% if torneo.logo %}
                                     <div class="position-relative mb-3">
-                                        <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}" class="tournament-logo">
+                                        <div class="tournament-logo-wrap" aria-hidden="true">
+                                            <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}" class="tournament-logo">
+                                        </div>
                                     </div>
                                     {% endif %}
                                     
@@ -161,17 +179,9 @@
                                     <div class="d-flex align-items-center mb-3 p-3 rounded-3 tournament-dates">
                                         <i class="fa-solid fa-calendar-days me-2 tournament-dates-icon"></i>
                                         <small class="fw-semibold tournament-dates-text">
-                                            {{ torneo.fecha_inicio|date:"d M Y" }} - {{ torneo.fecha_fin|date:"d M Y" }}
+                                            {{ torneo.fecha_inicio|date:"d/m/Y" }} - {{ torneo.fecha_fin|date:"d/m/Y" }}
                                         </small>
                                     </div>
-
-                                    <!-- Badge del formato -->
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="badge rounded-pill px-3 py-2 tournament-format-badge">
-                                            <i class="fa-solid fa-flag me-1"></i>{{ torneo.get_formato_torneo_display }}
-                                        </span>
-                                    </div>
-
                                     <!-- Botón elegante -->
                                     <div class="d-grid">
                                         <a href="{% url 'torneo_detalle' torneo.id %}" 
@@ -190,6 +200,11 @@
                         No hay torneos activos en este momento.
                     </div>
                 {% endif %}
+                <!-- Swipe hint for mobile users -->
+                <div class="torneos-swipe-hint" role="note" aria-hidden="false">
+                    <span class="swipe-arrows">⟵⟶</span>
+                    <small>Desliza para ver más torneos</small>
+                </div>
             </div>
         </div>
     </div>

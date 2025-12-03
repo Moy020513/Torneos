@@ -210,7 +210,8 @@ def capitan_jugador_delete(request, jugador_id):
     return render(request, 'torneos/capitan/jugador_confirm_delete.html', {'jugador': jugador})
 
 def index(request):
-    torneos_activos = Torneo.objects.filter(activo=True)
+    # Mostrar torneos activos desde el más antiguo al más nuevo
+    torneos_activos = Torneo.objects.filter(activo=True).order_by('fecha_creacion')
     
     # Estadísticas para el dashboard
     total_torneos = Torneo.objects.count()

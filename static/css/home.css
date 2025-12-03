@@ -168,3 +168,56 @@
     border: 1px solid rgba(45, 90, 160, 0.3);
     color: #1e3a5f;
 }
+
+    /* Mobile: show tournament cards in a single horizontal row (swipeable) */
+    @media (max-width: 600px) {
+        .torneos-body > .row {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 0.25rem;
+            padding-bottom: 0.4rem;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            padding-left: 0.25rem;
+        }
+
+        .torneos-body > .row > .col-lg-4,
+        .torneos-body > .row > .col-md-6 {
+            flex: 0 0 96%;
+            max-width: 96%;
+            scroll-snap-align: start;
+        }
+
+        .torneos-body .tournament-card {
+            height: 100%;
+        }
+    }
+    /* Hint shown on mobile to indicate horizontal swipe */
+    .torneos-swipe-hint{
+        display:none;
+        justify-content:center;
+        align-items:center;
+        gap:0.5rem;
+        color: rgba(0,0,0,0.6);
+        margin-top:0.5rem;
+        font-size:0.9rem;
+    }
+
+    .torneos-swipe-hint .swipe-arrows{
+        display:inline-block;
+        font-size:1.05rem;
+        color: rgba(0,0,0,0.55);
+        transform: translateX(0);
+        animation: swipeHint 1.2s ease-in-out infinite;
+    }
+
+    @keyframes swipeHint{
+        0%{ transform: translateX(-6px); opacity:0.7 }
+        50%{ transform: translateX(6px); opacity:1 }
+        100%{ transform: translateX(-6px); opacity:0.7 }
+    }
+
+    @media (max-width: 600px){
+        .torneos-swipe-hint{ display:flex; }
+    }
