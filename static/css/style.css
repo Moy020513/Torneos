@@ -1,0 +1,126 @@
+
+        .navbar-toggler-icon {
+            background-image: none !important;
+            width: 1.5em;
+            height: 1.5em;
+            display: inline-block;
+            position: relative;
+        }
+        .navbar-toggler-icon::before {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                #0a2342 0 3px,
+                transparent 3px 6px
+            );
+            border-radius: 3px;
+        }
+        .main-title, .main-subtitle {
+            color: #0a2342 !important;
+        }
+        .navbar, .navbar-nav .nav-link, .navbar-brand, .navbar-toggler, .navbar-nav .dropdown-menu {
+            color: #0a2342 !important;
+        }
+        .navbar-nav .nav-link.active, .navbar-nav .nav-link:focus, .navbar-nav .nav-link:hover {
+            color: #145da0 !important;
+        }
+        body {
+            background: #0a2342 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        /* Navbar compacta y logo grande */
+        .navbar {
+            min-height: 38px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        .navbar-brand {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            height: 70px !important;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand img {
+            height: 62px !important;
+            width: auto !important;
+            margin-right: 4px;
+            padding-right: 0px;
+        }
+        .logo-footer {
+            height: 80px !important;
+            width: auto;
+            margin-right: 10px;
+            object-fit: contain;
+            
+        }
+        footer.gradient-bg {
+            min-height: 80px !important;
+            padding-top: 16px !important;
+            padding-bottom: 16px !important;
+        }
+        .gradient-bg {
+            background: linear-gradient(120deg, #0a2342 0 2.5%, #08F7FE 2.5% 5%, #00cfff 5% 7.5%, #fff 7.5% 100%);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(120deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .stats-card {
+            transition: transform 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .bracket-match {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .team-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
+        .player-photo {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        /* Utilidad: texto azul marino */
+        .text-navy { color: #0a2342 !important; }
+        /* Logo en encabezados */
+    .header-logo{ width:auto; height:42px; border-radius:12px; background:transparent; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:none; }
+        .header-logo img{ max-width:100%; max-height:100%; object-fit:contain; box-sizing:border-box; }
+    .header-logo.has-image img{ border:none; border-radius:10px; box-shadow:none; }
+        
+
+
+    .logo-footer {
+        transition: transform 0.3s ease, filter 0.3s ease;
+        filter: drop-shadow(0 4px 6px rgba(10, 35, 66, 0.1));
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
+    
+    .logo-footer:hover {
+        transform: scale(1.1) rotate(5deg);
+        filter: drop-shadow(0 6px 12px rgba(10, 35, 66, 0.2));
+    }
+
+    footer a i {
+        font-size: 0rem;
+    }

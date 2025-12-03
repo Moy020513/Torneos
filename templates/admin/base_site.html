@@ -3,82 +3,6 @@
 
 {% block title %}Panel de Torneos | {{ title }}{% endblock %}
 
-{% block extrastyle %}
-  {{ block.super }}
-  <link rel="stylesheet" href="{% static 'admin/css/theme.css' %}">
-  <style>
-    :root{
-      --primary:#0b1d3a; /* azul marino */
-      --primary-700:#0a1831;
-      --primary-600:#0d2245;
-      --neon:#08F7FE; /* azul neón */
-      --neon-700:#06c3ca;
-      --bg:#0a0f1a;
-      --surface:#101826;
-      --surface-2:#0f1522;
-      --text:#e6eefc;
-      --muted:#a5b3cf;
-      --success:#22c55e;
-      --warning:#f59e0b;
-      --danger:#ef4444;
-    }
-    body{ background:var(--bg); color:var(--text); }
-    a{ color:var(--neon); }
-    a:hover{ color:#7ef9ff; }
-
-    /* Top header */
-    #header{ background:linear-gradient(90deg,var(--primary),var(--primary-600)); border-bottom:1px solid rgba(8,247,254,0.25); }
-    #branding h1,#branding h1 a{ color:var(--text)!important; font-weight:700; letter-spacing:.2px; }
-
-    /* Sidebar */
-    #container #suit-left, #content-related, .module caption{ background:var(--surface); }
-    .module caption{ color:var(--text); border-bottom:1px solid rgba(8,247,254,.2); }
-
-    /* Content cards */
-    .module, .grp-module, .inline-group{ background:var(--surface); border:1px solid rgba(8,247,254,.15); border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.35); }
-    .module h2, .grp-module h2{ color:var(--text); }
-
-    /* Buttons */
-    .button, input[type=submit], .deletelink, .addlink, .changelink, .viewlink{
-      background:var(--primary);
-      border:1px solid var(--neon-700);
-      color:var(--text);
-      border-radius:8px;
-      padding:.5rem .9rem;
-      transition:all .2s ease;
-      text-shadow:0 0 6px rgba(8,247,254,.25);
-    }
-    .button:hover, input[type=submit]:hover{ background:var(--primary-600); box-shadow:0 0 0 2px rgba(8,247,254,.15), 0 10px 20px rgba(8,247,254,.06) inset; }
-    .deletelink{ border-color:var(--danger); }
-
-    /* Forms */
-    input, select, textarea{ background:var(--surface-2); color:var(--text); border:1px solid rgba(8,247,254,.2); border-radius:8px; }
-    input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--neon); box-shadow:0 0 0 2px rgba(8,247,254,.15); }
-    .help, .helptext{ color:var(--muted); }
-
-    /* Table */
-    table{ background:transparent; }
-    table thead th{ background:var(--surface-2); color:var(--text); border-bottom:1px solid rgba(8,247,254,.25); }
-    table tbody tr:nth-child(odd){ background:rgba(255,255,255,0.02); }
-    table tbody tr:hover{ background:rgba(8,247,254,0.06); }
-
-    /* Breadcrumbs */
-    div.breadcrumbs{ background:var(--surface); color:var(--muted); border-bottom:1px solid rgba(8,247,254,.15); }
-
-    /* Messages */
-    ul.messagelist li{ border-radius:8px; }
-
-    /* Login page */
-    .login #container{ background:transparent; box-shadow:none; }
-    .login #content{ max-width:420px; margin:5vh auto; background:var(--surface); border:1px solid rgba(8,247,254,.15); border-radius:14px; padding:28px; }
-    .submit-row input{ width:100%; }
-
-    /* Compact spacing */
-    .form-row, .inline-related{ margin-bottom:.6rem; }
-    .aligned label{ padding-top:.35rem; }
-  </style>
-{% endblock %}
-
 {% block extrahead %}
   {{ block.super }}
   <script defer src="{% static 'admin/js/custom.js' %}"></script>
@@ -94,7 +18,7 @@
 {% endblock %}
 
 {% block nav-global %}
-  <div style="margin-left:auto;display:flex;gap:.75rem;align-items:center;">
-    <a href="/" class="button" style="text-decoration:none;">Ir al sitio</a>
+  <div>
+    <a href="/" class="button">Ir al sitio</a>
   </div>
 {% endblock %}
