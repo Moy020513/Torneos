@@ -47,7 +47,8 @@
                  data-equipo-id="{{ equipo.id }}" 
                  data-posicion="{{ jugador.get_posicion_display }}" 
                  data-nombre="{{ jugador.nombre }} {{ jugador.apellido }}"
-                 data-fecha="{{ jugador.fecha_creacion|date:'c' }}">
+                 data-fecha="{{ jugador.fecha_creacion|date:'c' }}"
+                 data-href="{% url 'jugador_detalle' jugador.id %}">
                     <div style="position: relative;">
                         {% if jugador.verificado %}
                             <div class="badge-verificado">V</div>
@@ -67,7 +68,7 @@
                             </div>
                         {% endif %}
                         <div class="flex-grow-1">
-                            <strong class="text-white">{{ jugador.nombre }} {{ jugador.apellido }}</strong><br>
+                            <strong class="text-white">{{ jugador.nombre }} <br /> {{ jugador.apellido }}</strong><br>
                             {% if user.is_superuser %}
                             <small class="text-white-50">Registrado: {{ jugador.fecha_creacion|date:'d/m/Y H:i' }}</small><br>
                             {% endif %}
@@ -110,11 +111,6 @@
                         </div>
                     </div>
                     </div>
-                    <div style="margin-top: 12px; text-align: right;">
-                        <a href="{% url 'jugador_detalle' jugador.id %}" class="btn btn-outline-info btn-sm ms-2" title="Ver detalles">
-                            <i class="fas fa-eye"></i> Detalles
-                        </a>
-                    </div>
                 </div>
             {% endfor %}
         {% endfor %}
@@ -140,6 +136,7 @@
             display: block;
             box-shadow: 0 6px 9px rgba(0, 195, 255, 1);
             transition: transform 0.18s ease, box-shadow 0.18s ease;
+            cursor: pointer;
         }
 
         .jugador-item:hover {
@@ -379,6 +376,19 @@
         if (buscadorNombre) {
             buscadorNombre.addEventListener('input', filtrarJugadores);
         }
+
+        // Hacer que toda la card del jugador sea clicable (salta a detalle), excepto al clicar la foto
+        var cards = document.querySelectorAll('.jugador-item');
+        cards.forEach(function(card) {
+            var href = card.getAttribute('data-href');
+            if (!href) return;
+            // add click handler
+            card.addEventListener('click', function(e) {
+                // si el click fue sobre la imagen (que abre el modal) o sobre un enlace/btn, no navegar
+                if (e.target.closest('img') || e.target.closest('a') || e.target.closest('button')) return;
+                window.location.href = href;
+            });
+        });
     });
 </script>
 {% endblock %}

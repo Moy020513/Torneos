@@ -31,7 +31,7 @@
                                 {% if equipo.logo %}
                                     <img src="{{ equipo.logo.url }}" alt="{{ equipo.nombre }}" style="width:32px; height:32px; object-fit:contain; display: block;">
                                 {% endif %}
-                                <span style="display: flex; align-items: center; height: 32px; font-weight: bold;">{{ equipo.nombre }}</span>
+                                <span class="team-name" data-full="{{ equipo.nombre|escape }}" style="display: inline-block; align-items: center; font-weight: bold;" title="{{ equipo.nombre }}">{{ equipo.nombre }}</span>
                             </span>
                         </td>
                         <td>{{ equipo.partidos_jugados }}</td>
@@ -112,6 +112,69 @@
   }
 }
 
+/* Ajustes adicionales para mover logo/nombre más a la izquierda en móvil */
+@media (max-width: 576px) {
+    /* Reducir padding general de celdas para ganar espacio */
+    .tabla-posiciones td {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+
+    /* Columna EQUIPO (segunda columna) más a la izquierda */
+    .tabla-posiciones td:nth-child(2) {
+        padding-left: 2px !important;
+    }
+
+    /* Hacer que el wrapper del logo y nombre se desplace ligeramente a la izquierda */
+    .tabla-posiciones td:nth-child(2) > span {
+        margin-left: 0px !important;
+        padding-left: 0 !important;
+        gap: 6px !important;
+    }
+
+    /* Quitar margen izquierdo de la imagen si existe */
+    .tabla-posiciones td:nth-child(2) img {
+        margin-left: 0 !important;
+    }
+
+    /* Truncar y controlar overflow del nombre del equipo */
+.team-name {
+    display: inline-block;
+    max-width: 9.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    line-height: 1.15;
+    display: inline-flex;
+    align-items: center;
+    padding-top: 1px;
+}
+}
+    /* Sobre-escribir alturas fijas inline en la columna EQUIPO y ajustar alineamiento */
+    .tabla-posiciones td > span {
+        height: auto !important;
+        min-height: 0 !important;
+        gap: 6px !important;
+        padding: 2px 6px !important;
+        align-items: center !important;
+    }
+
+    .tabla-posiciones td > span > span {
+        height: auto !important;
+        line-height: 1.15 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        font-weight: 600 !important;
+        padding-top: 2px !important;
+    }
+
+    /* Asegurar que las imágenes queden centradas y pequeñas */
+    .tabla-posiciones td img {
+        vertical-align: middle !important;
+        margin-right: 6px !important;
+    }
+
 /* Centrar todos los td y th excepto la columna Equipo */
 .tabla-posiciones th:not(:nth-child(2)),
 .tabla-posiciones td:not(:nth-child(2)) {
@@ -126,6 +189,45 @@
     padding-bottom: 0.01rem !important;
     font-size: 0.80em !important;
 }
+
+th {
+    background-color: #0a2342!important;
+    color: white !important;
+}
 </style>
+
+<script>
+// Trunca el nombre de equipos a 13 caracteres solo en móvil (<=576px)
+(function(){
+    function truncateNames(){
+        var isMobile = window.innerWidth <= 576;
+        var max = 13;
+        document.querySelectorAll('.team-name').forEach(function(el){
+            var full = el.getAttribute('data-full') || el.textContent || '';
+            if(isMobile){
+                if(full.length > max){
+                    el.textContent = full.slice(0, max) + '...';
+                } else {
+                    el.textContent = full;
+                }
+            } else {
+                el.textContent = full;
+            }
+        });
+    }
+
+    // Ensure data-full exists for all elements (fallback)
+    document.querySelectorAll('.team-name').forEach(function(el){
+        if(!el.getAttribute('data-full')){
+            el.setAttribute('data-full', el.getAttribute('title') || el.textContent || '');
+        }
+    });
+
+    window.addEventListener('resize', truncateNames);
+    document.addEventListener('DOMContentLoaded', truncateNames);
+    // Run once immediately in case DOM is already loaded
+    truncateNames();
+})();
+</script>
     </div>
 {% endblock %}
