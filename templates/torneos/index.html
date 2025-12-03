@@ -4,6 +4,54 @@
 {% block title %}Inicio - Sistema de Torneos{% endblock %}
 
 {% block extra_css %}
+<!-- Preload del CSS de home -->
+<link rel="preload" href="{% static 'css/home.css' %}" as="style">
+
+<!-- CSS Crítico Inline solo para home.html -->
+<style>
+    /* Estilos críticos "above the fold" - lo que se ve primero */
+    .hero-card {
+        background: #0c2340;
+        border: 3px solid #00ffe7;
+        box-shadow: 0 0 18px #00ffe7, 0 0 0 8px #1e3a5f;
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .hero-icon-container {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+    }
+    
+    .hero-title {
+        text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
+        font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    
+    .torneos-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .torneos-header {
+        background: #0c2340;
+        box-shadow: 0 0 18px #00ffe7, 0 0 0 8px #1e3a5f;
+    }
+    
+    .tournament-card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 110, 255, 1);
+        border-radius: 18px;
+        transition: all 0.3s ease;
+    }
+</style>
+
+<!-- CSS completo externo -->
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
 
