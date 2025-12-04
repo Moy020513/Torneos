@@ -1,5 +1,111 @@
 {% extends 'torneos/base.html' %}
 {% load static custom_filters %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* Map container for field location */
+    .field-map { width: 100%; height: 220px; border-radius: 8px; overflow: hidden; background: #f6f7f9; }
+    @media (min-width: 768px) { .field-map { height: 300px; } }
+    /* helper while debugging map rendering */
+    .field-map.debug-border { border: 1px dashed rgba(0,0,0,0.08); }
+    /* Improve touch interactions on mobile so users can pan the map */
+    @media (max-width: 767px) {
+        .field-map { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; }
+    }
+    #match-fondo {
+        background-color: #cfcfcf71;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+<!-- Leaflet JS init for field maps -->
+{% if partido.ubicacion and partido.ubicacion.latitud and partido.ubicacion.longitud %}
+<!-- Load Leaflet (if not already loaded) and init map robustly -->
+<script>
+(function(){
+    function initLeaflet(){
+        try {
+            // Parse coordinates safely (ensure dot decimal)
+            var lat = parseFloat("{{ partido.ubicacion.latitud|floatformat:6 }}".replace(',', '.'));
+            var lng = parseFloat("{{ partido.ubicacion.longitud|floatformat:6 }}".replace(',', '.'));
+            var mapId = 'field-map-{{ partido.id }}';
+            var mapEl = document.getElementById(mapId);
+            if (!mapEl) return;
+            // If Leaflet not loaded, load script dynamically
+            function doInit(){
+                try {
+                    var map = L.map(mapId, { scrollWheelZoom: false, zoomControl: true, tap: true }).setView([lat, lng], 16);
+                    var tile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
+                    var marker = L.marker([lat, lng]).addTo(map);
+                    marker.bindPopup("<strong>{{ partido.ubicacion.nombre|escapejs }}</strong>");
+                    // Ensure touch interactions are enabled
+                    try { if (map.dragging) map.dragging.enable(); } catch(e){}
+                    try { if (map.touchZoom) map.touchZoom.enable(); } catch(e){}
+                    try { if (map.tap) map.tap.enable(); } catch(e){}
+                    // Ensure map size is recalculated multiple times to avoid blank tiles
+                    map.whenReady(function(){
+                        setTimeout(function(){ map.invalidateSize(); try{ tile.redraw(); }catch(e){} }, 300);
+                        setTimeout(function(){ map.invalidateSize(); }, 1200);
+                        // After a short delay, check whether tiles were loaded; if not, replace with an OSM iframe fallback
+                        setTimeout(function(){
+                            try {
+                                var tileImgs = document.querySelectorAll('#' + mapId + ' .leaflet-tile');
+                                if (!tileImgs || tileImgs.length === 0) {
+                                    var latStr = lat.toString();
+                                    var lngStr = lng.toString();
+                                    var bboxDelta = 0.01;
+                                    var left = (lng - bboxDelta).toFixed(6);
+                                    var right = (lng + bboxDelta).toFixed(6);
+                                    var bottom = (lat - bboxDelta).toFixed(6);
+                                    var top = (lat + bboxDelta).toFixed(6);
+                                    var iframe = document.createElement('iframe');
+                                    iframe.width = '100%';
+                                    iframe.height = mapEl.clientHeight || 220;
+                                    iframe.frameBorder = '0';
+                                    iframe.style.border = '0';
+                                    iframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=' + left + '%2C' + bottom + '%2C' + right + '%2C' + top + '&marker=' + latStr + '%2C' + lngStr;
+                                    // Clear map container and insert iframe
+                                    map.remove();
+                                    mapEl.innerHTML = '';
+                                    mapEl.appendChild(iframe);
+                                }
+                            } catch(e) { console.error('Fallback check error', e); }
+                        }, 1800);
+                    });
+                } catch(err){ console.error('Leaflet map error', err); }
+            }
+
+            if (window.L) {
+                doInit();
+                return;
+            }
+            // Load Leaflet CSS (in case it's blocked or not in head)
+            if (!document.querySelector('link[href*="leaflet"]')){
+                var lnk = document.createElement('link');
+                lnk.rel = 'stylesheet';
+                lnk.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                document.head.appendChild(lnk);
+            }
+            var script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = doInit;
+            script.onerror = function(e){ console.error('Failed to load Leaflet', e); };
+            document.body.appendChild(script);
+        } catch(e){ console.error('Leaflet init wrapper error', e); }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLeaflet);
+    } else {
+        initLeaflet();
+    }
+})();
+</script>
+{% endif %}
 {% block categoria_content %}
 <div class="container-fluid px-0">
     <!-- Header Card -->
@@ -25,7 +131,7 @@
         </div>
 
         <!-- Match Overview -->
-        <div class="card-body p-2 p-md-4">
+        <div class="card-body p-2 p-md-4" id="match-fondo">
             <!-- Teams Display -->
             <div class="row align-items-center mb-3 mb-md-4 g-2">
                 <!-- Equipo Local -->
@@ -204,25 +310,52 @@
                 <div class="column mb-2">
                     <div class="info-card p-2 p-md-3 bg-light rounded">
                         <div class="d-flex align-items-center">
-                            <div class="icon-wrapper me-2 me-md-3">
-                                <i class="fas fa-map-marker-alt text-danger"></i>
-                            </div>
                             <div class="flex-grow-1 text-truncate">
-                                <small class="text-muted d-block" style="font-size: 0.7rem;">Ubicación</small>
-                                <strong class="small text-truncate d-block">
-                                    {% if partido.ubicacion %}
-                                        {{ partido.ubicacion.nombre }}
-                                        {% if partido.ubicacion.latitud and partido.ubicacion.longitud %}
-                                            <div class="mt-2">
-                                                <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-map-marked-alt me-1"></i> Ver en Google Maps
-                                                </a>
-                                            </div>
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="text-muted">Por definir</span>
-                                    {% endif %}
-                                </strong>
+                                <small class="text-muted d-block" style="font-size: 0.7rem;"><i class="fas fa-map-marker-alt text-danger me-1" aria-hidden="true"></i>Ubicación</small>
+                                <strong class="small text-truncate d-block">{% if partido.ubicacion %}{{ partido.ubicacion.nombre }}{% else %}<span class="text-muted">Por definir</span>{% endif %}</strong>
+                                {% if partido.ubicacion and partido.ubicacion.latitud and partido.ubicacion.longitud %}
+                                <div class="mt-2">
+                                    <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-map-marked-alt me-1"></i> Ver en Google Maps
+                                    </a>
+                                    <div id="field-map-{{ partido.id }}" class="field-map mt-2" aria-hidden="false">
+                                        <noscript style="display:block; padding:12px; color:#666;">JavaScript requerido para mostrar el mapa.</noscript>
+                                    </div>
+                                    <script>
+                                        // If Leaflet doesn't become available shortly, replace with an iframe fallback
+                                        (function(){
+                                            var lat = "{{ partido.ubicacion.latitud|floatformat:6 }}".replace(',','.');
+                                            var lng = "{{ partido.ubicacion.longitud|floatformat:6 }}".replace(',','.');
+                                            var mapEl = document.getElementById('field-map-{{ partido.id }}');
+                                            function insertIframe(){
+                                                if (!mapEl) return;
+                                                // If Leaflet is present, skip
+                                                if (window.L) return;
+                                                try {
+                                                    var latStr = lat;
+                                                    var lngStr = lng;
+                                                    var bboxDelta = 0.01;
+                                                    var left = (parseFloat(lngStr) - bboxDelta).toFixed(6);
+                                                    var right = (parseFloat(lngStr) + bboxDelta).toFixed(6);
+                                                    var bottom = (parseFloat(latStr) - bboxDelta).toFixed(6);
+                                                    var top = (parseFloat(latStr) + bboxDelta).toFixed(6);
+                                                    var iframe = document.createElement('iframe');
+                                                    iframe.width = '100%';
+                                                    iframe.height = mapEl.clientHeight || 220;
+                                                    iframe.frameBorder = '0';
+                                                    iframe.style.border = '0';
+                                                    iframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=' + left + '%2C' + bottom + '%2C' + right + '%2C' + top + '&marker=' + latStr + '%2C' + lngStr;
+                                                    mapEl.innerHTML = '';
+                                                    mapEl.appendChild(iframe);
+                                                    // iframe fallback inserted
+                                                } catch(err){ console.error('iframe fallback error', err); }
+                                            }
+                                            // Wait 800ms for Leaflet to load and init; otherwise fallback
+                                            setTimeout(insertIframe, 800);
+                                        })();
+                                    </script>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
