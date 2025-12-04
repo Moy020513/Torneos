@@ -143,7 +143,7 @@
         .match-card{ 
             padding:1px 1px; 
             width:100%; 
-            margin-bottom:4px;
+            margin-bottom:1px;
             box-shadow:0 0 0 4px rgba(0, 86, 88, 0.12), 0 4px 8px rgba(0,0,0,.08);
         }
         .match-card:hover{
@@ -159,7 +159,7 @@
             font-weight:800;
         }
         .team-row{ 
-            padding:4px 0; 
+            padding:1px 0; 
             gap:8px;
         }
         .team-info{ gap:8px; }
@@ -173,21 +173,14 @@
         .match-date-chip, .match-time-chip, .match-loc, .match-status {
             font-size: 0.55em;
             margin-right: 2px;
-            height: 24px;
+            height: 16px;
             display: inline-flex;
-            align-items: center;
+            align-items: right;
             gap: 3px;
             line-height: 1;
             padding: 4px 8px;
         }
-        .match-date-chip i, .match-time-chip i, .match-loc i {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1em;
-            margin: 0;
-            line-height: 1;
-        }
+        
         .match-loc a.btn.btn-sm.btn-outline-admin {
             padding: 0;
             font-size: 0.75rem;
@@ -215,6 +208,13 @@
             display: flex !important;
             height: 100%;
         }
+        #descansa {
+             font-size: 0.7em !important;
+             margin-top: 0px;
+             padding-top: 0px !important;
+             padding-bottom: 0px !important;
+             vertical-align: middle !important;
+
     }
     
     /* Grid de partidos: 1 columna en móvil, 2 en desktop */
@@ -246,12 +246,15 @@
             justify-content: center; 
         }
     }
+    #proximos-partidos-card {
+        background-color: #0a2342 !important;
+    }
 </style>
 {% endblock %}
 
 {% block categoria_content %}
     {% if proximos_partidos %}
-        <div class="card section-card mb-4">
+        <div class="card section-card mb-4" id="proximos-partidos-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="m-0 text-navy"><i class="fa-solid fa-calendar-day"></i> Próximos Enfrentamientos</h3>
             </div>
@@ -282,7 +285,7 @@
                                 </div>
                                 {% if partido.equipo_local and partido.equipo_visitante and partido.equipo_local == partido.equipo_visitante %}
                                     <div class="text-center my-2">
-                                        <span class="match-status status-proximo" style="font-size:1em;padding:8px 14px;">DESCANSA</span>
+                                        <span class="match-status status-proximo" style="font-size:1em;padding:8px 14px;" id="descansa">DESCANSA</span>
                                     </div>
                                 {% else %}
                                 <div class="team-row">
