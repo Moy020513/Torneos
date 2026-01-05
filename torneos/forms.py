@@ -282,6 +282,7 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Permitir pasar assigned_torneo para limitar grupos y equipos al torneo asignado
         assigned_torneo = kwargs.pop('assigned_torneo', None)
+        current_user = kwargs.pop('current_user', None)
         super().__init__(*args, **kwargs)
 
         # Limitar los querysets de grupo y equipos cuando corresponda
@@ -304,13 +305,10 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
                     Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
                     Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
                     Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
-                ).distinct()
-                # Si no hay ubicaciones asociadas, dejamos la queryset vacía para evitar mostrar ubicaciones de otros torneos
-                if ubicaciones_qs.exists():
-                    self.fields['ubicacion'].queryset = ubicaciones_qs
-                else:
-                    # Si no existen ubicaciones aún, permitir todas (para que el admin pueda crear la primera)
-                    self.fields['ubicacion'].queryset = UbicacionCampo.objects.none()
+                )
+                if current_user and not getattr(current_user, 'is_superuser', False):
+                    ubicaciones_qs = ubicaciones_qs | UbicacionCampo.objects.filter(creado_por=current_user)
+                self.fields['ubicacion'].queryset = ubicaciones_qs.distinct()
             except Exception:
                 self.fields['ubicacion'].queryset = UbicacionCampo.objects.none()
         else:
@@ -626,4 +624,27 @@ class EliminatoriaForm(AdminFormMixin, forms.ModelForm):
         }
         help_texts = {
             'orden': 'Número que determina el orden de las fases (1=Primera, 2=Segunda, etc.)',
+        }
+
+
+class AjustePuntosForm(AdminFormMixin, forms.ModelForm):
+    """Formulario para ajustar puntos de equipos en la tabla de clasificación"""
+    class Meta:
+        model = AjustePuntos
+        fields = ['equipo', 'categoria', 'puntos_ajuste', 'razon']
+        labels = {
+            'equipo': 'Equipo',
+            'categoria': 'Categoría',
+            'puntos_ajuste': 'Puntos a Ajustar',
+            'razon': 'Razón del Ajuste',
+        }
+        help_texts = {
+            'puntos_ajuste': 'Use números positivos para agregar puntos, negativos para quitar',
+            'razon': 'Ej: Penalización, corrección manual, etc.',
+        }
+        widgets = {
+            'equipo': forms.Select(attrs={'class': 'admin-form-control form-select'}),
+            'categoria': forms.Select(attrs={'class': 'admin-form-control form-select'}),
+            'puntos_ajuste': forms.NumberInput(attrs={'class': 'admin-form-control', 'placeholder': 'Ej: 3 o -1'}),
+            'razon': forms.TextInput(attrs={'class': 'admin-form-control', 'placeholder': 'Motivo del ajuste'}),
         }

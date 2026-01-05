@@ -47,6 +47,12 @@ admin_urlpatterns = [
     path('panel/partidos/<int:partido_id>/editar/', admin_views.admin_editar_partido, name='admin_editar_partido'),
     path('panel/partidos/<int:partido_id>/eliminar/', admin_views.admin_eliminar_partido, name='admin_eliminar_partido'),
 
+    # Ajuste de Puntos
+    path('panel/ajustar-puntos/', admin_views.admin_ajustar_puntos, name='admin_ajustar_puntos'),
+    path('panel/ajustar-puntos/crear/', admin_views.admin_crear_ajuste_puntos, name='admin_crear_ajuste_puntos'),
+    path('panel/ajustar-puntos/<int:ajuste_id>/editar/', admin_views.admin_editar_ajuste_puntos, name='admin_editar_ajuste_puntos'),
+    path('panel/ajustar-puntos/<int:ajuste_id>/eliminar/', admin_views.admin_eliminar_ajuste_puntos, name='admin_eliminar_ajuste_puntos'),
+
     # Grupos
     path('panel/grupos/', admin_views.admin_grupos, name='admin_grupos'),
     path('panel/grupos/crear/', admin_views.admin_crear_grupo, name='admin_crear_grupo'),

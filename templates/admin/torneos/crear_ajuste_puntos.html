@@ -1,0 +1,244 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ titulo }}</h2>
+        <p class="text-muted mb-0">
+            {% if form.instance.pk %}
+                Modifique los datos del ajuste de puntos
+            {% else %}
+                Complete la información para crear un nuevo ajuste de puntos
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'admin_ajustar_puntos' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-calculator me-2"></i>
+                    Información del Ajuste
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Categoría -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.categoria.id_for_label }}">
+                            {{ form.categoria.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.categoria }}
+                        {% if form.categoria.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.categoria.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Equipo -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.equipo.id_for_label }}">
+                            {{ form.equipo.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.equipo }}
+                        {% if form.equipo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.equipo.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Puntos a Ajustar -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.puntos_ajuste.id_for_label }}">
+                            {{ form.puntos_ajuste.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.puntos_ajuste }}
+                        {% if form.puntos_ajuste.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.puntos_ajuste.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Use números positivos para agregar puntos (ej: 3), negativos para quitar (ej: -1)
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Razón del Ajuste -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.razon.id_for_label }}">
+                            {{ form.razon.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.razon }}
+                        {% if form.razon.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.razon.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="form-text">
+                                Describa el motivo del ajuste (ej: penalización por conducta, corrección manual, etc.)
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Submit Buttons -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-admin">
+                            <i class="fas fa-save me-2"></i>
+                            {% if form.instance.pk %}
+                                Actualizar Ajuste
+                            {% else %}
+                                Crear Ajuste
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'admin_ajustar_puntos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Panel -->
+    <div class="col-lg-4">
+        <div class="admin-card bg-light">
+            <div class="admin-card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Información
+                </h5>
+            </div>
+            <div class="admin-card-body">
+                <div class="mb-3">
+                    <h6 class="fw-bold mb-2">Sistema de Puntos</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check text-success me-2"></i><strong>Victoria:</strong> 3 puntos</li>
+                        <li><i class="fas fa-equals text-info me-2"></i><strong>Empate:</strong> 1 punto</li>
+                        <li><i class="fas fa-times text-danger me-2"></i><strong>Derrota:</strong> 0 puntos</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="fw-bold mb-2">Ejemplos de Ajuste</h6>
+                    <ul class="list-unstyled small">
+                        <li><code>+3</code> → Agregar 3 puntos</li>
+                        <li><code>-1</code> → Quitar 1 punto</li>
+                        <li><code>0</code> → No aplica ajuste</li>
+                    </ul>
+                </div>
+                
+                {% if ajuste %}
+                    <div class="border-top pt-3">
+                        <h6 class="fw-bold mb-2">Información del Registro</h6>
+                        <ul class="list-unstyled small">
+                            <li><strong>Creado:</strong> {{ ajuste.fecha_creacion|date:"d/m/Y H:i" }}</li>
+                            <li><strong>Por:</strong> {{ ajuste.realizado_por.get_full_name|default:ajuste.realizado_por.username }}</li>
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoriaSelect = document.getElementById('id_categoria');
+    const equipoSelect = document.getElementById('id_equipo');
+    const originalOptions = Array.from(equipoSelect.options).map(opt => ({
+        value: opt.value,
+        text: opt.text,
+        dataset: opt.dataset.categoria || ''
+    }));
+
+    // Función para filtrar equipos según la categoría seleccionada
+    function filterEquipos() {
+        const selectedCategoriaId = categoriaSelect.value;
+        
+        if (!selectedCategoriaId) {
+            // Si no hay categoría seleccionada, mostrar todos los equipos
+            equipoSelect.innerHTML = '<option value="">---------</option>';
+            originalOptions.forEach(opt => {
+                if (opt.value) {
+                    const newOption = document.createElement('option');
+                    newOption.value = opt.value;
+                    newOption.textContent = opt.text;
+                    equipoSelect.appendChild(newOption);
+                }
+            });
+            equipoSelect.disabled = true;
+            return;
+        }
+
+        // Fetch equipos de la categoría seleccionada
+        fetch(`/panel/ajax/equipos/?categoria_id=${selectedCategoriaId}`)
+            .then(response => response.json())
+            .then(data => {
+                equipoSelect.innerHTML = '<option value="">---------</option>';
+                if (data.equipos && data.equipos.length > 0) {
+                    data.equipos.forEach(equipo => {
+                        const option = document.createElement('option');
+                        option.value = equipo.id;
+                        option.textContent = equipo.nombre;
+                        equipoSelect.appendChild(option);
+                    });
+                    equipoSelect.disabled = false;
+                } else {
+                    equipoSelect.disabled = true;
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No hay equipos en esta categoría';
+                    equipoSelect.appendChild(option);
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar equipos:', error);
+                equipoSelect.disabled = true;
+            });
+    }
+
+    // Ejecutar filtro cuando cambia la categoría
+    categoriaSelect.addEventListener('change', filterEquipos);
+
+    // Ejecutar filtro al cargar la página si hay una categoría pre-seleccionada
+    if (categoriaSelect.value) {
+        filterEquipos();
+    } else {
+        equipoSelect.disabled = true;
+    }
+});
+</script>
+{% endblock %}

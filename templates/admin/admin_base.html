@@ -870,31 +870,29 @@
                 </a>
             </div>
             
-            <div class="nav-section-title">Dashboard</div>
             {% if user.is_superuser %}
+            <div class="nav-section-title">Dashboard</div>
             <div class="admin-nav-item">
                 <a href="{% url 'admin_dashboard' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
                     <i class="fas fa-tachometer-alt"></i>
                     Dashboard Principal
                 </a>
             </div>
-            {% endif %}
             
             <div class="nav-section-title">Gestión de Torneos</div>
-            {% if user.is_superuser %}
             <div class="admin-nav-item">
                 <a href="{% url 'admin_torneos' %}" class="admin-nav-link {% if 'torneo' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-trophy"></i>
                     Torneos
                 </a>
             </div>
-            {% endif %}
             <div class="admin-nav-item">
                 <a href="{% url 'admin_categorias' %}" class="admin-nav-link {% if 'categoria' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-tags"></i>
                     Categorías
                 </a>
             </div>
+            {% endif %}
 
             {# Enlace específico para administradores del torneo asignado #}
             {% if is_torneo_admin and torneo_admin_obj and torneo_admin_obj.torneo %}
@@ -902,7 +900,19 @@
             <div class="admin-nav-item">
                 <a href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}" class="admin-nav-link {% if request.resolver_match.url_name == 'administrar_torneo' %}active{% endif %}">
                     <i class="fas fa-user-shield"></i>
-                    Panel del Torneo: {{ torneo_admin_obj.torneo.nombre }}
+                    Panel del Torneo
+                </a>
+            </div>
+            <div class="admin-nav-item">
+                <a href="{% url 'admin_editar_torneo' torneo_admin_obj.torneo.id %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_editar_torneo' %}active{% endif %}">
+                    <i class="fas fa-edit"></i>
+                    Editar Torneo
+                </a>
+            </div>
+            <div class="admin-nav-item">
+                <a href="{% url 'admin_categorias' %}" class="admin-nav-link {% if 'categoria' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-tags"></i>
+                    Categorías
                 </a>
             </div>
             {% endif %}
@@ -968,6 +978,12 @@
                 <a href="{% url 'admin_goleadores' %}" class="admin-nav-link {% if 'goleador' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-bullseye"></i>
                     Goleadores
+                </a>
+            </div>
+            <div class="admin-nav-item">
+                <a href="{% url 'admin_ajustar_puntos' %}" class="admin-nav-link {% if 'ajustar_puntos' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-calculator"></i>
+                    Ajustar Puntos
                 </a>
             </div>
             

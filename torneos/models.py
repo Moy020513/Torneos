@@ -20,6 +20,7 @@ class UbicacionCampo(models.Model):
     direccion = models.CharField(max_length=255, blank=True)
     latitud = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitud = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    creado_por = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='campos_creados')
 
     def __str__(self):
         return self.nombre
@@ -335,6 +336,28 @@ class GoleadorJornada(models.Model):
     def __str__(self):
         target = self.partido or self.partido_eliminatoria
         return f"{self.goleador.jugador} - {self.goles} goles en {target}"
+
+
+class AjustePuntos(models.Model):
+    """Modelo para registrar ajustes manuales de puntos en la tabla de clasificación.
+    
+    Permite a los administradores agregar o quitar puntos a los equipos con auditoría.
+    """
+    equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='ajustes_puntos')
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    puntos_ajuste = models.IntegerField(help_text='Cantidad de puntos a agregar (positivo) o quitar (negativo)')
+    razon = models.CharField(max_length=255, help_text='Motivo del ajuste (ej: penalización, corrección, etc.)')
+    realizado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Ajuste de Puntos'
+        verbose_name_plural = 'Ajustes de Puntos'
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        signo = '+' if self.puntos_ajuste >= 0 else ''
+        return f"{self.equipo.nombre} {signo}{self.puntos_ajuste} pts - {self.razon}"
 
 
 # Importar señales para asegurar que handlers se registren cuando se cargue models

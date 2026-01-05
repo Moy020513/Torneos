@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db import models
 from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Capitan, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
-from .models import AdministradorTorneo
+from .models import AdministradorTorneo, AjustePuntos
 from .forms import EquipoAdminForm
 from django.utils.html import format_html
 
@@ -599,3 +599,40 @@ class AdministradorTorneoAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'torneo', 'activo', 'fecha_creacion')
     list_filter = ('activo', 'torneo')
     search_fields = ('usuario__username', 'torneo__nombre')
+
+
+# Registro del modelo AjustePuntos para auditoría de ajustes de puntos
+@admin.register(AjustePuntos)
+class AjustePuntosAdmin(admin.ModelAdmin):
+    list_display = ('equipo', 'categoria', 'puntos_display', 'razon', 'realizado_por', 'fecha_creacion')
+    list_filter = ('categoria', 'fecha_creacion', 'realizado_por')
+    search_fields = ('equipo__nombre', 'razon', 'categoria__nombre')
+    readonly_fields = ('realizado_por', 'fecha_creacion')
+    fieldsets = (
+        ('Información del Ajuste', {
+            'fields': ('equipo', 'categoria', 'puntos_ajuste', 'razon')
+        }),
+        ('Auditoría', {
+            'fields': ('realizado_por', 'fecha_creacion'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def puntos_display(self, obj):
+        """Mostrar puntos con color según si es positivo o negativo"""
+        from django.utils.html import format_html
+        color = 'green' if obj.puntos_ajuste > 0 else 'red' if obj.puntos_ajuste < 0 else 'gray'
+        signo = '+' if obj.puntos_ajuste > 0 else ''
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}{}</span>',
+            color,
+            signo,
+            obj.puntos_ajuste
+        )
+    puntos_display.short_description = 'Puntos Ajustados'
+    
+    def save_model(self, request, obj, form, change):
+        """Asignar el usuario actual como realizado_por si es nuevo"""
+        if not change:
+            obj.realizado_por = request.user
+        super().save_model(request, obj, form, change)

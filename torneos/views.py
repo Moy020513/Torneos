@@ -349,6 +349,14 @@ def categoria_detalle(request, categoria_id):
         
         diferencia_goles = goles_favor - goles_contra
         puntos = (partidos_ganados * 3) + partidos_empatados
+        
+        # Guardar ajustes de puntos (no sumar aquí, solo guardar para mostrar en tabla)
+        from .models import AjustePuntos
+        ajustes_puntos = AjustePuntos.objects.filter(
+            equipo=equipo,
+            categoria=categoria
+        ).aggregate(total=Sum('puntos_ajuste'))['total'] or 0
+        
         equipo.partidos_jugados = partidos_jugados_eq
         equipo.partidos_ganados = partidos_ganados
         equipo.partidos_empatados = partidos_empatados
@@ -357,7 +365,9 @@ def categoria_detalle(request, categoria_id):
         equipo.goles_contra = goles_contra
         equipo.diferencia_goles = diferencia_goles
         equipo.puntos = puntos
-    equipos = sorted(equipos, key=lambda x: (-x.puntos, -x.diferencia_goles, -x.goles_favor))
+        equipo.total_ajuste_puntos = ajustes_puntos
+        equipo.puntos_totales = puntos + ajustes_puntos  # Puntos con ajustes para ordenamiento
+    equipos = sorted(equipos, key=lambda x: (-x.puntos_totales, -x.diferencia_goles, -x.goles_favor))
     # Obtener jornadas únicas para el filtro
     jornadas = sorted(set(p.jornada for p in proximos_partidos))
     context = {
@@ -757,6 +767,14 @@ def tabla_posiciones_view(request, categoria_id):
         ).aggregate(total=Sum('goles_local'))['total'] or 0
         diferencia_goles = goles_favor - goles_contra
         puntos = (partidos_ganados * 3) + partidos_empatados
+        
+        # Guardar ajustes de puntos (no sumar aquí, solo guardar para mostrar en tabla)
+        from .models import AjustePuntos
+        ajustes_puntos = AjustePuntos.objects.filter(
+            equipo=equipo,
+            categoria=categoria
+        ).aggregate(total=Sum('puntos_ajuste'))['total'] or 0
+        
         equipo.partidos_jugados = partidos_jugados_eq
         equipo.partidos_ganados = partidos_ganados
         equipo.partidos_empatados = partidos_empatados
@@ -765,7 +783,9 @@ def tabla_posiciones_view(request, categoria_id):
         equipo.goles_contra = goles_contra
         equipo.diferencia_goles = diferencia_goles
         equipo.puntos = puntos
-    equipos = sorted(equipos, key=lambda x: (-x.puntos, -x.diferencia_goles, -x.goles_favor))
+        equipo.total_ajuste_puntos = ajustes_puntos  # Guardar ajustes para mostrar en tabla
+        equipo.puntos_totales = puntos + ajustes_puntos  # Puntos con ajustes para ordenamiento
+    equipos = sorted(equipos, key=lambda x: (-x.puntos_totales, -x.diferencia_goles, -x.goles_favor))
     context = {
         'categoria': categoria,
         'equipos': equipos

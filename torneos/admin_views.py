@@ -402,7 +402,8 @@ def admin_campos(request):
         campos = UbicacionCampo.objects.filter(
             Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
             Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
-            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo) |
+            Q(creado_por=request.user)
         ).distinct()
     else:
         campos = UbicacionCampo.objects.all()
@@ -441,7 +442,9 @@ def admin_crear_campo(request):
     if request.method == 'POST':
         form = UbicacionCampoForm(request.POST)
         if form.is_valid():
-            form.save()
+            campo = form.save(commit=False)
+            campo.creado_por = request.user
+            campo.save()
             messages.success(request, 'Campo creado exitosamente.')
             return redirect('admin_campos')
     else:
@@ -477,7 +480,7 @@ def admin_eliminar_campo(request, campo_id):
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Q, Sum, Count, F, Max
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
@@ -658,6 +661,13 @@ def admin_crear_torneo(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_editar_torneo(request, torneo_id):
+    # Si es admin de torneo, solo puede editar el torneo asignado
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if not assigned_torneo or assigned_torneo != torneo_id:
+            return HttpResponseForbidden('No tienes permiso para editar este torneo.')
+
     torneo = get_object_or_404(Torneo, id=torneo_id)
     # Calcular el total de equipos de todas las categorías de este torneo
     categorias = torneo.categoria_set.all()
@@ -1247,7 +1257,7 @@ def admin_crear_partido(request):
         assigned_torneo = get_assigned_torneo_id(request.user)
 
     if request.method == 'POST':
-        form = PartidoForm(request.POST, assigned_torneo=assigned_torneo)
+        form = PartidoForm(request.POST, assigned_torneo=assigned_torneo, current_user=request.user)
         if form.is_valid():
             # Validaciones servidor-side: asegurar que los equipos y grupo pertenezcan al torneo asignado
             if assigned_torneo and not request.user.is_superuser:
@@ -1273,7 +1283,8 @@ def admin_crear_partido(request):
                         if not UbicacionCampo.objects.filter(id=ubicacion.id).filter(
                             Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
                             Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
-                            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+                            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo) |
+                            Q(creado_por=request.user)
                         ).exists():
                             messages.error(request, 'La ubicación seleccionada no está asociada a tu torneo.')
                             context = {'form': form, 'action': 'Crear'}
@@ -1284,7 +1295,7 @@ def admin_crear_partido(request):
             messages.success(request, 'Partido creado exitosamente.')
             return redirect('admin_partidos')
     else:
-        form = PartidoForm(assigned_torneo=assigned_torneo)
+        form = PartidoForm(assigned_torneo=assigned_torneo, current_user=request.user)
     
     context = {
         'form': form,
@@ -1302,7 +1313,7 @@ def admin_editar_partido(request, partido_id):
         assigned_torneo = get_assigned_torneo_id(request.user)
 
     if request.method == 'POST':
-        form = PartidoForm(request.POST, instance=partido, assigned_torneo=assigned_torneo)
+        form = PartidoForm(request.POST, instance=partido, assigned_torneo=assigned_torneo, current_user=request.user)
         if form.is_valid():
             if assigned_torneo and not request.user.is_superuser:
                 grupo = form.cleaned_data.get('grupo')
@@ -1327,7 +1338,8 @@ def admin_editar_partido(request, partido_id):
                     if not UbicacionCampo.objects.filter(id=ubicacion.id).filter(
                         Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
                         Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
-                        Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+                        Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo) |
+                        Q(creado_por=request.user)
                     ).exists():
                         messages.error(request, 'La ubicación seleccionada no está asociada a tu torneo.')
                         context = {'form': form, 'partido': partido, 'action': 'Editar'}
@@ -1338,7 +1350,7 @@ def admin_editar_partido(request, partido_id):
             messages.success(request, 'Partido actualizado exitosamente.')
             return redirect('admin_partidos')
     else:
-        form = PartidoForm(instance=partido, assigned_torneo=assigned_torneo)
+        form = PartidoForm(instance=partido, assigned_torneo=assigned_torneo, current_user=request.user)
     
     context = {
         'form': form,
@@ -2426,7 +2438,8 @@ def admin_campos(request):
         campos = UbicacionCampo.objects.filter(
             Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
             Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
-            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+            Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo) |
+            Q(creado_por=request.user)
         ).distinct()
     else:
         campos = UbicacionCampo.objects.all()
@@ -2449,7 +2462,9 @@ def admin_crear_campo(request):
     if request.method == 'POST':
         form = UbicacionCampoForm(request.POST)
         if form.is_valid():
-            form.save()
+            campo = form.save(commit=False)
+            campo.creado_por = request.user
+            campo.save()
             messages.success(request, 'Campo creado exitosamente.')
             return redirect('admin_campos')
     else:
@@ -2594,3 +2609,114 @@ def admin_generar_calendario(request, categoria_id):
             'categoria': categoria,
             'equipos': equipos
         })
+
+
+# =================== AJUSTE DE PUNTOS ===================
+
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import AjustePuntosForm
+from .models import AjustePuntos
+
+@login_required
+@user_passes_test(is_admin)
+def admin_ajustar_puntos(request):
+    """Lista de ajustes de puntos realizados"""
+    assigned_torneo_id = get_assigned_torneo_id(request.user)
+    
+    # Filtrar ajustes según el torneo asignado
+    if assigned_torneo_id:
+        ajustes = AjustePuntos.objects.filter(
+            categoria__torneo_id=assigned_torneo_id
+        ).select_related('equipo', 'categoria', 'realizado_por').order_by('-fecha_creacion')
+    else:
+        ajustes = AjustePuntos.objects.select_related('equipo', 'categoria', 'realizado_por').order_by('-fecha_creacion')
+    
+    context = {
+        'ajustes': ajustes,
+        'total_ajustes': ajustes.count(),
+    }
+    return render(request, 'admin/torneos/ajustar_puntos.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_ajuste_puntos(request):
+    """Crear nuevo ajuste de puntos"""
+    assigned_torneo_id = get_assigned_torneo_id(request.user)
+    
+    if request.method == 'POST':
+        form = AjustePuntosForm(request.POST)
+        if form.is_valid():
+            ajuste = form.save(commit=False)
+            ajuste.realizado_por = request.user
+            ajuste.save()
+            messages.success(
+                request, 
+                f'Ajuste de puntos realizado: {ajuste.equipo.nombre} {ajuste.puntos_ajuste:+d} puntos'
+            )
+            return redirect('admin_ajustar_puntos')
+    else:
+        form = AjustePuntosForm()
+        # Limitar categorías si es administrador de un torneo específico
+        if assigned_torneo_id:
+            form.fields['categoria'].queryset = Categoria.objects.filter(torneo_id=assigned_torneo_id)
+            form.fields['equipo'].queryset = Equipo.objects.filter(categoria__torneo_id=assigned_torneo_id)
+    
+    context = {
+        'form': form,
+        'titulo': 'Crear Ajuste de Puntos',
+    }
+    return render(request, 'admin/torneos/crear_ajuste_puntos.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_ajuste_puntos(request, ajuste_id):
+    """Editar un ajuste de puntos"""
+    ajuste = get_object_or_404(AjustePuntos, id=ajuste_id)
+    assigned_torneo_id = get_assigned_torneo_id(request.user)
+    
+    # Verificar permisos
+    if assigned_torneo_id and ajuste.categoria.torneo_id != assigned_torneo_id:
+        messages.error(request, 'No tienes permiso para editar este ajuste.')
+        return redirect('admin_ajustar_puntos')
+    
+    if request.method == 'POST':
+        form = AjustePuntosForm(request.POST, instance=ajuste)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Ajuste de puntos actualizado exitosamente.')
+            return redirect('admin_ajustar_puntos')
+    else:
+        form = AjustePuntosForm(instance=ajuste)
+        if assigned_torneo_id:
+            form.fields['categoria'].queryset = Categoria.objects.filter(torneo_id=assigned_torneo_id)
+            form.fields['equipo'].queryset = Equipo.objects.filter(categoria__torneo_id=assigned_torneo_id)
+    
+    context = {
+        'form': form,
+        'ajuste': ajuste,
+        'titulo': 'Editar Ajuste de Puntos',
+    }
+    return render(request, 'admin/torneos/crear_ajuste_puntos.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+@require_POST
+def admin_eliminar_ajuste_puntos(request, ajuste_id):
+    """Eliminar un ajuste de puntos"""
+    ajuste = get_object_or_404(AjustePuntos, id=ajuste_id)
+    assigned_torneo_id = get_assigned_torneo_id(request.user)
+    
+    # Verificar permisos
+    if assigned_torneo_id and ajuste.categoria.torneo_id != assigned_torneo_id:
+        messages.error(request, 'No tienes permiso para eliminar este ajuste.')
+        return redirect('admin_ajustar_puntos')
+    
+    equipo_nombre = ajuste.equipo.nombre
+    puntos_str = f"{ajuste.puntos_ajuste:+d}"
+    ajuste.delete()
+    messages.success(request, f'Ajuste de puntos eliminado: {equipo_nombre} {puntos_str}')
+    return redirect('admin_ajustar_puntos')

@@ -20,6 +20,7 @@
                         <th>GC</th>
                         <th>DG</th>
                         <th>PTS</th>
+                        <th>AJUSTES</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,7 +42,23 @@
                         <td>{{ equipo.goles_favor }}</td>
                         <td>{{ equipo.goles_contra }}</td>
                         <td>{{ equipo.diferencia_goles }}</td>
-                        <td>{{ equipo.puntos }}</td>
+                        <td>
+                            <strong>
+                                {{ equipo.puntos_totales }}
+                                {% if equipo.total_ajuste_puntos %}
+                                    <span style="{% if equipo.total_ajuste_puntos > 0 %}color: green;{% elif equipo.total_ajuste_puntos < 0 %}color: red;{% endif %}">*</span>
+                                {% endif %}
+                            </strong>
+                        </td>
+                        <td>
+                            {% if equipo.total_ajuste_puntos %}
+                                <span style="{% if equipo.total_ajuste_puntos > 0 %}color: green; font-weight: bold;{% elif equipo.total_ajuste_puntos < 0 %}color: red; font-weight: bold;{% endif %}">
+                                    {% if equipo.total_ajuste_puntos > 0 %}+{% endif %}{{ equipo.total_ajuste_puntos }}
+                                </span>
+                            {% else %}
+                                <span style="color: gray;">0</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -60,7 +77,8 @@
             <li class="col"><strong>GF</strong>: Goles a Favor</li>
             <li class="col"><strong>GC</strong>: Goles en Contra</li>
             <li class="col"><strong>DG</strong>: Diferencia de Goles</li>
-            <li class="col"><strong>PTS</strong>: Puntos Totales</li>
+            <li class="col"><strong>PTS</strong>: Puntos Totales (con asterisco * si hay ajustes)</li>
+            <li class="col"><strong>AJUSTES</strong>: Ajustes administrativos (verde +, rojo -)</li>
         </ul>
         <style>
 @media (max-width: 576px) {
