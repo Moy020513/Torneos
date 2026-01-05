@@ -127,11 +127,11 @@ class Equipo(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     @property
-    def capitan(self):
-        from .models import Capitan
+    def representante(self):
+        from .models import Representante
         try:
-            return Capitan.objects.get(equipo=self)
-        except Capitan.DoesNotExist:
+            return Representante.objects.get(equipo=self)
+        except Representante.DoesNotExist:
             return None
     
     def __str__(self):
@@ -203,11 +203,15 @@ class Jugador(models.Model):
             else:
                 img.save(self.foto.path)
 
-class Capitan(models.Model):
+class Representante(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     equipo = models.OneToOneField(Equipo, on_delete=models.CASCADE)
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Representante'
+        verbose_name_plural = 'Representantes'
     
     def __str__(self):
         return f"{self.usuario.username} - {self.equipo.nombre}"

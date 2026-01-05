@@ -89,9 +89,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}">Panel Torneo</a>
                             </li>
-                        {% elif user.capitan %}
+                        {% elif user.representante %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'capitan_panel' %}">Panel capitán</a>
+                                <a class="nav-link" href="{% url 'representante_panel' %}">Panel representante</a>
                             </li>
                         {% endif %}
                     {% endif %}
@@ -111,7 +111,7 @@
                                 <i class="fa-solid fa-user me-1"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Perfil</a></li>
+                                <li><a class="dropdown-item" href="{% url 'perfil_usuario' %}">Perfil</a></li>
                                     {% if user.is_superuser %}
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">

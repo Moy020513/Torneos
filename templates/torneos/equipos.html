@@ -24,7 +24,7 @@
                         <h6 class="card-title mb-0 nombre-equipo text-center" style="font-size: clamp(0.7rem, 2.5vw, 1rem); font-weight: 600; word-break: break-word;">{{ equipo.nombre }}</h6>
                     </div>
                     <p class="card-text mb-0" style="font-size: clamp(0.65rem, 2vw, 0.95rem); line-height: 1.3;">
-                        <strong>Capitán:</strong> <span style="font-size: clamp(0.6rem, 1.8vw, 0.9rem); display: block; word-break: break-word;">{% if equipo.capitan %}{{ equipo.capitan.usuario.get_full_name|default:equipo.capitan.usuario.username }}{% else %}Sin capitán{% endif %}</span>
+                        <strong>Representante:</strong> <span style="font-size: clamp(0.6rem, 1.8vw, 0.9rem); display: block; word-break: break-word;">{% if equipo.representante %}{{ equipo.representante.usuario.get_full_name|default:equipo.representante.usuario.username }}{% else %}Sin representante{% endif %}</span>
                         <strong>Jugadores:</strong> {{ equipo.jugador_set.count }}
                     </p>
                 </div>

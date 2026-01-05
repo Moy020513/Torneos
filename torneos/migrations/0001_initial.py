@@ -142,7 +142,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='torneos.torneo'),
         ),
         migrations.CreateModel(
-            name='Capitan',
+            name='Representante',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('activo', models.BooleanField(default=True)),

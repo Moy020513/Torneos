@@ -34,7 +34,7 @@
             <ul class="mb-0 mt-2">
                 <li>Cuenta de usuario y credenciales</li>
                 <li>Historial de actividad</li>
-                <li>Relaciones como capitán (si aplica)</li>
+                <li>Relaciones como representante (si aplica)</li>
                 <li>Configuraciones personales</li>
             </ul>
         </div>
@@ -121,17 +121,17 @@
                 </div>
                 {% endif %}
                 
-                <!-- Información adicional si es capitán -->
-                {% if usuario.capitan %}
+                <!-- Información adicional si es representante -->
+                {% if usuario.representante %}
                 <div class="border-top pt-3 mt-3">
                     <h6 class="fw-semibold mb-3 text-warning">
                         <i class="fas fa-user-tie me-1"></i>
-                        Este usuario es Capitán
+                        Este usuario es Representante
                     </h6>
                     <div class="alert alert-warning">
-                        <strong>Equipo:</strong> {{ usuario.capitan.equipo.nombre }}<br>
-                        <strong>Categoría:</strong> {{ usuario.capitan.equipo.categoria.nombre }}<br>
-                        <small class="text-muted">Al eliminar este usuario, el equipo quedará sin capitán</small>
+                        <strong>Equipo:</strong> {{ usuario.representante.equipo.nombre }}<br>
+                        <strong>Categoría:</strong> {{ usuario.representante.equipo.categoria.nombre }}<br>
+                        <small class="text-muted">Al eliminar este usuario, el equipo quedará sin representante</small>
                     </div>
                 </div>
                 {% endif %}
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const username = '{{ usuario.username }}';
-        const confirmMessage = `¿Está COMPLETAMENTE SEGURO de eliminar al usuario "${username}"?\n\nEsta acción es IRREVERSIBLE y eliminará permanentemente:\n- La cuenta de usuario\n- Todo el historial de actividad\n- Las relaciones como capitán (si aplica)\n- Todas las configuraciones\n\n¿Continuar?`;
+        const confirmMessage = `¿Está COMPLETAMENTE SEGURO de eliminar al usuario "${username}"?\n\nEsta acción es IRREVERSIBLE y eliminará permanentemente:\n- La cuenta de usuario\n- Todo el historial de actividad\n- Las relaciones como representante (si aplica)\n- Todas las configuraciones\n\n¿Continuar?`;
         
         if (confirm(confirmMessage)) {
             this.closest('form').submit();

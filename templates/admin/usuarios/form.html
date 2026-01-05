@@ -236,10 +236,10 @@
                             <span>Registrado:</span>
                             <span class="fw-semibold">{{ usuario.date_joined|date:"d/m/Y H:i" }}</span>
                         </div>
-                        {% if usuario.capitan_info %}
+                        {% if usuario.representante_info %}
                         <div class="d-flex justify-content-between">
-                            <span>Es Capitán:</span>
-                            <span class="fw-semibold text-success">{{ usuario.capitan_info.equipo.nombre }}</span>
+                            <span>Es Representante:</span>
+                            <span class="fw-semibold text-success">{{ usuario.representante_info.equipo.nombre }}</span>
                         </div>
                         {% endif %}
                     </div>

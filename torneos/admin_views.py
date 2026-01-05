@@ -512,7 +512,7 @@ def admin_dashboard(request):
     # Nuevas estadísticas
     total_grupos = Grupo.objects.count()
     total_usuarios = User.objects.count()
-    total_capitanes = Capitan.objects.count()
+    total_representantees = Representante.objects.count()
     total_eliminatorias = Eliminatoria.objects.count()
     
     # Estadísticas de partidos eliminatoria
@@ -555,8 +555,8 @@ def admin_dashboard(request):
     hace_30_dias = timezone.now() - timedelta(days=30)
     usuarios_activos = User.objects.filter(last_login__gte=hace_30_dias).count()
     
-    # Capitanes activos
-    capitanes_activos = Capitan.objects.filter(activo=True).count()
+    # Representantees activos
+    representantees_activos = Representante.objects.filter(activo=True).count()
     
     # Goles totales
     goles_totales = Partido.objects.filter(
@@ -580,7 +580,7 @@ def admin_dashboard(request):
         'total_partidos': total_partidos,
         'total_grupos': total_grupos,
         'total_usuarios': total_usuarios,
-        'total_capitanes': total_capitanes,
+        'total_representantees': total_representantees,
         'total_eliminatorias': total_eliminatorias,
         'total_partidos_eliminatoria': total_partidos_eliminatoria,
         'partidos_eliminatoria_jugados': partidos_eliminatoria_jugados,
@@ -595,7 +595,7 @@ def admin_dashboard(request):
         'equipos_completos': equipos_completos,
         'porcentaje_equipos_completos': round(porcentaje_equipos_completos, 1),
         'usuarios_activos': usuarios_activos,
-        'capitanes_activos': capitanes_activos,
+        'representantees_activos': representantees_activos,
         'total_admins': total_admins,
         'goles_totales': goles_totales,
         'ultimos_resultados': ultimos_resultados,
@@ -1553,12 +1553,12 @@ def admin_usuarios(request):
     
     usuarios = usuarios.order_by('-date_joined')
     
-    # Agregar información de capitán
+    # Agregar información de representante
     for usuario in usuarios:
         try:
-            usuario.capitan_info = usuario.capitan
+            usuario.representante_info = usuario.representante
         except:
-            usuario.capitan_info = None
+            usuario.representante_info = None
     
     # Paginación
     paginator = Paginator(usuarios, 15)
@@ -1573,7 +1573,7 @@ def admin_usuarios(request):
         'is_active': is_active,
         'total_usuarios': User.objects.count(),  # Total real, no filtrado
         'total_admins': User.objects.filter(is_staff=True).count(),
-        'total_capitanes': Capitan.objects.filter(activo=True).count(),
+        'total_representantees': Representante.objects.filter(activo=True).count(),
     }
     return render(request, 'admin/usuarios/listar.html', context)
 
@@ -1673,22 +1673,22 @@ def admin_eliminar_usuario(request, usuario_id):
 
 @login_required
 @user_passes_test(is_admin)
-def admin_capitanes(request):
+def admin_representantes(request):
     # Búsqueda y filtros
     search = request.GET.get('search', '')
     categoria_id = request.GET.get('categoria')
     activo = request.GET.get('activo')
     
-    capitanes = Capitan.objects.select_related('usuario', 'equipo', 'equipo__categoria').all()
+    representantees = Representante.objects.select_related('usuario', 'equipo', 'equipo__categoria').all()
     # Limitar por torneo si el usuario es AdministradorTorneo
     assigned_torneo = None
     if not request.user.is_superuser:
         assigned_torneo = get_assigned_torneo_id(request.user)
         if assigned_torneo:
-            capitanes = capitanes.filter(equipo__categoria__torneo_id=assigned_torneo)
+            representantees = representantees.filter(equipo__categoria__torneo_id=assigned_torneo)
     
     if search:
-        capitanes = capitanes.filter(
+        representantees = representantees.filter(
             Q(usuario__username__icontains=search) |
             Q(usuario__first_name__icontains=search) |
             Q(usuario__last_name__icontains=search) |
@@ -1696,15 +1696,15 @@ def admin_capitanes(request):
         )
     
     if categoria_id:
-        capitanes = capitanes.filter(equipo__categoria_id=categoria_id)
+        representantees = representantees.filter(equipo__categoria_id=categoria_id)
     
     if activo:
-        capitanes = capitanes.filter(activo=(activo == 'true'))
+        representantees = representantees.filter(activo=(activo == 'true'))
     
-    capitanes = capitanes.order_by('equipo__categoria__nombre', 'equipo__nombre')
+    representantees = representantees.order_by('equipo__categoria__nombre', 'equipo__nombre')
     
     # Paginación
-    paginator = Paginator(capitanes, 15)
+    paginator = Paginator(representantees, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1720,14 +1720,14 @@ def admin_capitanes(request):
         'categoria_id': categoria_id,
         'activo': activo,
         'categorias': categorias,
-        'total_capitanes': capitanes.count(),
-        'capitanes_activos': Capitan.objects.filter(activo=True).count(),
+        'total_representantees': representantees.count(),
+        'representantees_activos': Representante.objects.filter(activo=True).count(),
     }
-    return render(request, 'admin/capitanes/listar.html', context)
+    return render(request, 'admin/representantes/listar.html', context)
 
 @login_required
 @user_passes_test(is_admin)
-def admin_crear_capitan(request):
+def admin_crear_representante(request):
     # Si el usuario es AdministradorTorneo, limitar usuarios a los que él creó
     assigned_torneo = None
     created_by = None
@@ -1737,7 +1737,7 @@ def admin_crear_capitan(request):
             created_by = request.user
 
     if request.method == 'POST':
-        form = CapitanForm(request.POST, created_by=created_by)
+        form = RepresentanteForm(request.POST, created_by=created_by)
         if form.is_valid():
             # Validación adicional en servidor: asegurarnos de que el usuario seleccionado fue creado por este admin
             if created_by and not request.user.is_superuser:
@@ -1746,29 +1746,29 @@ def admin_crear_capitan(request):
                     usuario_sel = form.cleaned_data.get('usuario')
                     # permitir también mantener el usuario actual si existiera (no aplica en crear)
                     if not UsuarioCreado.objects.filter(usuario=usuario_sel, creado_por=request.user).exists():
-                        messages.error(request, 'No puedes asignar como capitán a un usuario que no hayas creado.')
+                        messages.error(request, 'No puedes asignar como representante a un usuario que no hayas creado.')
                         # volver a mostrar formulario con errores
                         context = {'form': form, 'action': 'Crear'}
-                        return render(request, 'admin/capitanes/form.html', context)
+                        return render(request, 'admin/representantes/form.html', context)
                 except Exception:
                     # Si falla la comprobación, no bloquear (pero en general no debería pasar)
                     pass
-            capitan = form.save()
-            messages.success(request, f'Capitán "{capitan.usuario.username}" asignado exitosamente.')
-            return redirect('admin_capitanes')
+            representante = form.save()
+            messages.success(request, f'Representante "{representante.usuario.username}" asignado exitosamente.')
+            return redirect('admin_representantes')
     else:
-        form = CapitanForm(created_by=created_by)
+        form = RepresentanteForm(created_by=created_by)
     
     context = {
         'form': form,
         'action': 'Crear',
     }
-    return render(request, 'admin/capitanes/form.html', context)
+    return render(request, 'admin/representantes/form.html', context)
 
 @login_required
 @user_passes_test(is_admin)
-def admin_editar_capitan(request, capitan_id):
-    capitan = get_object_or_404(Capitan, id=capitan_id)
+def admin_editar_representante(request, representante_id):
+    representante = get_object_or_404(Representante, id=representante_id)
     # Si el editor es AdministradorTorneo, limitar usuarios a los que él creó
     assigned_torneo = None
     created_by = None
@@ -1778,48 +1778,48 @@ def admin_editar_capitan(request, capitan_id):
             created_by = request.user
 
     if request.method == 'POST':
-        form = CapitanForm(request.POST, instance=capitan, created_by=created_by)
+        form = RepresentanteForm(request.POST, instance=representante, created_by=created_by)
         if form.is_valid():
             # Validación adicional: si el editor es admin de torneo, no permitir asignar usuarios que no haya creado
             if created_by and not request.user.is_superuser:
                 try:
                     from .models import UsuarioCreado
                     usuario_sel = form.cleaned_data.get('usuario')
-                    # Permitir si el usuario fue creado por este admin o si es el usuario actual del capitan
-                    if usuario_sel.id != capitan.usuario.id and not UsuarioCreado.objects.filter(usuario=usuario_sel, creado_por=request.user).exists():
-                        messages.error(request, 'No puedes asignar como capitán a un usuario que no hayas creado.')
-                        context = {'form': form, 'capitan': capitan, 'action': 'Editar'}
-                        return render(request, 'admin/capitanes/form.html', context)
+                    # Permitir si el usuario fue creado por este admin o si es el usuario actual del representante
+                    if usuario_sel.id != representante.usuario.id and not UsuarioCreado.objects.filter(usuario=usuario_sel, creado_por=request.user).exists():
+                        messages.error(request, 'No puedes asignar como representante a un usuario que no hayas creado.')
+                        context = {'form': form, 'representante': representante, 'action': 'Editar'}
+                        return render(request, 'admin/representantes/form.html', context)
                 except Exception:
                     pass
-            capitan = form.save()
-            messages.success(request, f'Capitán "{capitan.usuario.username}" actualizado exitosamente.')
-            return redirect('admin_capitanes')
+            representante = form.save()
+            messages.success(request, f'Representante "{representante.usuario.username}" actualizado exitosamente.')
+            return redirect('admin_representantes')
     else:
-        form = CapitanForm(instance=capitan, created_by=created_by)
+        form = RepresentanteForm(instance=representante, created_by=created_by)
     
     context = {
         'form': form,
-        'capitan': capitan,
+        'representante': representante,
         'action': 'Editar',
     }
-    return render(request, 'admin/capitanes/form.html', context)
+    return render(request, 'admin/representantes/form.html', context)
 
 @login_required
 @user_passes_test(is_admin)
-def admin_eliminar_capitan(request, capitan_id):
-    capitan = get_object_or_404(Capitan, id=capitan_id)
+def admin_eliminar_representante(request, representante_id):
+    representante = get_object_or_404(Representante, id=representante_id)
     
     if request.method == 'POST':
-        usuario_nombre = capitan.usuario.username
-        capitan.delete()
-        messages.success(request, f'Capitán "{usuario_nombre}" removido exitosamente.')
-        return redirect('admin_capitanes')
+        usuario_nombre = representante.usuario.username
+        representante.delete()
+        messages.success(request, f'Representante "{usuario_nombre}" removido exitosamente.')
+        return redirect('admin_representantes')
     
     context = {
-        'capitan': capitan,
+        'representante': representante,
     }
-    return render(request, 'admin/capitanes/eliminar.html', context)
+    return render(request, 'admin/representantes/eliminar.html', context)
 
 # ========== ELIMINATORIAS ==========
 

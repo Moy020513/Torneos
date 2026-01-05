@@ -1,23 +1,23 @@
 {% extends 'admin/admin_base.html' %}
 {% load static %}
 
-{% block page_title %}{{ action }} Capitán{% endblock %}
+{% block page_title %}{{ action }} Representante{% endblock %}
 
 {% block content %}
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="mb-1">{{ action }} Capitán</h2>
+        <h2 class="mb-1">{{ action }} Representante</h2>
         <p class="text-muted mb-0">
             {% if action == "Crear" %}
-                Asigne un capitán a un equipo
+                Asigne un representante a un equipo
             {% else %}
-                Modifique la asignación del capitán
+                Modifique la asignación del representante
             {% endif %}
         </p>
     </div>
     <div>
-        <a href="{% url 'admin_capitanes' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'admin_representantes' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Volver
         </a>
     </div>
@@ -30,7 +30,7 @@
             <div class="admin-card-header">
                 <h3>
                     <i class="fas fa-user-tie me-2"></i>
-                    Asignación de Capitán
+                    Asignación de Representante
                 </h3>
             </div>
             <div class="admin-card-body">
@@ -50,7 +50,7 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">Seleccione el usuario que será el capitán</div>
+                        <div class="form-text">Seleccione el usuario que será el representante</div>
                     </div>
                     
                     <!-- Equipo -->
@@ -66,7 +66,7 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">Seleccione el equipo del cual será capitán</div>
+                        <div class="form-text">Seleccione el equipo del cual será representante</div>
                     </div>
                     
                     <!-- Estado activo -->
@@ -84,7 +84,7 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">Los capitanes inactivos no pueden gestionar su equipo</div>
+                        <div class="form-text">Los representantes inactivos no pueden gestionar su equipo</div>
                     </div>
                     
                     <!-- Errores generales del formulario -->
@@ -98,11 +98,11 @@
                     
                     <!-- Botones de acción -->
                     <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                        <a href="{% url 'admin_capitanes' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'admin_representantes' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-2"></i>Cancelar
                         </a>
                         <button type="submit" class="btn btn-admin">
-                            <i class="fas fa-save me-2"></i>{{ action }} Capitán
+                            <i class="fas fa-save me-2"></i>{{ action }} Representante
                         </button>
                     </div>
                 </form>
@@ -116,38 +116,38 @@
             <div class="admin-card-header">
                 <h3>
                     <i class="fas fa-info-circle me-2"></i>
-                    Información del Capitán
+                    Información del Representante
                 </h3>
             </div>
             <div class="admin-card-body">
-                {% if action == "Editar" and capitan %}
+                {% if action == "Editar" and representante %}
                 <div class="mb-4">
                     <h6 class="fw-semibold mb-2">Información Actual</h6>
                     <div class="small">
                         <div class="d-flex justify-content-between mb-1">
                             <span>Usuario:</span>
-                            <span class="fw-semibold">{{ capitan.usuario.username }}</span>
+                            <span class="fw-semibold">{{ representante.usuario.username }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-1">
                             <span>Equipo:</span>
-                            <span class="fw-semibold">{{ capitan.equipo.nombre }}</span>
+                            <span class="fw-semibold">{{ representante.equipo.nombre }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-1">
                             <span>Categoría:</span>
-                            <span class="fw-semibold">{{ capitan.equipo.categoria.nombre }}</span>
+                            <span class="fw-semibold">{{ representante.equipo.categoria.nombre }}</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Asignado:</span>
-                            <span class="fw-semibold">{{ capitan.fecha_creacion|date:"d/m/Y" }}</span>
+                            <span class="fw-semibold">{{ representante.fecha_creacion|date:"d/m/Y" }}</span>
                         </div>
                     </div>
                 </div>
                 {% endif %}
                 
                 <div class="mb-4">
-                    <h6 class="fw-semibold mb-2">¿Qué es un Capitán?</h6>
+                    <h6 class="fw-semibold mb-2">¿Qué es un Representante?</h6>
                     <div class="small text-muted">
-                        El capitán es el usuario responsable de gestionar su equipo. Puede:
+                        El representante es el usuario responsable de gestionar su equipo. Puede:
                         <ul class="mt-2">
                             <li>Ver información de su equipo</li>
                             <li>Gestionar jugadores (si tiene permisos)</li>
@@ -161,8 +161,8 @@
                     <h6 class="fw-semibold mb-2">Restricciones</h6>
                     <div class="small text-muted">
                         <ul>
-                            <li>Un usuario solo puede ser capitán de un equipo</li>
-                            <li>Un equipo solo puede tener un capitán</li>
+                            <li>Un usuario solo puede ser representante de un equipo</li>
+                            <li>Un equipo solo puede tener un representante</li>
                             <li>El usuario debe tener una cuenta activa</li>
                         </ul>
                     </div>
@@ -173,7 +173,7 @@
                         <i class="fas fa-lightbulb text-info me-2 mt-1"></i>
                         <div class="small">
                             <strong>Consejo:</strong> 
-                            Asigne capitanes a usuarios responsables que puedan gestionar efectivamente sus equipos.
+                            Asigne representantes a usuarios responsables que puedan gestionar efectivamente sus equipos.
                         </div>
                     </div>
                 </div>

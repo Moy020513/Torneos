@@ -133,34 +133,62 @@ def is_admin(user):
     # AdministradorTorneo viene de models (imported with *)
     return AdministradorTorneo.objects.filter(usuario=user, activo=True).exists()
 
-def is_capitan(user):
-    return hasattr(user, 'capitan') and user.capitan.activo
+def is_representante(user):
+    return hasattr(user, 'representante') and user.representante.activo
 
-# Panel principal del capitán
+
+# Perfil de usuario (representante y otros roles)
+@login_required
+def perfil_usuario(request):
+    usuario = request.user
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+
+        # Solo actualizamos si el valor cambia; permite completar faltantes.
+        usuario.first_name = first_name
+        usuario.last_name = last_name
+        if email:
+            usuario.email = email
+        usuario.save()
+        messages.success(request, 'Perfil actualizado correctamente.')
+        return redirect('perfil_usuario')
+
+    representante = getattr(usuario, 'representante', None)
+    contexto = {
+        'usuario': usuario,
+        'representante': representante,
+        'equipo': getattr(representante, 'equipo', None) if representante else None,
+    }
+    return render(request, 'torneos/representante/perfil.html', contexto)
+
+# Panel principal del representante
 from django.urls import reverse
 from django.http import HttpResponseForbidden
 
 @login_required
-@user_passes_test(is_capitan)
-def capitan_panel(request):
-    capitan = request.user.capitan
-    equipo = capitan.equipo
+@user_passes_test(is_representante)
+def representante_panel(request):
+    representante = request.user.representante
+    equipo = representante.equipo
     jugadores = Jugador.objects.filter(equipo=equipo)
     context = {
-        'capitan': capitan,
+        'representante': representante,
         'equipo': equipo,
         'jugadores': jugadores,
     }
-    return render(request, 'torneos/capitan/panel.html', context)
+    return render(request, 'torneos/representante/panel.html', context)
 
-# CRUD de jugadores para capitán
+# CRUD de jugadores para representante
 @login_required
-@user_passes_test(is_capitan)
-def capitan_jugador_create(request):
-    equipo = request.user.capitan.equipo
-    from .forms import CapitanJugadorForm
+@user_passes_test(is_representante)
+def representante_jugador_create(request):
+    equipo = request.user.representante.equipo
+    from .forms import RepresentanteJugadorForm
     if request.method == 'POST':
-        form = CapitanJugadorForm(request.POST, request.FILES)
+        form = RepresentanteJugadorForm(request.POST, request.FILES)
         if form.is_valid():
             jugador = form.save(commit=False)
             jugador.equipo = equipo
@@ -169,23 +197,23 @@ def capitan_jugador_create(request):
             jugador.apellido = jugador.apellido.upper() if jugador.apellido else ''
             jugador.save()
             messages.success(request, 'Jugador creado exitosamente.')
-            return redirect('capitan_panel')
+            return redirect('representante_panel')
     else:
-        form = CapitanJugadorForm()
-    return render(request, 'torneos/capitan/jugador_form.html', {'form': form})
+        form = RepresentanteJugadorForm()
+    return render(request, 'torneos/representante/jugador_form.html', {'form': form})
 
 @login_required
-@user_passes_test(is_capitan)
-def capitan_jugador_update(request, jugador_id):
-    equipo = request.user.capitan.equipo
+@user_passes_test(is_representante)
+def representante_jugador_update(request, jugador_id):
+    equipo = request.user.representante.equipo
     jugador = get_object_or_404(Jugador, id=jugador_id, equipo=equipo)
-    # Si el jugador ya está verificado por un administrador, impedir edición por capitán
+    # Si el jugador ya está verificado por un administrador, impedir edición por representante
     if getattr(jugador, 'verificado', False):
-        messages.warning(request, 'Este jugador ha sido verificado por un administrador y no puede ser editado por el capitán. Solo puede ser eliminado.')
-        return redirect('capitan_panel')
-    from .forms import CapitanJugadorForm
+        messages.warning(request, 'Este jugador ha sido verificado por un administrador y no puede ser editado por el representante. Solo puede ser eliminado.')
+        return redirect('representante_panel')
+    from .forms import RepresentanteJugadorForm
     if request.method == 'POST':
-        form = CapitanJugadorForm(request.POST, request.FILES, instance=jugador)
+        form = RepresentanteJugadorForm(request.POST, request.FILES, instance=jugador)
         if form.is_valid():
             jugador = form.save(commit=False)
             # Forzar mayúsculas en el nombre y apellido
@@ -193,21 +221,21 @@ def capitan_jugador_update(request, jugador_id):
             jugador.apellido = jugador.apellido.upper() if jugador.apellido else ''
             jugador.save()
             messages.success(request, 'Jugador actualizado.')
-            return redirect('capitan_panel')
+            return redirect('representante_panel')
     else:
-        form = CapitanJugadorForm(instance=jugador)
-    return render(request, 'torneos/capitan/jugador_form.html', {'form': form, 'jugador': jugador})
+        form = RepresentanteJugadorForm(instance=jugador)
+    return render(request, 'torneos/representante/jugador_form.html', {'form': form, 'jugador': jugador})
 
 @login_required
-@user_passes_test(is_capitan)
-def capitan_jugador_delete(request, jugador_id):
-    equipo = request.user.capitan.equipo
+@user_passes_test(is_representante)
+def representante_jugador_delete(request, jugador_id):
+    equipo = request.user.representante.equipo
     jugador = get_object_or_404(Jugador, id=jugador_id, equipo=equipo)
     if request.method == 'POST':
         jugador.delete()
         messages.success(request, 'Jugador eliminado.')
-        return redirect('capitan_panel')
-    return render(request, 'torneos/capitan/jugador_confirm_delete.html', {'jugador': jugador})
+        return redirect('representante_panel')
+    return render(request, 'torneos/representante/jugador_confirm_delete.html', {'jugador': jugador})
 
 def index(request):
     # Mostrar torneos activos desde el más antiguo al más nuevo
@@ -493,12 +521,12 @@ def integrar_nuevo_equipo(request, categoria_id):
 
 
 @login_required
-@user_passes_test(is_capitan)
+@user_passes_test(is_representante)
 def gestion_equipo(request, equipo_id):
     equipo = get_object_or_404(Equipo, id=equipo_id)
     
-    # Verificar que el usuario es capitán de este equipo
-    if not hasattr(request.user, 'capitan') or request.user.capitan.equipo != equipo:
+    # Verificar que el usuario es representante de este equipo
+    if not hasattr(request.user, 'representante') or request.user.representante.equipo != equipo:
         messages.error(request, 'No tienes permisos para gestionar este equipo.')
         return redirect('index')
     
@@ -520,7 +548,7 @@ def gestion_equipo(request, equipo_id):
         'jugadores': jugadores,
         'form': form
     }
-    return render(request, 'torneos/capitan/gestion_equipo.html', context)
+    return render(request, 'torneos/representante/gestion_equipo.html', context)
 
 def eliminatorias_view(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)

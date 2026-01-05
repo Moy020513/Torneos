@@ -27,7 +27,7 @@
                     {% if jugador.verificado %}
                     <div class="alert alert-warning" role="alert">
                         <strong><i class="fas fa-lock"></i> Edición bloqueada</strong><br>
-                        Este jugador fue verificado por un administrador y no puede ser editado desde el panel del capitán. Solo puedes eliminarlo.
+                        Este jugador fue verificado por un administrador y no puede ser editado desde el panel del representante. Solo puedes eliminarlo.
                     </div>
                     {% else %}
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -137,7 +137,7 @@
                                     </button>
                                 </div>
                                 <div class="col-md-6">
-                                    <a href="{% url 'capitan_panel' %}" class="btn btn-outline-secondary btn-lg w-100">
+                                    <a href="{% url 'representante_panel' %}" class="btn btn-outline-secondary btn-lg w-100">
                                         <i class="fas fa-arrow-left"></i> Volver al Panel
                                     </a>
                                 </div>

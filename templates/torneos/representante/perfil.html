@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col-12 col-md-8">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-0">Perfil</h5>
+            <small>Completa o actualiza tus datos básicos</small>
+          </div>
+          <i class="fas fa-id-card"></i>
+        </div>
+        <div class="card-body">
+          <form method="post" class="row g-3">
+            {% csrf_token %}
+            <div class="col-12">
+              <label class="form-label">Usuario</label>
+              <input type="text" class="form-control" value="{{ usuario.username }}" readonly>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Nombre</label>
+              <input type="text" name="first_name" class="form-control" value="{{ usuario.first_name }}" placeholder="Ingresa tu nombre">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Apellidos</label>
+              <input type="text" name="last_name" class="form-control" value="{{ usuario.last_name }}" placeholder="Ingresa tus apellidos">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Correo</label>
+              <input type="email" name="email" class="form-control" value="{{ usuario.email }}" placeholder="tu@correo.com">
+            </div>
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+              <a href="{% url 'representante_panel' %}" class="btn btn-outline-secondary">Volver al panel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-1"></i>
+        Si tu nombre o apellidos están vacíos, complétalos para que aparezcan en reportes y listados.
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-light"><strong>Información de la cuenta</strong></div>
+        <div class="card-body">
+          <p class="mb-2"><span class="text-muted">Último acceso:</span><br>{{ usuario.last_login|date:'d/m/Y H:i' }}</p>
+          <p class="mb-2"><span class="text-muted">Fecha de registro:</span><br>{{ usuario.date_joined|date:'d/m/Y H:i' }}</p>
+          {% if representante %}
+          <hr>
+          <p class="mb-2"><span class="text-muted">Representante de:</span><br>{{ representante.equipo.nombre }}</p>
+          <p class="mb-0"><span class="text-muted">Estado:</span>
+            {% if representante.activo %}
+              <span class="badge bg-success">Activo</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactivo</span>
+            {% endif %}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

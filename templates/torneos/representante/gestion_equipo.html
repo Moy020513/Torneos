@@ -2,9 +2,9 @@
 {% block content %}
 <h2>Gestión de Equipo</h2>
 <p>Equipo: <strong>{{ equipo.nombre }}</strong></p>
-<a href="{% url 'capitan_panel' %}" class="btn btn-secondary">Ir al panel de capitán</a>
+<a href="{% url 'representante_panel' %}" class="btn btn-secondary">Ir al panel de representante</a>
 <h3>Jugadores</h3>
-<a href="{% url 'capitan_jugador_create' %}" class="btn btn-success">Agregar Jugador</a>
+<a href="{% url 'representante_jugador_create' %}" class="btn btn-success">Agregar Jugador</a>
 <table class="table">
     <thead>
         <tr>
@@ -23,8 +23,8 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn btn-primary btn-sm">Editar</a>
-                <a href="{% url 'capitan_jugador_delete' jugador.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                <a href="{% url 'representante_jugador_update' jugador.id %}" class="btn btn-primary btn-sm">Editar</a>
+                <a href="{% url 'representante_jugador_delete' jugador.id %}" class="btn btn-danger btn-sm">Eliminar</a>
             </td>
         </tr>
         {% empty %}

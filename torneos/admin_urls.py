@@ -66,10 +66,10 @@ admin_urlpatterns = [
     path('panel/usuarios/<int:usuario_id>/eliminar/', admin_views.admin_eliminar_usuario, name='admin_eliminar_usuario'),
 
     # Capitanes
-    path('panel/capitanes/', admin_views.admin_capitanes, name='admin_capitanes'),
-    path('panel/capitanes/crear/', admin_views.admin_crear_capitan, name='admin_crear_capitan'),
-    path('panel/capitanes/<int:capitan_id>/editar/', admin_views.admin_editar_capitan, name='admin_editar_capitan'),
-    path('panel/capitanes/<int:capitan_id>/eliminar/', admin_views.admin_eliminar_capitan, name='admin_eliminar_capitan'),
+    path('panel/representantes/', admin_views.admin_representantes, name='admin_representantes'),
+    path('panel/representantes/crear/', admin_views.admin_crear_representante, name='admin_crear_representante'),
+    path('panel/representantes/<int:representante_id>/editar/', admin_views.admin_editar_representante, name='admin_editar_representante'),
+    path('panel/representantes/<int:representante_id>/eliminar/', admin_views.admin_eliminar_representante, name='admin_eliminar_representante'),
 
     # Eliminatorias
     path('eliminatorias/', admin_views.admin_eliminatorias, name='admin_eliminatorias'),

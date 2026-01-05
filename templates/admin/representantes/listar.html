@@ -1,18 +1,18 @@
 {% extends 'admin/admin_base.html' %}
 {% load static %}
 
-{% block page_title %}Gestión de Capitanes{% endblock %}
+{% block page_title %}Gestión de Representantes{% endblock %}
 
 {% block content %}
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="mb-1">Gestión de Capitanes</h2>
-        <p class="text-muted mb-0">Administre los capitanes de los equipos</p>
+        <h2 class="mb-1">Gestión de Representantes</h2>
+        <p class="text-muted mb-0">Administre los representantes de los equipos</p>
     </div>
     <div>
-        <a href="{% url 'admin_crear_capitan' %}" class="btn btn-admin">
-            <i class="fas fa-plus me-2"></i>Nuevo Capitán
+        <a href="{% url 'admin_crear_representante' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Nuevo Representante
         </a>
     </div>
 </div>
@@ -64,8 +64,8 @@
             <div class="stat-icon primary">
                 <i class="fas fa-user-tie"></i>
             </div>
-            <div class="stat-number">{{ total_capitanes }}</div>
-            <div class="stat-label">Total Capitanes</div>
+            <div class="stat-number">{{ total_representantes }}</div>
+            <div class="stat-label">Total Representantes</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
@@ -73,8 +73,8 @@
             <div class="stat-icon success">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <div class="stat-number">{{ capitanes_activos }}</div>
-            <div class="stat-label">Capitanes Activos</div>
+            <div class="stat-number">{{ representantes_activos }}</div>
+            <div class="stat-label">Representantes Activos</div>
         </div>
     </div>
 </div>
@@ -84,16 +84,16 @@
     <div class="admin-card-header">
         <h3>
             <i class="fas fa-user-tie me-2"></i>
-            Listado de Capitanes
+            Listado de Representantes
         </h3>
     </div>
     <div class="admin-card-body">
         {% if page_obj %}
         <div class="table-responsive">
-            <table class="table table-hover mb-0 capitanes-table admin-table">
+            <table class="table table-hover mb-0 representantes-table admin-table">
                     <thead class="table-light">
                         <tr>
-                            <th>Capitán</th>
+                            <th>Representante</th>
                             <th>Equipo</th>
                             <th>Categoría</th>
                             <th>Torneo</th>
@@ -103,7 +103,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for capitan in page_obj %}
+                        {% for representante in page_obj %}
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
@@ -114,38 +114,38 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="fw-semibold">{{ capitan.usuario.username }}</div>
-                                        {% if capitan.usuario.first_name or capitan.usuario.last_name %}
-                                            <small class="text-muted">{{ capitan.usuario.first_name }} {{ capitan.usuario.last_name }}</small>
+                                        <div class="fw-semibold">{{ representante.usuario.username }}</div>
+                                        {% if representante.usuario.first_name or representante.usuario.last_name %}
+                                            <small class="text-muted">{{ representante.usuario.first_name }} {{ representante.usuario.last_name }}</small>
                                         {% endif %}
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <div class="fw-semibold">{{ capitan.equipo.nombre }}</div>
-                                <small class="text-muted">{{ capitan.equipo.jugador_set.count }} jugadores</small>
+                                <div class="fw-semibold">{{ representante.equipo.nombre }}</div>
+                                <small class="text-muted">{{ representante.equipo.jugador_set.count }} jugadores</small>
                             </td>
-                            <td>{{ capitan.equipo.categoria.nombre }}</td>
+                            <td>{{ representante.equipo.categoria.nombre }}</td>
                             <td>
-                                <span class="badge bg-primary">{{ capitan.equipo.categoria.torneo.nombre }}</span>
+                                <span class="badge bg-primary">{{ representante.equipo.categoria.torneo.nombre }}</span>
                             </td>
                             <td>
-                                {% if capitan.activo %}
+                                {% if representante.activo %}
                                     <span class="badge bg-success">Activo</span>
                                 {% else %}
                                     <span class="badge bg-secondary">Inactivo</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <small class="text-muted">{{ capitan.fecha_creacion|date:"d/m/Y" }}</small>
+                                <small class="text-muted">{{ representante.fecha_creacion|date:"d/m/Y" }}</small>
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{% url 'admin_editar_capitan' capitan.id %}" 
+                                    <a href="{% url 'admin_editar_representante' representante.id %}" 
                                        class="btn btn-outline-secondary btn-sm" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'admin_eliminar_capitan' capitan.id %}" 
+                                    <a href="{% url 'admin_eliminar_representante' representante.id %}" 
                                        class="btn btn-outline-danger btn-sm" title="Remover">
                                         <i class="fas fa-user-minus"></i>
                                     </a>
@@ -160,7 +160,7 @@
         </div>
         <style>
         @media (max-width: 768px) {
-            .capitanes-table th, .capitanes-table td {
+            .representantes-table th, .representantes-table td {
                 font-size: 0.93rem;
                 padding: 0.45rem 0.4rem;
             }
@@ -187,7 +187,7 @@
         {% if page_obj.has_other_pages %}
             <div class="d-flex justify-content-between align-items-center mt-4">
                 <div class="text-muted">
-                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} capitanes
+                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} representantes
                 </div>
                 <nav>
                     <ul class="pagination pagination-sm mb-0">
@@ -223,10 +223,10 @@
                 <div class="mb-3">
                     <i class="fas fa-user-tie text-muted" style="font-size: 3rem;"></i>
                 </div>
-                <h5 class="text-muted">No hay capitanes asignados</h5>
-                <p class="text-muted mb-4">Comience asignando capitanes a los equipos</p>
-                <a href="{% url 'admin_crear_capitan' %}" class="btn btn-admin">
-                    <i class="fas fa-plus me-2"></i>Asignar Primer Capitán
+                <h5 class="text-muted">No hay representantes asignados</h5>
+                <p class="text-muted mb-4">Comience asignando representantes a los equipos</p>
+                <a href="{% url 'admin_crear_representante' %}" class="btn btn-admin">
+                    <i class="fas fa-plus me-2"></i>Asignar Primer Representante
                 </a>
             </div>
         {% endif %}

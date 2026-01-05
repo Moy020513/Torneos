@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import models
-from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Capitan, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
+from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Representante, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
 from .models import AdministradorTorneo, AjustePuntos
 from .forms import EquipoAdminForm
 from django.utils.html import format_html
@@ -416,8 +416,8 @@ class JugadorAdmin(admin.ModelAdmin):
             updated += 1
         messages.success(request, f"{updated} jugador(es) desmarcados como verificados.")
 
-@admin.register(Capitan)
-class CapitanAdmin(admin.ModelAdmin):
+@admin.register(Representante)
+class RepresentanteAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'equipo', 'activo')
     list_filter = ('activo',)
     search_fields = ('usuario__username', 'equipo__nombre')

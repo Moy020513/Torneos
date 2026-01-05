@@ -18,16 +18,18 @@ urlpatterns = [
     path('categoria/<int:categoria_id>/jugadores/', views.jugadores_view, name='jugadores'),
     path('jugador/<int:jugador_id>/', views.jugador_detalle, name='jugador_detalle'),
     path('partido/<int:partido_id>/detalle/', views.partido_detalle, name='partido_detalle'),
+    # Perfil
+    path('perfil/', views.perfil_usuario, name='perfil_usuario'),
     # AJAX para admin
     path('get_categorias/', views.get_categorias_by_torneo, name='get_categorias_by_torneo'),
     # URLs de administración (legacy - mantenidas para compatibilidad)
     path('administracion/', views.administracion_dashboard, name='admin_dashboard_legacy'),
     path('administracion/torneo/<int:torneo_id>/', views.administrar_torneo, name='administrar_torneo'),
     path('administracion/generar-calendario/<int:categoria_id>/', views.generar_calendario, name='generar_calendario'),
-    # URLs de capitanes
-        path('capitan/', views.capitan_panel, name='capitan_panel'),
-        path('capitan/jugadores/crear/', views.capitan_jugador_create, name='capitan_jugador_create'),
-        path('capitan/jugadores/<int:jugador_id>/editar/', views.capitan_jugador_update, name='capitan_jugador_update'),
-        path('capitan/jugadores/<int:jugador_id>/eliminar/', views.capitan_jugador_delete, name='capitan_jugador_delete'),
+    # URLs de representantes
+        path('representante/', views.representante_panel, name='representante_panel'),
+        path('representante/jugadores/crear/', views.representante_jugador_create, name='representante_jugador_create'),
+        path('representante/jugadores/<int:jugador_id>/editar/', views.representante_jugador_update, name='representante_jugador_update'),
+        path('representante/jugadores/<int:jugador_id>/eliminar/', views.representante_jugador_delete, name='representante_jugador_delete'),
         path('equipo/<int:equipo_id>/gestion/', views.gestion_equipo, name='gestion_equipo'),
 ] + admin_urlpatterns + admin_campos_urlpatterns

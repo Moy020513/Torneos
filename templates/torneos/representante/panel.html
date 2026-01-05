@@ -18,7 +18,9 @@
         </div>
         <div class="team-info">
           <h1 class="team-name">{{ equipo.nombre }}</h1>
-          <p class="welcome-text">Bienvenido, <strong>{{ capitan.usuario.username }}</strong></p>
+          {% with nombre=representante.usuario.get_full_name %}
+          <p class="welcome-text">Bienvenido, <strong>{% if nombre %}{{ nombre }}{% else %}{{ representante.usuario.username }}{% endif %}</strong></p>
+          {% endwith %}
           <div class="team-stats">
             <div class="stat-badge">
               <i class="fas fa-users"></i>
@@ -110,7 +112,7 @@
                           <i class="fas fa-trash-alt"></i>
                         </button>
                     {% else %}
-                        <a href="{% url 'capitan_jugador_update' jugador.id %}" class="btn-action btn-edit" title="Editar jugador">
+                        <a href="{% url 'representante_jugador_update' jugador.id %}" class="btn-action btn-edit" title="Editar jugador">
                           <i class="fas fa-edit"></i>
                         </a>
                         <button class="btn-action btn-delete" onclick="confirmDelete({{ jugador.id }}, '{{ jugador.nombre }}')" title="Eliminar jugador">
@@ -131,7 +133,7 @@
           </div>
           <h3 class="empty-title">No hay jugadores registrados</h3>
           <p class="empty-message">Comienza agregando tu primer jugador al equipo</p>
-          <a href="{% url 'capitan_jugador_create' %}" class="btn-empty-action">
+          <a href="{% url 'representante_jugador_create' %}" class="btn-empty-action">
             <i class="fas fa-plus"></i> Agregar Primer Jugador
           </a>
         </div>
@@ -168,16 +170,16 @@
   </div>
 </div>
 
-<!-- Modal para expandir foto (capitán) -->
-<div class="modal fade" id="fotoModalCapitan" tabindex="-1" aria-labelledby="fotoModalCapitanLabel" aria-hidden="true">
+<!-- Modal para expandir foto (representante) -->
+<div class="modal fade" id="fotoModalRepresentante" tabindex="-1" aria-labelledby="fotoModalRepresentanteLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" style="background: linear-gradient(135deg, #0a2342 0%, #1a365d 100%); border: 2px solid #08F7FE;">
       <div class="modal-header border-bottom" style="border-color: #08F7FE !important;">
-        <h5 class="modal-title text-white" id="fotoModalCapitanLabel">Foto del Jugador</h5>
+        <h5 class="modal-title text-white" id="fotoModalRepresentanteLabel">Foto del Jugador</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body text-center">
-        <img id="fotoExpandidaCapitan" src="" alt="" class="img-fluid rounded" style="max-height: 70vh; object-fit: contain;">
+        <img id="fotoExpandidaRepresentante" src="" alt="" class="img-fluid rounded" style="max-height: 70vh; object-fit: contain;">
       </div>
     </div>
   </div>
@@ -752,15 +754,15 @@ body {
   padding: 1.5rem;
 }
 
-/* Asegurar que el modal de foto del capitán se centre verticalmente
+/* Asegurar que el modal de foto del representante se centre verticalmente
    (evita que reglas genéricas de .modal-content afecten el posicionamiento) */
-#fotoModalCapitan .modal-dialog {
+#fotoModalRepresentante .modal-dialog {
   display: flex !important;
   align-items: center !important;
   min-height: calc(100vh - 3.5rem) !important;
   justify-content: center !important;
 }
-#fotoModalCapitan .modal-content {
+#fotoModalRepresentante .modal-content {
   margin: 0 auto !important;
 }
 
@@ -1049,7 +1051,7 @@ body {
           // Mostrar flash usando Django messages vía recarga
           window.location.href = window.location.pathname + '?limite_jugadores=1';
         } else {
-          window.location.href = "{% url 'capitan_jugador_create' %}";
+          window.location.href = "{% url 'representante_jugador_create' %}";
         }
       });
     }
@@ -1071,7 +1073,7 @@ let deletePlayerUrl = null;
 
 function confirmDelete(playerId, playerName) {
   deletePlayerId = playerId;
-  deletePlayerUrl = `{% url 'capitan_jugador_delete' 0 %}`.replace('0', playerId);
+  deletePlayerUrl = `{% url 'representante_jugador_delete' 0 %}`.replace('0', playerId);
   document.getElementById('playerNameConfirm').textContent = playerName;
   document.getElementById('deleteModal').classList.add('active');
 }
@@ -1096,7 +1098,7 @@ document.getElementById('deleteModal').addEventListener('click', function(e) {
 
 // Add player action
 document.querySelector('[data-action="add-player"]').addEventListener('click', function() {
-  window.location.href = "{% url 'capitan_jugador_create' %}";
+  window.location.href = "{% url 'representante_jugador_create' %}";
 });
 
 // Toast notification
@@ -1139,13 +1141,13 @@ document.addEventListener('keydown', function(e) {
 
 // Función para expandir foto (reutiliza modal similar al listado público)
 function expandirFoto(urlFoto, nombreJugador) {
-  var img = document.getElementById('fotoExpandidaCapitan');
+  var img = document.getElementById('fotoExpandidaRepresentante');
   if (!img) return;
   img.src = urlFoto;
   img.alt = nombreJugador;
-  var label = document.getElementById('fotoModalCapitanLabel');
+  var label = document.getElementById('fotoModalRepresentanteLabel');
   if (label) label.textContent = nombreJugador;
-  var modalEl = document.getElementById('fotoModalCapitan');
+  var modalEl = document.getElementById('fotoModalRepresentante');
   if (modalEl) {
     var modal = new bootstrap.Modal(modalEl);
     modal.show();

@@ -230,11 +230,11 @@ class JugadorForm(AdminFormMixin, forms.ModelForm):
             except Exception:
                 pass
 
-# Formulario para el capitán (sin campo equipo)
-class CapitanJugadorForm(AdminFormMixin, forms.ModelForm):
+# Formulario para el representante (sin campo equipo)
+class RepresentanteJugadorForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Jugador
-        # Los capitanes no pueden inactivar jugadores desde su formulario
+        # Los representantees no pueden inactivar jugadores desde su formulario
         fields = ['nombre', 'apellido', 'foto', 'fecha_nacimiento', 'numero_camiseta', 'posicion']
         widgets = {
             'nombre': forms.TextInput(attrs={'style': 'text-transform:uppercase;', 'oninput': "this.value = this.value.toUpperCase();"}),
@@ -558,14 +558,14 @@ class UsuarioEditForm(AdminFormMixin, forms.ModelForm):
             self.fields.pop('is_staff', None)
             self.fields.pop('is_superuser', None)
 
-class CapitanForm(AdminFormMixin, forms.ModelForm):
+class RepresentanteForm(AdminFormMixin, forms.ModelForm):
     class Meta:
-        model = Capitan
+        model = Representante
         fields = ['usuario', 'equipo', 'activo']
         labels = {
             'usuario': 'Usuario',
             'equipo': 'Equipo',
-            'activo': 'Capitán Activo',
+            'activo': 'Representante Activo',
         }
     
     def __init__(self, *args, **kwargs):
@@ -574,15 +574,15 @@ class CapitanForm(AdminFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         from django.db.models import Q
         
-        # Filtrar usuarios que no son capitanes (excepto si estamos editando)
+        # Filtrar usuarios que no son representantees (excepto si estamos editando)
         if self.instance and self.instance.pk:
             # Al editar, incluir el usuario actual
-            usuarios_sin_capitan = User.objects.filter(
-                Q(capitan__isnull=True) | Q(id=self.instance.usuario.id)
+            usuarios_sin_representante = User.objects.filter(
+                Q(representante__isnull=True) | Q(id=self.instance.usuario.id)
             )
         else:
-            # Al crear, solo usuarios sin capitanía
-            usuarios_sin_capitan = User.objects.filter(capitan__isnull=True)
+            # Al crear, solo usuarios sin representanteía
+            usuarios_sin_representante = User.objects.filter(representante__isnull=True)
 
         # Si se pasa created_by (usuario que creó usuarios), limitar a los usuarios creados por él
         if created_by:
@@ -593,25 +593,25 @@ class CapitanForm(AdminFormMixin, forms.ModelForm):
                 if self.instance and getattr(self.instance, 'usuario', None):
                     usuarios_ids = list(set(usuarios_ids) | {self.instance.usuario.id})
                 if usuarios_ids:
-                    usuarios_sin_capitan = usuarios_sin_capitan.filter(id__in=usuarios_ids)
+                    usuarios_sin_representante = usuarios_sin_representante.filter(id__in=usuarios_ids)
                 else:
                     # No hay usuarios creados por ese admin -> queryset vacía
-                    usuarios_sin_capitan = User.objects.none()
+                    usuarios_sin_representante = User.objects.none()
             except Exception:
                 # En caso de error, no aplicar la restricción adicional
                 pass
 
-        self.fields['usuario'].queryset = usuarios_sin_capitan
+        self.fields['usuario'].queryset = usuarios_sin_representante
         
-        # Filtrar equipos que no tienen capitán (excepto si estamos editando)
+        # Filtrar equipos que no tienen representante (excepto si estamos editando)
         if self.instance and self.instance.pk:
-            equipos_sin_capitan = Equipo.objects.filter(
-                Q(capitan__isnull=True) | Q(id=self.instance.equipo.id)
+            equipos_sin_representante = Equipo.objects.filter(
+                Q(representante__isnull=True) | Q(id=self.instance.equipo.id)
             )
         else:
-            equipos_sin_capitan = Equipo.objects.filter(capitan__isnull=True)
+            equipos_sin_representante = Equipo.objects.filter(representante__isnull=True)
         
-        self.fields['equipo'].queryset = equipos_sin_capitan
+        self.fields['equipo'].queryset = equipos_sin_representante
 
 class EliminatoriaForm(AdminFormMixin, forms.ModelForm):
     class Meta:
