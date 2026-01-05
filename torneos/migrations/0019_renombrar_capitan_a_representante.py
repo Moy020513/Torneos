@@ -3,6 +3,28 @@
 from django.db import migrations
 
 
+def rename_capitan_table(apps, schema_editor):
+    connection = schema_editor.connection
+    tables = connection.introspection.table_names()
+    old_table = 'torneos_capitan'
+    new_table = 'torneos_representante'
+
+    if old_table in tables and new_table not in tables:
+        representante_model = apps.get_model('torneos', 'Representante')
+        schema_editor.alter_db_table(representante_model, old_table, new_table)
+
+    # Actualizar content type si existiera con el nombre anterior
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE django_content_type SET model=%s WHERE app_label=%s AND model=%s",
+            ['representante', 'torneos', 'capitan'],
+        )
+
+
+def noop_reverse(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,9 +32,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel(
-            old_name='Capitan',
-            new_name='Representante',
+        migrations.SeparateDatabaseAndState(
+            state_operations=[],
+            database_operations=[
+                migrations.RunPython(rename_capitan_table, reverse_code=noop_reverse),
+            ],
         ),
         migrations.AlterModelOptions(
             name='representante',
