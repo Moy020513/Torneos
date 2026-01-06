@@ -28,7 +28,7 @@
             color: #145da0 !important;
         }
         body {
-            background: #0a2342 !important;
+            background: linear-gradient(135deg, #001f3f 20%, #17a2b8 100%) !important;
             padding: 0 !important;
             margin: 0 !important;
         }

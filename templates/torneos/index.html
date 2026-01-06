@@ -84,14 +84,9 @@
                 </div>
                 
                 <!-- Título principal -->
-                <h1 class="display-5 text-white mb-2 fw-bold hero-title">
-                    Sistema de Torneos
-                </h1>
-                
-                <!-- Subtítulo elegante -->
-                <p class="lead text-white mb-3 hero-subtitle">
-                    Plataforma profesional para gestión de competiciones de fútbol
-                </p>
+                <h3 class="display-5 text-white mb-2 fw-bold hero-title">
+                    Plataforma profesional para organizar y gestionar competiciones de fútbol
+                </h3>
                 
                 <!-- Línea decorativa -->
                 <div class="d-flex justify-content-center mb-2">
@@ -171,17 +166,6 @@
 
                                 <!-- Body con información -->
                                 <div class="card-body p-4">
-                                    <p class="card-text text-dark mb-3 tournament-description">
-                                        {{ torneo.descripcion|truncatewords:15 }}
-                                    </p>
-                                    
-                                    <!-- Fechas con diseño azul elegante -->
-                                    <div class="d-flex align-items-center mb-3 p-3 rounded-3 tournament-dates">
-                                        <i class="fa-solid fa-calendar-days me-2 tournament-dates-icon"></i>
-                                        <small class="fw-semibold tournament-dates-text">
-                                            {{ torneo.fecha_inicio|date:"d/m/Y" }} - {{ torneo.fecha_fin|date:"d/m/Y" }}
-                                        </small>
-                                    </div>
                                     <!-- Botón elegante -->
                                     <div class="d-grid">
                                         <a href="{% url 'torneo_detalle' torneo.id %}" 
