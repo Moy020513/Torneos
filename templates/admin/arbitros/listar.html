@@ -1,0 +1,154 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Gestión de Árbitros{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Árbitros</h2>
+        <p class="text-muted mb-0">Administre los árbitros y sus asignaciones</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_crear_arbitro' %}" class="btn btn-admin">
+            <i class="fas fa-plus me-2"></i>Nuevo Árbitro
+        </a>
+    </div>
+</div>
+
+<div class="admin-card mb-4">
+    <div class="admin-card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Buscar</label>
+                <input type="text" name="search" value="{{ search }}" class="admin-form-control form-control" placeholder="Usuario o nombre">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Torneo</label>
+                <select name="torneo" class="admin-form-control form-select">
+                    <option value="">Todos</option>
+                    {% for torneo in torneos %}
+                        <option value="{{ torneo.id }}" {% if torneo_id == torneo.id|stringformat:'s' %}selected{% endif %}>{{ torneo.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select name="activo" class="admin-form-control form-select">
+                    <option value="">Todos</option>
+                    <option value="true" {% if activo == 'true' %}selected{% endif %}>Activos</option>
+                    <option value="false" {% if activo == 'false' %}selected{% endif %}>Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-admin"><i class="fas fa-filter me-2"></i>Filtrar</button>
+                {% if search or torneo_id or activo %}
+                    <a href="{% url 'admin_arbitros' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4 g-2">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary"><i class="fas fa-flag-checkered"></i></div>
+            <div class="stat-number">{{ total_arbitros }}</div>
+            <div class="stat-label">Total de árbitros</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-number">{{ arbitros_activos }}</div>
+            <div class="stat-label">Árbitros activos</div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h3><i class="fas fa-flag-checkered me-2"></i>Listado de Árbitros</h3>
+        <span class="badge badge-admin">{{ total_arbitros }} registro{{ total_arbitros|pluralize }}</span>
+    </div>
+    <div class="admin-card-body p-0">
+        {% if page_obj and page_obj.object_list %}
+            <div class="table-responsive">
+                <table class="table table-hover admin-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Torneo</th>
+                            <th>Estado</th>
+                            <th>Partidos</th>
+                            <th>Asignado</th>
+                            <th width="120">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for arbitro in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ arbitro.usuario.username }}</div>
+                                {% if arbitro.usuario.first_name or arbitro.usuario.last_name %}
+                                    <small class="text-muted">{{ arbitro.usuario.first_name }} {{ arbitro.usuario.last_name }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ arbitro.torneo.nombre }}</td>
+                            <td>
+                                {% if arbitro.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ arbitro.total_partidos }}</span>
+                            </td>
+                            <td><small class="text-muted">{{ arbitro.fecha_creacion|date:"d/m/Y" }}</small></td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'admin_editar_arbitro' arbitro.id %}" class="btn btn-outline-secondary btn-sm" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <a href="{% url 'admin_eliminar_arbitro' arbitro.id %}" class="btn btn-outline-danger btn-sm" title="Eliminar"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <div class="d-flex justify-content-between align-items-center p-3">
+                <div class="text-muted">Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }}</div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if torneo_id %}&torneo={{ torneo_id }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">Anterior</a></li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if torneo_id %}&torneo={{ torneo_id }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if torneo_id %}&torneo={{ torneo_id }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">Siguiente</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-flag-checkered text-muted" style="font-size: 3rem;"></i>
+                <h5 class="text-muted mt-3">No hay árbitros registrados</h5>
+                <p class="text-muted">Cree su primer árbitro para asignarlo a partidos</p>
+                <a href="{% url 'admin_crear_arbitro' %}" class="btn btn-admin"><i class="fas fa-plus me-2"></i>Crear Árbitro</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

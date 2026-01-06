@@ -1,0 +1,61 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block page_title %}Eliminar Árbitro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1 text-danger"><i class="fas fa-flag-checkered me-2"></i>Eliminar Árbitro</h2>
+        <p class="text-muted mb-0">Confirme la eliminación del árbitro {{ arbitro.usuario.username }}</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_arbitros' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Volver</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card border-danger" style="border-width:2px !important;">
+            <div class="admin-card-header" style="background: rgba(220,53,69,0.08);">
+                <h3 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar eliminación</h3>
+            </div>
+            <div class="admin-card-body">
+                <p>Al eliminar al árbitro <strong>{{ arbitro.usuario.username }}</strong>:</p>
+                <ul>
+                    <li>Los partidos asignados quedarán sin árbitro.</li>
+                    <li>El usuario perderá acceso al panel de árbitro.</li>
+                </ul>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>Partidos asignados actualmente: <strong>{{ partidos_asignados }}</strong>
+                </div>
+
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                        <label class="form-check-label" for="confirmDelete">Confirmo que deseo eliminar este árbitro</label>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'admin_arbitros' %}" class="btn btn-outline-secondary"><i class="fas fa-times me-2"></i>Cancelar</a>
+                        <button type="submit" class="btn btn-danger" id="deleteBtn" disabled><i class="fas fa-trash me-2"></i>Eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('confirmDelete');
+        const btn = document.getElementById('deleteBtn');
+        if (checkbox && btn) {
+            checkbox.addEventListener('change', function() {
+                btn.disabled = !this.checked;
+            });
+        }
+    });
+</script>
+{% endblock %}

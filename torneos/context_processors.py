@@ -1,4 +1,4 @@
-from .models import AdministradorTorneo
+from .models import AdministradorTorneo, Arbitro
 
 
 def torneo_admin(request):
@@ -14,4 +14,14 @@ def torneo_admin(request):
     except Exception:
         obj = None
 
-    return {'is_torneo_admin': bool(obj), 'torneo_admin_obj': obj}
+    try:
+        arbitro_obj = Arbitro.objects.select_related('torneo').filter(usuario=request.user, activo=True).first()
+    except Exception:
+        arbitro_obj = None
+
+    return {
+        'is_torneo_admin': bool(obj),
+        'torneo_admin_obj': obj,
+        'is_arbitro': bool(arbitro_obj),
+        'arbitro_obj': arbitro_obj,
+    }

@@ -263,7 +263,7 @@ class RepresentanteJugadorForm(AdminFormMixin, forms.ModelForm):
 class PartidoForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Partido
-        fields = ['grupo', 'jornada', 'equipo_local', 'equipo_visitante', 'fecha', 'goles_local', 'goles_visitante', 'jugado', 'ubicacion']
+        fields = ['grupo', 'jornada', 'equipo_local', 'equipo_visitante', 'fecha', 'goles_local', 'goles_visitante', 'jugado', 'arbitro', 'ubicacion']
         widgets = {
             'fecha': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
         }
@@ -276,6 +276,7 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
             'goles_local': 'Goles Equipo Local',
             'goles_visitante': 'Goles Equipo Visitante',
             'jugado': 'Partido Jugado',
+            'arbitro': 'Árbitro asignado',
             'ubicacion': 'Campo',
         }
 
@@ -298,6 +299,11 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
             except Exception:
                 self.fields['equipo_local'].queryset = Equipo.objects.none()
                 self.fields['equipo_visitante'].queryset = Equipo.objects.none()
+            try:
+                from .models import Arbitro
+                self.fields['arbitro'].queryset = Arbitro.objects.filter(torneo_id=assigned_torneo)
+            except Exception:
+                self.fields['arbitro'].queryset = Arbitro.objects.none()
             # Limitar ubicaciones a aquellas asociadas al torneo (si existieran)
             try:
                 from django.db.models import Q
@@ -312,6 +318,19 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
             except Exception:
                 self.fields['ubicacion'].queryset = UbicacionCampo.objects.none()
         else:
+            try:
+                from .models import Arbitro
+                arbitro_field = self.fields.get('arbitro')
+                if arbitro_field is not None:
+                    if self.instance and getattr(self.instance, 'grupo', None):
+                        torneo_id = self.instance.grupo.categoria.torneo_id
+                        arbitro_field.queryset = Arbitro.objects.filter(models.Q(torneo_id=torneo_id) | models.Q(id=getattr(self.instance, 'arbitro_id', None)))
+                    else:
+                        arbitro_field.queryset = Arbitro.objects.all()
+            except Exception:
+                arbitro_field = self.fields.get('arbitro')
+                if arbitro_field is not None:
+                    arbitro_field.queryset = arbitro_field.queryset.none()
             # Si estamos editando, asegurar que los equipos actuales estén incluidos en la queryset
             if self.instance and getattr(self.instance, 'equipo_local', None):
                 try:
@@ -342,6 +361,27 @@ class PartidoForm(AdminFormMixin, forms.ModelForm):
 
         if self.instance and self.instance.fecha:
             self.fields['fecha'].initial = self.instance.fecha.strftime('%Y-%m-%dT%H:%M')
+
+
+class ArbitroResultadoForm(AdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = Partido
+        fields = ['goles_local', 'goles_visitante', 'jugado']
+        labels = {
+            'goles_local': 'Goles equipo local',
+            'goles_visitante': 'Goles equipo visitante',
+            'jugado': 'Marcar como finalizado',
+        }
+        widgets = {
+            'goles_local': forms.NumberInput(attrs={'min': 0}),
+            'goles_visitante': forms.NumberInput(attrs={'min': 0}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Marcar jugado como verdadero por defecto cuando se abre el formulario
+        if not self.initial.get('jugado', None):
+            self.initial['jugado'] = True
 
 class UsuarioForm(AdminFormMixin, forms.ModelForm):
     password = forms.CharField(
@@ -557,6 +597,53 @@ class UsuarioEditForm(AdminFormMixin, forms.ModelForm):
             # Quitar los campos por completo para que no aparezcan al editar
             self.fields.pop('is_staff', None)
             self.fields.pop('is_superuser', None)
+
+class ArbitroForm(AdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = Arbitro
+        fields = ['usuario', 'torneo', 'activo']
+        labels = {
+            'usuario': 'Usuario',
+            'torneo': 'Torneo',
+            'activo': 'Árbitro activo',
+        }
+
+    def __init__(self, *args, **kwargs):
+        created_by = kwargs.pop('created_by', None)
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
+        super().__init__(*args, **kwargs)
+        from django.db.models import Q
+
+        if self.instance and self.instance.pk:
+            usuarios_qs = User.objects.filter(Q(arbitro__isnull=True) | Q(id=self.instance.usuario_id))
+        else:
+            usuarios_qs = User.objects.filter(arbitro__isnull=True)
+
+        if created_by:
+            try:
+                from .models import UsuarioCreado
+                usuarios_ids = list(UsuarioCreado.objects.filter(creado_por=created_by).values_list('usuario_id', flat=True))
+                if self.instance and getattr(self.instance, 'usuario_id', None):
+                    usuarios_ids = list(set(usuarios_ids) | {self.instance.usuario_id})
+                if usuarios_ids:
+                    usuarios_qs = usuarios_qs.filter(id__in=usuarios_ids)
+                else:
+                    usuarios_qs = User.objects.none()
+            except Exception:
+                pass
+
+        self.fields['usuario'].queryset = usuarios_qs
+
+        if assigned_torneo:
+            try:
+                torneo_qs = Torneo.objects.filter(id=assigned_torneo)
+                self.fields['torneo'].queryset = torneo_qs
+                if torneo_qs.exists():
+                    self.initial['torneo'] = torneo_qs.first()
+                self.fields['torneo'].widget.attrs.update({'disabled': 'disabled'})
+                self.fields['torneo'].required = False
+            except Exception:
+                pass
 
 class RepresentanteForm(AdminFormMixin, forms.ModelForm):
     class Meta:

@@ -217,6 +217,20 @@ class Representante(models.Model):
         return f"{self.usuario.username} - {self.equipo.nombre}"
 
 
+class Arbitro(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='arbitro')
+    torneo = models.ForeignKey('Torneo', on_delete=models.CASCADE, related_name='arbitros')
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Árbitro'
+        verbose_name_plural = 'Árbitros'
+
+    def __str__(self):
+        return f"{self.usuario.username} → {self.torneo.nombre}"
+
+
 class AdministradorTorneo(models.Model):
     """Usuario asignado para administrar un único Torneo.
 
@@ -268,6 +282,7 @@ class Partido(models.Model):
     goles_local = models.PositiveIntegerField(default=0)
     goles_visitante = models.PositiveIntegerField(default=0)
     jugado = models.BooleanField(default=False)
+    arbitro = models.ForeignKey('Arbitro', on_delete=models.SET_NULL, null=True, blank=True, related_name='partidos')
     ubicacion = models.ForeignKey('UbicacionCampo', on_delete=models.SET_NULL, null=True, blank=True, related_name='partidos')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     
@@ -362,6 +377,54 @@ class AjustePuntos(models.Model):
     def __str__(self):
         signo = '+' if self.puntos_ajuste >= 0 else ''
         return f"{self.equipo.nombre} {signo}{self.puntos_ajuste} pts - {self.razon}"
+
+
+class RegistroActividad(models.Model):
+    """Modelo para registrar todas las actividades realizadas en el sistema por torneo."""
+    
+    TIPO_ACCION_CHOICES = [
+        ('crear', 'Crear'),
+        ('modificar', 'Modificar'),
+        ('eliminar', 'Eliminar'),
+        ('registrar', 'Registrar'),
+    ]
+    
+    TIPO_MODELO_CHOICES = [
+        ('partido', 'Partido'),
+        ('resultado', 'Resultado de Partido'),
+        ('jugador', 'Jugador'),
+        ('equipo', 'Equipo'),
+        ('representante', 'Representante'),
+        ('categoria', 'Categoría'),
+        ('grupo', 'Grupo'),
+        ('arbitro', 'Árbitro'),
+        ('goleador', 'Goleador'),
+        ('participacion', 'Participación de Jugador'),
+        ('ubicacion', 'Ubicación de Campo'),
+        ('otro', 'Otro'),
+    ]
+    
+    torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE, related_name='actividades')
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    tipo_accion = models.CharField(max_length=20, choices=TIPO_ACCION_CHOICES)
+    tipo_modelo = models.CharField(max_length=30, choices=TIPO_MODELO_CHOICES)
+    descripcion = models.TextField()
+    objeto_id = models.PositiveIntegerField(null=True, blank=True, help_text='ID del objeto afectado')
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'Registro de Actividad'
+        verbose_name_plural = 'Registros de Actividad'
+        ordering = ['-fecha_hora']
+        indexes = [
+            models.Index(fields=['torneo', '-fecha_hora']),
+            models.Index(fields=['usuario', '-fecha_hora']),
+        ]
+    
+    def __str__(self):
+        usuario_nombre = self.usuario.get_full_name() or self.usuario.username if self.usuario else 'Sistema'
+        return f"{usuario_nombre} - {self.get_tipo_accion_display()} {self.get_tipo_modelo_display()} - {self.fecha_hora.strftime('%d/%m/%Y %H:%M')}"
 
 
 # Importar señales para asegurar que handlers se registren cuando se cargue models

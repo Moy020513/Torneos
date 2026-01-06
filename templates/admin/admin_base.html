@@ -931,6 +931,12 @@
                 </a>
             </div>
             <div class="admin-nav-item">
+                <a href="{% url 'admin_arbitros' %}" class="admin-nav-link {% if 'arbitro' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-flag-checkered"></i>
+                    Árbitros
+                </a>
+            </div>
+            <div class="admin-nav-item">
                 <a href="{% url 'admin_representantes' %}" class="admin-nav-link {% if 'representante' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-user-tie"></i>
                     Representantes
@@ -1006,6 +1012,12 @@
                 <a href="{% url 'admin_reportes' %}" class="admin-nav-link {% if 'reporte' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-chart-bar"></i>
                     Reportes
+                </a>
+            </div>
+            <div class="admin-nav-item">
+                <a href="{% url 'admin_actividades' %}" class="admin-nav-link {% if 'actividade' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-history"></i>
+                    Registro de Actividades
                 </a>
             </div>
             <div class="admin-nav-item">

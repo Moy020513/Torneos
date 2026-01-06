@@ -32,4 +32,7 @@ urlpatterns = [
         path('representante/jugadores/<int:jugador_id>/editar/', views.representante_jugador_update, name='representante_jugador_update'),
         path('representante/jugadores/<int:jugador_id>/eliminar/', views.representante_jugador_delete, name='representante_jugador_delete'),
         path('equipo/<int:equipo_id>/gestion/', views.gestion_equipo, name='gestion_equipo'),
+        # Panel de árbitro
+        path('arbitro/', views.arbitro_panel, name='arbitro_panel'),
+        path('arbitro/partido/<int:partido_id>/resultado/', views.arbitro_partido_resultado, name='arbitro_partido_resultado'),
 ] + admin_urlpatterns + admin_campos_urlpatterns

@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-0">{% if es_edicion %}Editar resultado{% else %}Registrar resultado{% endif %}</h4>
+            <small class="text-muted">Jornada {{ partido.jornada }} ·
+              {% if partido.grupo and partido.grupo.categoria %}
+                {{ partido.grupo.categoria.nombre }}
+              {% else %}
+                {{ partido.equipo_local.categoria.nombre }}
+              {% endif %}
+            </small>
+          </div>
+          <a href="{% url 'arbitro_panel' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Volver</a>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-center mb-4">
+            <div class="text-center">
+              <div class="mb-2">
+                {% if partido.equipo_local.logo %}
+                  <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:64px;height:64px;object-fit:contain;">
+                {% else %}
+                  <i class="fas fa-shield-alt text-muted" style="font-size:56px;"></i>
+                {% endif %}
+              </div>
+              <div class="fw-semibold">{{ partido.equipo_local.nombre }}</div>
+            </div>
+            <div class="px-4 text-muted fs-3">vs</div>
+            <div class="text-center">
+              <div class="mb-2">
+                {% if partido.equipo_visitante.logo %}
+                  <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:64px;height:64px;object-fit:contain;">
+                {% else %}
+                  <i class="fas fa-shield-alt text-muted" style="font-size:56px;"></i>
+                {% endif %}
+              </div>
+              <div class="fw-semibold">{{ partido.equipo_visitante.nombre }}</div>
+            </div>
+          </div>
+
+          <form method="post" class="row g-3" id="resultadoForm">
+            {% csrf_token %}
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.goles_local.id_for_label }}">{{ form.goles_local.label }}</label>
+              {{ form.goles_local }}
+              {% if form.goles_local.errors %}
+                <div class="text-danger small mt-1">{% for error in form.goles_local.errors %}<div>{{ error }}</div>{% endfor %}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.goles_visitante.id_for_label }}">{{ form.goles_visitante.label }}</label>
+              {{ form.goles_visitante }}
+              {% if form.goles_visitante.errors %}
+                <div class="text-danger small mt-1">{% for error in form.goles_visitante.errors %}<div>{{ error }}</div>{% endfor %}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.jugado }}
+                <label class="form-check-label" for="{{ form.jugado.id_for_label }}">{{ form.jugado.label }}</label>
+              </div>
+            </div>
+
+            {% if form.non_field_errors %}
+              <div class="col-12">
+                <div class="alert alert-danger">{% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>
+              </div>
+            {% endif %}
+
+            <div class="col-12 d-flex justify-content-between mt-3">
+              <a href="{% url 'arbitro_panel' %}" class="btn btn-outline-secondary"><i class="fas fa-times me-1"></i>Cancelar</a>
+              <button type="button" class="btn btn-primary" id="btnConfirmar"><i class="fas fa-save me-1"></i>{% if es_edicion %}Actualizar resultado{% else %}Guardar resultado{% endif %}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning bg-opacity-10 border-bottom border-warning">
+        <h5 class="modal-title" id="modalConfirmacionLabel">
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirmar resultado
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3"><strong>¿Está seguro de {% if es_edicion %}actualizar{% else %}registrar{% endif %} este resultado?</strong></p>
+        <div class="alert alert-warning mb-3">
+          <i class="fas fa-info-circle me-1"></i> Verifique que los datos sean correctos antes de confirmar.
+        </div>
+        <div class="card border-0 bg-light">
+          <div class="card-body">
+            <div class="row text-center align-items-center">
+              <div class="col-5">
+                <div class="mb-2">
+                  {% if partido.equipo_local.logo %}
+                    <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:48px;height:48px;object-fit:contain;">
+                  {% else %}
+                    <i class="fas fa-shield-alt text-muted" style="font-size:42px;"></i>
+                  {% endif %}
+                </div>
+                <div class="fw-bold mb-2">{{ partido.equipo_local.nombre }}</div>
+                <div class="display-6 text-primary" id="golesLocalConfirm">0</div>
+                <small class="text-muted">Goles</small>
+              </div>
+              <div class="col-2 d-flex align-items-center justify-content-center">
+                <span class="text-muted fs-4">-</span>
+              </div>
+              <div class="col-5">
+                <div class="mb-2">
+                  {% if partido.equipo_visitante.logo %}
+                    <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:48px;height:48px;object-fit:contain;">
+                  {% else %}
+                    <i class="fas fa-shield-alt text-muted" style="font-size:42px;"></i>
+                  {% endif %}
+                </div>
+                <div class="fw-bold mb-2">{{ partido.equipo_visitante.nombre }}</div>
+                <div class="display-6 text-primary" id="golesVisitanteConfirm">0</div>
+                <small class="text-muted">Goles</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" id="btnConfirmarFinal">
+          <i class="fas fa-check me-1"></i>Sí, confirmar resultado
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('resultadoForm');
+  const btnConfirmar = document.getElementById('btnConfirmar');
+  const btnConfirmarFinal = document.getElementById('btnConfirmarFinal');
+  const modal = new bootstrap.Modal(document.getElementById('modalConfirmacion'));
+  
+  const inputGolesLocal = document.getElementById('{{ form.goles_local.id_for_label }}');
+  const inputGolesVisitante = document.getElementById('{{ form.goles_visitante.id_for_label }}');
+  
+  btnConfirmar.addEventListener('click', function() {
+    const golesLocal = parseInt(inputGolesLocal.value) || 0;
+    const golesVisitante = parseInt(inputGolesVisitante.value) || 0;
+    
+    // Validar que ambos campos tengan valores
+    if (inputGolesLocal.value === '' || inputGolesVisitante.value === '') {
+      alert('Por favor, ingrese los goles de ambos equipos.');
+      return;
+    }
+    
+    // Validar que sean números no negativos
+    if (golesLocal < 0 || golesVisitante < 0) {
+      alert('Los goles no pueden ser negativos.');
+      return;
+    }
+    
+    // Actualizar valores en el modal
+    document.getElementById('golesLocalConfirm').textContent = golesLocal;
+    document.getElementById('golesVisitanteConfirm').textContent = golesVisitante;
+    
+    // Mostrar modal
+    modal.show();
+  });
+  
+  btnConfirmarFinal.addEventListener('click', function() {
+    // Cerrar modal y enviar formulario
+    modal.hide();
+    form.submit();
+  });
+});
+</script>
+
+{% endblock %}

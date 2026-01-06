@@ -33,6 +33,17 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="col-md-3">
+                <label class="admin-form-label">Árbitro</label>
+                <select name="arbitro" class="admin-form-control form-select">
+                    <option value="">Todos</option>
+                    {% for arbitro in arbitros %}
+                        <option value="{{ arbitro.id }}" {% if arbitro_id == arbitro.id|slugify %}selected{% endif %}>
+                            {{ arbitro.usuario.username }}{% if arbitro.usuario.first_name or arbitro.usuario.last_name %} - {{ arbitro.usuario.first_name }} {{ arbitro.usuario.last_name }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="col-md-2">
                 <label class="admin-form-label">Jornada</label>
                 <select name="jornada" class="admin-form-control form-select">
@@ -99,6 +110,7 @@
                             <th>Resultado</th>
                             <th>Equipo Visitante</th>
                             <th>Categoría</th>
+                            <th>Árbitro</th>
                             <th>Campo</th>
                             <th>Estado</th>
                             <th width="120">Acciones</th>
@@ -158,6 +170,14 @@
                                     {{ partido.grupo.categoria.torneo.nombre|truncatechars:15 }}<br>
                                     <strong>{{ partido.grupo.categoria.nombre }}</strong>
                                 </small>
+                            </td>
+                            <td>
+                                {% if partido.arbitro %}
+                                    <div class="fw-semibold">{{ partido.arbitro.usuario.username }}</div>
+                                    <small class="text-muted">{{ partido.arbitro.usuario.get_full_name }}</small>
+                                {% else %}
+                                    <span class="badge badge-secondary">No asignado</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <small class="text-muted">

@@ -89,6 +89,10 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}">Panel Torneo</a>
                             </li>
+                        {% elif is_arbitro %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'arbitro_panel' %}">Panel árbitro</a>
+                            </li>
                         {% elif user.representante %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'representante_panel' %}">Panel representante</a>
@@ -123,6 +127,14 @@
                                         <li>
                                             <a class="dropdown-item" href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}">
                                                 <i class="fas fa-user-shield me-1"></i> Panel del Torneo
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if is_arbitro %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'arbitro_panel' %}">
+                                                <i class="fas fa-flag-checkered me-1"></i> Panel del Árbitro
                                             </a>
                                         </li>
                                     {% endif %}

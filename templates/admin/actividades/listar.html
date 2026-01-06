@@ -1,0 +1,175 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Registro de Actividades{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="fas fa-history me-2"></i>Registro de Actividades</h2>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-light">
+    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h5>
+  </div>
+  <div class="card-body">
+    <form method="get" action="{% url 'admin_actividades' %}">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label for="torneo" class="form-label">Torneo</label>
+          <select name="torneo" id="torneo" class="form-select">
+            <option value="">Todos</option>
+            {% for torneo in torneos_disponibles %}
+            <option value="{{ torneo.id }}" {% if torneo_filtro == torneo.id|stringformat:"s" %}selected{% endif %}>
+              {{ torneo.nombre }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="usuario" class="form-label">Usuario</label>
+          <select name="usuario" id="usuario" class="form-select">
+            <option value="">Todos</option>
+            {% for usuario in usuarios_con_actividad %}
+            <option value="{{ usuario.id }}" {% if usuario_filtro == usuario.id|stringformat:"s" %}selected{% endif %}>
+              {{ usuario.get_full_name|default:usuario.username }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="tipo_accion" class="form-label">Acción</label>
+          <select name="tipo_accion" id="tipo_accion" class="form-select">
+            <option value="">Todas</option>
+            {% for value, label in tipo_accion_choices %}
+            <option value="{{ value }}" {% if tipo_accion_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="tipo_modelo" class="form-label">Tipo</label>
+          <select name="tipo_modelo" id="tipo_modelo" class="form-select">
+            <option value="">Todos</option>
+            {% for value, label in tipo_modelo_choices %}
+            <option value="{{ value }}" {% if tipo_modelo_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="fecha_desde" class="form-label">Desde</label>
+          <input type="date" name="fecha_desde" id="fecha_desde" class="form-control" value="{{ fecha_desde }}">
+        </div>
+        <div class="col-md-2">
+          <label for="fecha_hasta" class="form-label">Hasta</label>
+          <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control" value="{{ fecha_hasta }}">
+        </div>
+        <div class="col-md-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search me-1"></i>Aplicar Filtros
+          </button>
+          <a href="{% url 'admin_actividades' %}" class="btn btn-secondary">
+            <i class="fas fa-times me-1"></i>Limpiar
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Resultados -->
+<div class="card shadow-sm">
+  <div class="card-header bg-light">
+    <h5 class="mb-0">
+      <i class="fas fa-list me-2"></i>Actividades Registradas
+      <span class="badge bg-primary ms-2">{{ page_obj.paginator.count }} total</span>
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    {% if page_obj %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 140px;">Fecha y Hora</th>
+            <th style="width: 150px;">Usuario</th>
+            <th style="width: 200px;">Torneo</th>
+            <th style="width: 100px;">Acción</th>
+            <th style="width: 120px;">Tipo</th>
+            <th>Descripción</th>
+            <th style="width: 100px;">IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for actividad in page_obj %}
+          <tr>
+            <td><small>{{ actividad.fecha_hora|date:"d/m/Y H:i" }}</small></td>
+            <td>
+              {% if actividad.usuario %}
+              <i class="fas fa-user text-muted me-1"></i>{{ actividad.usuario.get_full_name|default:actividad.usuario.username }}
+              {% else %}
+              <i class="fas fa-robot text-muted me-1"></i><em>Sistema</em>
+              {% endif %}
+            </td>
+            <td><small>{{ actividad.torneo.nombre }}</small></td>
+            <td>
+              {% if actividad.tipo_accion == 'crear' %}
+              <span class="badge bg-success">{{ actividad.get_tipo_accion_display }}</span>
+              {% elif actividad.tipo_accion == 'modificar' %}
+              <span class="badge bg-warning text-dark">{{ actividad.get_tipo_accion_display }}</span>
+              {% elif actividad.tipo_accion == 'eliminar' %}
+              <span class="badge bg-danger">{{ actividad.get_tipo_accion_display }}</span>
+              {% else %}
+              <span class="badge bg-info">{{ actividad.get_tipo_accion_display }}</span>
+              {% endif %}
+            </td>
+            <td><span class="badge bg-secondary">{{ actividad.get_tipo_modelo_display }}</span></td>
+            <td>{{ actividad.descripcion }}</td>
+            <td><small class="text-muted">{{ actividad.ip_address|default:"—" }}</small></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">
+              <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+              No hay actividades registradas
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-light">
+      <nav aria-label="Paginación">
+        <ul class="pagination justify-content-center mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1{% if torneo_filtro %}&torneo={{ torneo_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}{% if tipo_accion_filtro %}&tipo_accion={{ tipo_accion_filtro }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Primera</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if torneo_filtro %}&torneo={{ torneo_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}{% if tipo_accion_filtro %}&tipo_accion={{ tipo_accion_filtro }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Anterior</a>
+          </li>
+          {% endif %}
+          
+          <li class="page-item active">
+            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+          </li>
+          
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if torneo_filtro %}&torneo={{ torneo_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}{% if tipo_accion_filtro %}&tipo_accion={{ tipo_accion_filtro }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Siguiente</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if torneo_filtro %}&torneo={{ torneo_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}{% if tipo_accion_filtro %}&tipo_accion={{ tipo_accion_filtro }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Última</a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1 text-white">Panel de árbitro</h1>
+      <p class="text-white mb-0">{{ arbitro.usuario.get_full_name|default:arbitro.usuario.username }} · {{ arbitro.torneo.nombre }}</p>
+    </div>
+    <div class="text-end">
+      <div class="badge bg-primary p-2">Asignados: {{ total_asignados }}</div>
+      <div class="badge bg-warning text-dark p-2 ms-2">Pendientes: {{ total_pendientes }}</div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="me-3 rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><i class="fas fa-calendar-alt"></i></div>
+            <div>
+              <div class="text-muted small">Próximos por dirigir</div>
+              <div class="h5 mb-0">{{ pendientes|length }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="me-3 rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><i class="fas fa-check"></i></div>
+            <div>
+              <div class="text-muted small">Finalizados</div>
+              <div class="h5 mb-0">{{ recientes|length }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="me-3 rounded-circle bg-info text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+              <div class="text-muted small">Torneo</div>
+              <div class="h6 mb-0">{{ arbitro.torneo.nombre }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Partidos pendientes</h5>
+          <span class="badge bg-warning text-dark">{{ pendientes|length }} pendientes</span>
+        </div>
+        <div class="card-body p-0">
+          {% if pendientes %}
+            <div class="list-group list-group-flush">
+              {% for partido in pendientes %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="me-2">
+                      {% if partido.equipo_local.logo %}
+                        <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:32px;height:32px;object-fit:contain;">
+                      {% else %}
+                        <i class="fas fa-shield-alt text-muted" style="font-size:28px;"></i>
+                      {% endif %}
+                    </div>
+                    <div class="fw-semibold">{{ partido.equipo_local.nombre }}</div>
+                    <div class="mx-3 text-muted">vs</div>
+                    <div class="me-2">
+                      {% if partido.equipo_visitante.logo %}
+                        <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:32px;height:32px;object-fit:contain;">
+                      {% else %}
+                        <i class="fas fa-shield-alt text-muted" style="font-size:28px;"></i>
+                      {% endif %}
+                    </div>
+                    <div class="fw-semibold">{{ partido.equipo_visitante.nombre }}</div>
+                  </div>
+                  <div class="text-muted small">
+                    Jornada {{ partido.jornada }} ·
+                    {% if partido.grupo and partido.grupo.categoria %}
+                      {{ partido.grupo.categoria.nombre }}
+                    {% else %}
+                      {{ partido.equipo_local.categoria.nombre }}
+                    {% endif %}
+                    {% if partido.fecha %}
+                      · {{ partido.fecha|date:"d/m H:i" }}
+                    {% endif %}
+                  </div>
+                  {% if partido.ubicacion %}
+                    <div class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}</div>
+                  {% endif %}
+                </div>
+                <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-primary">Registrar resultado</a>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="p-4 text-center text-muted">No hay partidos pendientes por ahora.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Últimos resultados</h5>
+          <span class="badge bg-success">{{ recientes|length }}</span>
+        </div>
+        <div class="card-body p-0">
+          {% if recientes %}
+            <ul class="list-group list-group-flush">
+              {% for partido in recientes %}
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-1">
+                      <div class="me-2">
+                        {% if partido.equipo_local.logo %}
+                          <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:28px;height:28px;object-fit:contain;">
+                        {% else %}
+                          <i class="fas fa-shield-alt text-muted" style="font-size:24px;"></i>
+                        {% endif %}
+                      </div>
+                      <div class="fw-semibold">{{ partido.equipo_local.nombre }}</div>
+                      <div class="mx-2 text-muted">vs</div>
+                      <div class="me-2">
+                        {% if partido.equipo_visitante.logo %}
+                          <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:28px;height:28px;object-fit:contain;">
+                        {% else %}
+                          <i class="fas fa-shield-alt text-muted" style="font-size:24px;"></i>
+                        {% endif %}
+                      </div>
+                      <div class="fw-semibold">{{ partido.equipo_visitante.nombre }}</div>
+                    </div>
+                    <div class="text-muted small">Jornada {{ partido.jornada }} ·
+                      {% if partido.grupo and partido.grupo.categoria %}
+                        {{ partido.grupo.categoria.nombre }}
+                      {% else %}
+                        {{ partido.equipo_local.categoria.nombre }}
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="badge bg-success fs-6">{{ partido.goles_local }} - {{ partido.goles_visitante }}</div>
+                    <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary" title="Editar resultado"><i class="fas fa-edit"></i></a>
+                  </div>
+                </div>
+                {% if partido.fecha %}
+                  <div class="text-muted small mt-1"><i class="fas fa-clock me-1"></i>{{ partido.fecha|date:"d/m/Y H:i" }}</div>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="p-4 text-center text-muted">Aún no hay resultados registrados.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -65,6 +65,12 @@ admin_urlpatterns = [
     path('panel/usuarios/<int:usuario_id>/editar/', admin_views.admin_editar_usuario, name='admin_editar_usuario'),
     path('panel/usuarios/<int:usuario_id>/eliminar/', admin_views.admin_eliminar_usuario, name='admin_eliminar_usuario'),
 
+    # Árbitros
+    path('panel/arbitros/', admin_views.admin_arbitros, name='admin_arbitros'),
+    path('panel/arbitros/crear/', admin_views.admin_crear_arbitro, name='admin_crear_arbitro'),
+    path('panel/arbitros/<int:arbitro_id>/editar/', admin_views.admin_editar_arbitro, name='admin_editar_arbitro'),
+    path('panel/arbitros/<int:arbitro_id>/eliminar/', admin_views.admin_eliminar_arbitro, name='admin_eliminar_arbitro'),
+
     # Capitanes
     path('panel/representantes/', admin_views.admin_representantes, name='admin_representantes'),
     path('panel/representantes/crear/', admin_views.admin_crear_representante, name='admin_crear_representante'),
@@ -94,6 +100,9 @@ admin_urlpatterns = [
 
     # Reportes
     path('panel/reportes/', admin_views.admin_reportes, name='admin_reportes'),
+
+    # Registros de Actividad
+    path('panel/actividades/', admin_views.admin_actividades, name='admin_actividades'),
 
     # AJAX Helpers
     path('panel/ajax/categorias/', admin_views.get_categorias_ajax, name='admin_get_categorias_ajax'),

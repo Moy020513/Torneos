@@ -137,6 +137,10 @@ def is_representante(user):
     return hasattr(user, 'representante') and user.representante.activo
 
 
+def is_arbitro(user):
+    return hasattr(user, 'arbitro') and getattr(user.arbitro, 'activo', False)
+
+
 # Perfil de usuario (representante y otros roles)
 @login_required
 def perfil_usuario(request):
@@ -196,6 +200,22 @@ def representante_jugador_create(request):
             jugador.nombre = jugador.nombre.upper() if jugador.nombre else ''
             jugador.apellido = jugador.apellido.upper() if jugador.apellido else ''
             jugador.save()
+            # Registrar actividad
+            try:
+                from .admin_views import registrar_actividad
+                torneo = jugador.equipo.categoria.torneo if jugador.equipo else None
+                if torneo:
+                    registrar_actividad(
+                        torneo=torneo,
+                        usuario=request.user,
+                        tipo_accion='crear',
+                        tipo_modelo='jugador',
+                        descripcion=f"Jugador creado por representante: {jugador.nombre} {jugador.apellido} ({jugador.equipo.nombre})",
+                        objeto_id=jugador.id,
+                        request=request
+                    )
+            except Exception:
+                pass
             messages.success(request, 'Jugador creado exitosamente.')
             return redirect('representante_panel')
     else:
@@ -220,6 +240,22 @@ def representante_jugador_update(request, jugador_id):
             jugador.nombre = jugador.nombre.upper() if jugador.nombre else ''
             jugador.apellido = jugador.apellido.upper() if jugador.apellido else ''
             jugador.save()
+            # Registrar actividad
+            try:
+                from .admin_views import registrar_actividad
+                torneo = jugador.equipo.categoria.torneo if jugador.equipo else None
+                if torneo:
+                    registrar_actividad(
+                        torneo=torneo,
+                        usuario=request.user,
+                        tipo_accion='modificar',
+                        tipo_modelo='jugador',
+                        descripcion=f"Jugador modificado por representante: {jugador.nombre} {jugador.apellido} ({jugador.equipo.nombre})",
+                        objeto_id=jugador.id,
+                        request=request
+                    )
+            except Exception:
+                pass
             messages.success(request, 'Jugador actualizado.')
             return redirect('representante_panel')
     else:
@@ -232,10 +268,108 @@ def representante_jugador_delete(request, jugador_id):
     equipo = request.user.representante.equipo
     jugador = get_object_or_404(Jugador, id=jugador_id, equipo=equipo)
     if request.method == 'POST':
+        nombre_jugador = f"{jugador.nombre} {jugador.apellido}"
+        equipo_nombre = jugador.equipo.nombre if jugador.equipo else 'Sin equipo'
+        torneo = jugador.equipo.categoria.torneo if jugador.equipo else None
+        jugador_id_val = jugador.id
         jugador.delete()
+        # Registrar actividad
+        try:
+            from .admin_views import registrar_actividad
+            if torneo:
+                registrar_actividad(
+                    torneo=torneo,
+                    usuario=request.user,
+                    tipo_accion='eliminar',
+                    tipo_modelo='jugador',
+                    descripcion=f"Jugador eliminado por representante: {nombre_jugador} ({equipo_nombre})",
+                    objeto_id=jugador_id_val,
+                    request=request
+                )
+        except Exception:
+            pass
         messages.success(request, 'Jugador eliminado.')
         return redirect('representante_panel')
     return render(request, 'torneos/representante/jugador_confirm_delete.html', {'jugador': jugador})
+
+
+# Panel y flujo de árbitros
+@login_required
+@user_passes_test(is_arbitro)
+def arbitro_panel(request):
+    arbitro = request.user.arbitro
+    partidos = Partido.objects.select_related('equipo_local', 'equipo_visitante', 'grupo__categoria', 'ubicacion').filter(arbitro=arbitro)
+    pendientes = partidos.filter(jugado=False).order_by('fecha', 'jornada', 'id')
+    recientes = partidos.filter(jugado=True).order_by('-fecha', '-id')[:10]
+
+    context = {
+        'arbitro': arbitro,
+        'partidos': partidos.order_by('fecha', 'jornada', 'id'),
+        'pendientes': pendientes,
+        'recientes': recientes,
+        'total_asignados': partidos.count(),
+        'total_pendientes': pendientes.count(),
+    }
+    return render(request, 'torneos/arbitro/panel.html', context)
+
+
+@login_required
+@user_passes_test(is_arbitro)
+def arbitro_partido_resultado(request, partido_id):
+    arbitro = request.user.arbitro
+    partido = get_object_or_404(
+        Partido.objects.select_related('equipo_local', 'equipo_visitante', 'grupo__categoria'),
+        id=partido_id,
+        arbitro=arbitro
+    )
+
+    # Evitar cargar resultado en partidos de descanso (local=visitante)
+    if partido.equipo_local_id == partido.equipo_visitante_id:
+        messages.warning(request, 'Este partido es un descanso y no requiere resultado.')
+        return redirect('arbitro_panel')
+    
+    # Determinar si es edición o registro inicial
+    es_edicion = partido.jugado
+
+    if request.method == 'POST':
+        form = ArbitroResultadoForm(request.POST, instance=partido)
+        if form.is_valid():
+            partido_obj = form.save(commit=False)
+            partido_obj.jugado = True
+            if not partido_obj.fecha:
+                partido_obj.fecha = timezone.now()
+            partido_obj.save()
+            
+            # Registrar actividad
+            from .admin_views import registrar_actividad
+            torneo = partido_obj.grupo.categoria.torneo if partido_obj.grupo else None
+            if torneo:
+                accion = 'modificar' if es_edicion else 'registrar'
+                descripcion = f"Resultado {'actualizado' if es_edicion else 'registrado'}: {partido_obj.equipo_local.nombre} {partido_obj.goles_local} - {partido_obj.goles_visitante} {partido_obj.equipo_visitante.nombre} (Jornada {partido_obj.jornada})"
+                registrar_actividad(
+                    torneo=torneo,
+                    usuario=request.user,
+                    tipo_accion=accion,
+                    tipo_modelo='resultado',
+                    descripcion=descripcion,
+                    objeto_id=partido_obj.id,
+                    request=request
+                )
+            
+            if es_edicion:
+                messages.success(request, 'Resultado actualizado correctamente.')
+            else:
+                messages.success(request, 'Resultado registrado correctamente.')
+            return redirect('arbitro_panel')
+    else:
+        form = ArbitroResultadoForm(instance=partido)
+
+    context = {
+        'partido': partido,
+        'form': form,
+        'es_edicion': es_edicion,
+    }
+    return render(request, 'torneos/arbitro/partido_resultado.html', context)
 
 def index(request):
     # Mostrar torneos activos desde el más antiguo al más nuevo
@@ -445,6 +579,12 @@ def administracion_dashboard(request):
 def administrar_torneo(request, torneo_id):
     torneo = get_object_or_404(Torneo, id=torneo_id)
     categorias = Categoria.objects.filter(torneo=torneo)
+    # Últimas actividades de este torneo
+    try:
+        from .models import RegistroActividad
+        actividades_recientes = RegistroActividad.objects.filter(torneo=torneo).select_related('usuario').order_by('-fecha_hora')[:5]
+    except Exception:
+        actividades_recientes = []
     
     if request.method == 'POST':
         form = CategoriaForm(request.POST, assigned_torneo=torneo.id)
@@ -461,7 +601,8 @@ def administrar_torneo(request, torneo_id):
     context = {
         'torneo': torneo,
         'categorias': categorias,
-        'form': form
+        'form': form,
+        'actividades_recientes': actividades_recientes,
     }
     return render(request, 'torneos/admin/administrar_torneo.html', context)
 

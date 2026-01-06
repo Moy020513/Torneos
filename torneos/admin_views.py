@@ -5,7 +5,7 @@ import os
 
 # is_admin: permite acceso a superusuarios del sistema y a los
 # usuarios que hayan sido marcados como AdministradorTorneo (instancia)
-from .models import AdministradorTorneo
+from .models import AdministradorTorneo, Arbitro
 
 def is_admin(user):
     try:
@@ -24,6 +24,33 @@ def get_assigned_torneo_id(user):
         return at
     except Exception:
         return None
+
+
+def registrar_actividad(torneo, usuario, tipo_accion, tipo_modelo, descripcion, objeto_id=None, request=None):
+    """Helper para registrar actividades en el sistema."""
+    from .models import RegistroActividad
+    try:
+        ip_address = None
+        if request:
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip_address = x_forwarded_for.split(',')[0]
+            else:
+                ip_address = request.META.get('REMOTE_ADDR')
+        
+        RegistroActividad.objects.create(
+            torneo=torneo,
+            usuario=usuario,
+            tipo_accion=tipo_accion,
+            tipo_modelo=tipo_modelo,
+            descripcion=descripcion,
+            objeto_id=objeto_id,
+            ip_address=ip_address
+        )
+    except Exception as e:
+        # No fallar si el registro de actividad falla
+        print(f"Error registrando actividad: {e}")
+
 
 # =================== ELIMINAR IMÁGENES HUÉRFANAS ===================
 @login_required
@@ -572,6 +599,12 @@ def admin_dashboard(request):
     
     # Administradores del sistema
     total_admins = User.objects.filter(is_staff=True).count()
+
+    # Actividades recientes
+    actividades_recientes_qs = RegistroActividad.objects.select_related('usuario', 'torneo')
+    if assigned_torneo:
+        actividades_recientes_qs = actividades_recientes_qs.filter(torneo_id=assigned_torneo)
+    actividades_recientes = actividades_recientes_qs.order_by('-fecha_hora')[:5]
     
     context = {
         'total_torneos': total_torneos,
@@ -599,6 +632,7 @@ def admin_dashboard(request):
         'total_admins': total_admins,
         'goles_totales': goles_totales,
         'ultimos_resultados': ultimos_resultados,
+        'actividades_recientes': actividades_recientes,
     }
     return render(request, 'admin/dashboard.html', context)
 
@@ -959,11 +993,35 @@ def admin_crear_equipo(request):
                 if categoria and categoria.torneo_id != assigned_torneo:
                     messages.error(request, 'No puedes crear un equipo en una categoría de otro torneo.')
                 else:
-                    form.save()
+                    equipo = form.save()
+                    
+                    # Registrar actividad
+                    registrar_actividad(
+                        torneo=equipo.categoria.torneo,
+                        usuario=request.user,
+                        tipo_accion='crear',
+                        tipo_modelo='equipo',
+                        descripcion=f"Equipo creado: {equipo.nombre} en {equipo.categoria.nombre}",
+                        objeto_id=equipo.id,
+                        request=request
+                    )
+                    
                     messages.success(request, 'Equipo creado exitosamente.')
                     return redirect('admin_equipos')
             else:
-                form.save()
+                equipo = form.save()
+                
+                # Registrar actividad
+                registrar_actividad(
+                    torneo=equipo.categoria.torneo,
+                    usuario=request.user,
+                    tipo_accion='crear',
+                    tipo_modelo='equipo',
+                    descripcion=f"Equipo creado: {equipo.nombre} en {equipo.categoria.nombre}",
+                    objeto_id=equipo.id,
+                    request=request
+                )
+                
                 messages.success(request, 'Equipo creado exitosamente.')
                 return redirect('admin_equipos')
     else:
@@ -992,11 +1050,35 @@ def admin_editar_equipo(request, equipo_id):
                 if categoria and categoria.torneo_id != assigned_torneo:
                     messages.error(request, 'No puedes asignar una categoría de otro torneo.')
                 else:
-                    form.save()
+                    equipo = form.save()
+                    
+                    # Registrar actividad
+                    registrar_actividad(
+                        torneo=equipo.categoria.torneo,
+                        usuario=request.user,
+                        tipo_accion='modificar',
+                        tipo_modelo='equipo',
+                        descripcion=f"Equipo modificado: {equipo.nombre} en {equipo.categoria.nombre}",
+                        objeto_id=equipo.id,
+                        request=request
+                    )
+                    
                     messages.success(request, 'Equipo actualizado exitosamente.')
                     return redirect('admin_equipos')
             else:
-                form.save()
+                equipo = form.save()
+                
+                # Registrar actividad
+                registrar_actividad(
+                    torneo=equipo.categoria.torneo,
+                    usuario=request.user,
+                    tipo_accion='modificar',
+                    tipo_modelo='equipo',
+                    descripcion=f"Equipo modificado: {equipo.nombre} en {equipo.categoria.nombre}",
+                    objeto_id=equipo.id,
+                    request=request
+                )
+                
                 messages.success(request, 'Equipo actualizado exitosamente.')
                 return redirect('admin_equipos')
     else:
@@ -1110,6 +1192,20 @@ def admin_crear_jugador(request):
                     jugador.verificado_por = request.user
                     jugador.fecha_verificacion = timezone.now()
                 jugador.save()
+                
+                # Registrar actividad
+                torneo = jugador.equipo.categoria.torneo if jugador.equipo else None
+                if torneo:
+                    registrar_actividad(
+                        torneo=torneo,
+                        usuario=request.user,
+                        tipo_accion='crear',
+                        tipo_modelo='jugador',
+                        descripcion=f"Jugador creado: {jugador.nombre} {jugador.apellido} ({jugador.equipo.nombre if jugador.equipo else 'Sin equipo'})",
+                        objeto_id=jugador.id,
+                        request=request
+                    )
+                
                 messages.success(request, 'Jugador creado exitosamente.')
                 return redirect('admin_jugadores')
     else:
@@ -1148,6 +1244,20 @@ def admin_editar_jugador(request, jugador_id):
                     jugador.verificado_por = None
                     jugador.fecha_verificacion = None
                 jugador.save()
+                
+                # Registrar actividad
+                torneo = jugador.equipo.categoria.torneo if jugador.equipo else None
+                if torneo:
+                    registrar_actividad(
+                        torneo=torneo,
+                        usuario=request.user,
+                        tipo_accion='modificar',
+                        tipo_modelo='jugador',
+                        descripcion=f"Jugador modificado: {jugador.nombre} {jugador.apellido} ({jugador.equipo.nombre if jugador.equipo else 'Sin equipo'})",
+                        objeto_id=jugador.id,
+                        request=request
+                    )
+                
                 messages.success(request, 'Jugador actualizado exitosamente.')
                 return redirect('admin_jugadores')
     else:
@@ -1167,7 +1277,24 @@ def admin_eliminar_jugador(request, jugador_id):
     
     if request.method == 'POST':
         nombre_jugador = f"{jugador.nombre} {jugador.apellido}"
+        torneo = jugador.equipo.categoria.torneo if jugador.equipo else None
+        equipo_nombre = jugador.equipo.nombre if jugador.equipo else 'Sin equipo'
+        jugador_id = jugador.id
+        
         jugador.delete()
+        
+        # Registrar actividad
+        if torneo:
+            registrar_actividad(
+                torneo=torneo,
+                usuario=request.user,
+                tipo_accion='eliminar',
+                tipo_modelo='jugador',
+                descripcion=f"Jugador eliminado: {nombre_jugador} ({equipo_nombre})",
+                objeto_id=jugador_id,
+                request=request
+            )
+        
         messages.success(request, f'Jugador "{nombre_jugador}" eliminado exitosamente.')
         return redirect('admin_jugadores')
     
@@ -1185,12 +1312,14 @@ def admin_partidos(request):
     estado = request.GET.get('estado', '')
     search = request.GET.get('search', '')
     jornada = request.GET.get('jornada', '')
+    arbitro_id = request.GET.get('arbitro', '')
     
     # Obtener todos los partidos ordenados por jornada ascendente (1, 2, 3...)
     partidos = Partido.objects.select_related(
         'equipo_local',
         'equipo_visitante',
-        'grupo__categoria__torneo'
+        'grupo__categoria__torneo',
+        'arbitro__usuario'
     ).order_by('jornada', 'fecha', 'id')
     
     # Filtrar por categoría
@@ -1206,6 +1335,10 @@ def admin_partidos(request):
     # Filtrar por jornada
     if jornada:
         partidos = partidos.filter(jornada=jornada)
+
+    # Filtrar por árbitro
+    if arbitro_id:
+        partidos = partidos.filter(arbitro_id=arbitro_id)
     
     # Búsqueda por equipos
     if search:
@@ -1224,8 +1357,10 @@ def admin_partidos(request):
     # Obtener todas las categorías para el filtro (limitadas si aplica)
     if assigned_torneo:
         categorias = Categoria.objects.select_related('torneo').filter(torneo_id=assigned_torneo)
+        arbitros = Arbitro.objects.select_related('usuario').filter(torneo_id=assigned_torneo)
     else:
         categorias = Categoria.objects.select_related('torneo').all()
+        arbitros = Arbitro.objects.select_related('usuario', 'torneo').all()
     
     # Obtener todas las jornadas disponibles (sin duplicados, ordenadas) — considerar filtro aplicado
     jornadas_qs = partidos.values_list('jornada', flat=True).distinct().order_by('jornada')
@@ -1239,11 +1374,13 @@ def admin_partidos(request):
     context = {
         'partidos': partidos_paginados,
         'categorias': categorias,
+        'arbitros': arbitros,
         'jornadas': jornadas,
         'categoria_id': categoria_id,
         'estado': estado,
         'search': search,
         'jornada': jornada,
+        'arbitro_id': arbitro_id,
     }
 
     return render(request, 'admin/partidos/listar.html', context)
@@ -1264,12 +1401,15 @@ def admin_crear_partido(request):
                 grupo = form.cleaned_data.get('grupo')
                 equipo_local = form.cleaned_data.get('equipo_local')
                 equipo_visitante = form.cleaned_data.get('equipo_visitante')
+                arbitro = form.cleaned_data.get('arbitro')
                 invalid = False
                 if grupo and grupo.categoria.torneo_id != assigned_torneo:
                     invalid = True
                 if equipo_local and equipo_local.categoria.torneo_id != assigned_torneo:
                     invalid = True
                 if equipo_visitante and equipo_visitante.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if arbitro and arbitro.torneo_id != assigned_torneo:
                     invalid = True
                 if invalid:
                     messages.error(request, 'No puedes crear un partido con equipos o grupo de otro torneo.')
@@ -1319,12 +1459,15 @@ def admin_editar_partido(request, partido_id):
                 grupo = form.cleaned_data.get('grupo')
                 equipo_local = form.cleaned_data.get('equipo_local')
                 equipo_visitante = form.cleaned_data.get('equipo_visitante')
+                arbitro = form.cleaned_data.get('arbitro')
                 invalid = False
                 if grupo and grupo.categoria.torneo_id != assigned_torneo:
                     invalid = True
                 if equipo_local and equipo_local.categoria.torneo_id != assigned_torneo:
                     invalid = True
                 if equipo_visitante and equipo_visitante.categoria.torneo_id != assigned_torneo:
+                    invalid = True
+                if arbitro and arbitro.torneo_id != assigned_torneo:
                     invalid = True
                 if invalid:
                     messages.error(request, 'No puedes asignar equipos o grupo de otro torneo.')
@@ -1669,6 +1812,137 @@ def admin_eliminar_usuario(request, usuario_id):
     }
     return render(request, 'admin/usuarios/eliminar.html', context)
 
+# ========== ÁRBITROS ==========
+
+@login_required
+@user_passes_test(is_admin)
+def admin_arbitros(request):
+    search = request.GET.get('search', '')
+    torneo_id = request.GET.get('torneo')
+    activo = request.GET.get('activo')
+
+    arbitros = Arbitro.objects.select_related('usuario', 'torneo').annotate(total_partidos=Count('partidos'))
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            arbitros = arbitros.filter(torneo_id=assigned_torneo)
+
+    if search:
+        arbitros = arbitros.filter(
+            Q(usuario__username__icontains=search) |
+            Q(usuario__first_name__icontains=search) |
+            Q(usuario__last_name__icontains=search)
+        )
+
+    if torneo_id:
+        arbitros = arbitros.filter(torneo_id=torneo_id)
+
+    if activo:
+        arbitros = arbitros.filter(activo=(activo == 'true'))
+
+    arbitros = arbitros.order_by('torneo__nombre', 'usuario__username')
+    total_arbitros = arbitros.count()
+    arbitros_activos = arbitros.filter(activo=True).count()
+
+    paginator = Paginator(arbitros, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    if assigned_torneo:
+        torneos = Torneo.objects.filter(id=assigned_torneo)
+    else:
+        torneos = Torneo.objects.all().order_by('nombre')
+
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'torneo_id': torneo_id,
+        'activo': activo,
+        'torneos': torneos,
+        'total_arbitros': total_arbitros,
+        'arbitros_activos': arbitros_activos,
+    }
+    return render(request, 'admin/arbitros/listar.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_arbitro(request):
+    assigned_torneo = None
+    created_by = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            created_by = request.user
+
+    if request.method == 'POST':
+        form = ArbitroForm(request.POST, created_by=created_by, assigned_torneo=assigned_torneo)
+        if form.is_valid():
+            arbitro = form.save(commit=False)
+            if assigned_torneo and not request.user.is_superuser:
+                arbitro.torneo_id = assigned_torneo
+            arbitro.save()
+            messages.success(request, f'Árbitro "{arbitro.usuario.username}" asignado exitosamente.')
+            return redirect('admin_arbitros')
+    else:
+        form = ArbitroForm(created_by=created_by, assigned_torneo=assigned_torneo)
+
+    context = {
+        'form': form,
+        'action': 'Crear',
+    }
+    return render(request, 'admin/arbitros/form.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_editar_arbitro(request, arbitro_id):
+    arbitro = get_object_or_404(Arbitro, id=arbitro_id)
+    assigned_torneo = None
+    created_by = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo:
+            created_by = request.user
+
+    if request.method == 'POST':
+        form = ArbitroForm(request.POST, instance=arbitro, created_by=created_by, assigned_torneo=assigned_torneo)
+        if form.is_valid():
+            arbitro_obj = form.save(commit=False)
+            if assigned_torneo and not request.user.is_superuser:
+                arbitro_obj.torneo_id = assigned_torneo
+            arbitro_obj.save()
+            messages.success(request, f'Árbitro "{arbitro_obj.usuario.username}" actualizado exitosamente.')
+            return redirect('admin_arbitros')
+    else:
+        form = ArbitroForm(instance=arbitro, created_by=created_by, assigned_torneo=assigned_torneo)
+
+    context = {
+        'form': form,
+        'arbitro': arbitro,
+        'action': 'Editar',
+    }
+    return render(request, 'admin/arbitros/form.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_arbitro(request, arbitro_id):
+    arbitro = get_object_or_404(Arbitro, id=arbitro_id)
+    partidos_asignados = arbitro.partidos.count()
+
+    if request.method == 'POST':
+        arbitro.delete()
+        messages.success(request, f'Árbitro "{arbitro.usuario.username}" eliminado. Los partidos quedaron sin árbitro asignado.')
+        return redirect('admin_arbitros')
+
+    context = {
+        'arbitro': arbitro,
+        'partidos_asignados': partidos_asignados,
+    }
+    return render(request, 'admin/arbitros/eliminar.html', context)
+
 # ========== CAPITANES ==========
 
 @login_required
@@ -1754,6 +2028,21 @@ def admin_crear_representante(request):
                     # Si falla la comprobación, no bloquear (pero en general no debería pasar)
                     pass
             representante = form.save()
+            
+            # Registrar actividad (encontrar torneos de los equipos del representante)
+            equipos = representante.equipo_set.all()
+            if equipos:
+                torneo = equipos.first().categoria.torneo
+                registrar_actividad(
+                    torneo=torneo,
+                    usuario=request.user,
+                    tipo_accion='crear',
+                    tipo_modelo='representante',
+                    descripcion=f"Representante asignado: {representante.usuario.get_full_name() or representante.usuario.username}",
+                    objeto_id=representante.id,
+                    request=request
+                )
+            
             messages.success(request, f'Representante "{representante.usuario.username}" asignado exitosamente.')
             return redirect('admin_representantes')
     else:
@@ -2720,3 +3009,75 @@ def admin_eliminar_ajuste_puntos(request, ajuste_id):
     ajuste.delete()
     messages.success(request, f'Ajuste de puntos eliminado: {equipo_nombre} {puntos_str}')
     return redirect('admin_ajustar_puntos')
+
+
+# =================== REGISTROS DE ACTIVIDAD ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_actividades(request):
+    from .models import RegistroActividad
+    
+    # Obtener torneo asignado
+    assigned_torneo_id = None
+    if not request.user.is_superuser:
+        assigned_torneo_id = get_assigned_torneo_id(request.user)
+    
+    # Filtrar actividades por torneo asignado
+    actividades = RegistroActividad.objects.select_related('torneo', 'usuario')
+    if assigned_torneo_id:
+        actividades = actividades.filter(torneo_id=assigned_torneo_id)
+    
+    # Filtros adicionales
+    torneo_filtro = request.GET.get('torneo')
+    usuario_filtro = request.GET.get('usuario')
+    tipo_accion_filtro = request.GET.get('tipo_accion')
+    tipo_modelo_filtro = request.GET.get('tipo_modelo')
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    
+    if torneo_filtro:
+        actividades = actividades.filter(torneo_id=torneo_filtro)
+    if usuario_filtro:
+        actividades = actividades.filter(usuario_id=usuario_filtro)
+    if tipo_accion_filtro:
+        actividades = actividades.filter(tipo_accion=tipo_accion_filtro)
+    if tipo_modelo_filtro:
+        actividades = actividades.filter(tipo_modelo=tipo_modelo_filtro)
+    if fecha_desde:
+        from datetime import datetime
+        actividades = actividades.filter(fecha_hora__gte=datetime.strptime(fecha_desde, '%Y-%m-%d'))
+    if fecha_hasta:
+        from datetime import datetime
+        actividades = actividades.filter(fecha_hora__lte=datetime.strptime(fecha_hasta, '%Y-%m-%d'))
+    
+    # Paginación
+    from django.core.paginator import Paginator
+    paginator = Paginator(actividades, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Obtener opciones para filtros
+    if assigned_torneo_id:
+        torneos_disponibles = Torneo.objects.filter(id=assigned_torneo_id)
+    else:
+        torneos_disponibles = Torneo.objects.all()
+    
+    usuarios_con_actividad = User.objects.filter(
+        id__in=RegistroActividad.objects.values_list('usuario_id', flat=True).distinct()
+    ).order_by('username')
+    
+    context = {
+        'page_obj': page_obj,
+        'torneos_disponibles': torneos_disponibles,
+        'usuarios_con_actividad': usuarios_con_actividad,
+        'tipo_accion_choices': RegistroActividad.TIPO_ACCION_CHOICES,
+        'tipo_modelo_choices': RegistroActividad.TIPO_MODELO_CHOICES,
+        'torneo_filtro': torneo_filtro,
+        'usuario_filtro': usuario_filtro,
+        'tipo_accion_filtro': tipo_accion_filtro,
+        'tipo_modelo_filtro': tipo_modelo_filtro,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+    }
+    
+    return render(request, 'admin/actividades/listar.html', context)

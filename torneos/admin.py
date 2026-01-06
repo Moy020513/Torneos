@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db import models
 from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Representante, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
-from .models import AdministradorTorneo, AjustePuntos
+from .models import AdministradorTorneo, AjustePuntos, Arbitro, RegistroActividad
 from .forms import EquipoAdminForm
 from django.utils.html import format_html
 
@@ -391,6 +391,13 @@ class JugadorAdmin(admin.ModelAdmin):
     search_fields = ('nombre', 'apellido')
     actions = ['marcar_como_verificado', 'desmarcar_como_verificado']
 
+
+@admin.register(Arbitro)
+class ArbitroAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'torneo', 'activo', 'fecha_creacion')
+    list_filter = ('torneo', 'activo')
+    search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'torneo__nombre')
+
     @admin.action(description="Marcar seleccionados como verificados")
     def marcar_como_verificado(self, request, queryset):
         from django.utils import timezone
@@ -636,3 +643,30 @@ class AjustePuntosAdmin(admin.ModelAdmin):
         if not change:
             obj.realizado_por = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(RegistroActividad)
+class RegistroActividadAdmin(admin.ModelAdmin):
+    list_display = ('fecha_hora', 'usuario_nombre', 'torneo', 'tipo_accion', 'tipo_modelo', 'descripcion_corta', 'ip_address')
+    list_filter = ('tipo_accion', 'tipo_modelo', 'torneo', 'fecha_hora')
+    search_fields = ('descripcion', 'usuario__username', 'usuario__first_name', 'usuario__last_name', 'torneo__nombre')
+    date_hierarchy = 'fecha_hora'
+    readonly_fields = ('torneo', 'usuario', 'tipo_accion', 'tipo_modelo', 'descripcion', 'objeto_id', 'fecha_hora', 'ip_address')
+    
+    def has_add_permission(self, request):
+        # No permitir crear registros manualmente
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        # Solo lectura
+        return False
+    
+    def usuario_nombre(self, obj):
+        if obj.usuario:
+            return obj.usuario.get_full_name() or obj.usuario.username
+        return 'Sistema'
+    usuario_nombre.short_description = 'Usuario'
+    
+    def descripcion_corta(self, obj):
+        return obj.descripcion[:100] + '...' if len(obj.descripcion) > 100 else obj.descripcion
+    descripcion_corta.short_description = 'Descripción'

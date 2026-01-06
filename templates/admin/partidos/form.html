@@ -152,6 +152,20 @@
                         </div>
                     </div>
                     
+                    <!-- Árbitro -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="{{ form.arbitro.id_for_label }}">{{ form.arbitro.label }}</label>
+                        {{ form.arbitro }}
+                        {% if form.arbitro.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.arbitro.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Asigne un árbitro responsable del partido (opcional)</div>
+                    </div>
+
                     <!-- Ubicación del campo -->
                     <div class="admin-form-group">
                         <label class="admin-form-label" for="{{ form.ubicacion.id_for_label }}">
