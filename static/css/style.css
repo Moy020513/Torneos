@@ -124,3 +124,16 @@
     footer a i {
         font-size: 0rem;
     }
+    /* Icono de inicio en móvil */
+    .navbar-brand.d-lg-none {
+        padding-right: 15px;
+    }
+
+    .navbar-brand.d-lg-none i {
+        color: #0a2342;
+        transition: transform 0.3s ease;
+    }
+
+    .navbar-brand.d-lg-none:hover i {
+        transform: scale(1.2);
+    }

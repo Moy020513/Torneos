@@ -1,61 +1,72 @@
+/* ============================================
+   CSS OPTIMIZADO PARA MÓVIL - SISTEMA DE TORNEOS
+   Elimina efectos GPU-intensivos, mantiene diseño
+============================================ */
+
 /* Hero Card - Sistema de Torneos */
 .hero-card {
-    background: linear-gradient(135deg, #17a2b8  0%, #001c3a 60%);
+    background: linear-gradient(135deg, #17a2b8 0%, #001c3a 60%);
     border: 3px solid #00ffe7;
-    box-shadow: 0 0 18px #00ffe7, 0 0 0 8px #1e3a5f;
-    border-radius: 24px;
+    box-shadow: 0 0 12px rgba(0, 255, 231, 0.4);
+    border-radius: 20px;
     overflow: hidden;
     position: relative;
+    /* Optimización móvil */
+    contain: layout style paint;
 }
 
 .hero-icon-container {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 3px solid rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    /* backdrop-filter eliminado para móvil */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .hero-icon {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
 }
 
 .hero-title {
-    text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
-    letter-spacing: -0.5px;
+    text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.25);
+    letter-spacing: -0.3px;
     font-family: 'Segoe UI', system-ui, sans-serif;
+    font-weight: 700;
 }
 
 .hero-subtitle {
-    text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.2);
-    font-size: 1.1rem;
-    font-weight: 300;
-    opacity: 0.95;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    font-size: 1rem;
+    font-weight: 400;
+    opacity: 0.92;
     max-width: 600px;
     margin: 0 auto;
+    line-height: 1.5;
 }
 
 .hero-divider {
-    width: 80px;
+    width: 70px;
     height: 2px;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
 }
 
 /* Torneos Activos Card */
 .torneos-card {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(30, 58, 95, 0.3);
-    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid rgba(30, 58, 95, 0.25);
+    border-radius: 18px;
     overflow: hidden;
-    backdrop-filter: blur(10px);
+    /* backdrop-filter eliminado */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .torneos-header {
-    background: #b8b8b8b7;
+    background: #b8b8b8;
     color: #001c3a !important;
     border: 0;
-    box-shadow: 0 0 18px #00ffe7, 0 0 0 8px #1e3a5f;
+    border-bottom: 2px solid #00ffe7;
+    box-shadow: 0 2px 10px rgba(0, 255, 231, 0.3);
 }
 
 .torneos-header-gradient {
@@ -64,77 +75,90 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 30% 20%, rgba(45, 90, 160, 0.3) 0%, transparent 50%);
-    backdrop-filter: blur(1px);
+    background: radial-gradient(circle at 30% 20%, rgba(45, 90, 160, 0.25) 0%, transparent 50%);
+    /* backdrop-filter eliminado */
 }
 
 .torneos-header-title {
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    font-weight: 700;
 }
 
 .torneos-body {
-    background: rgba(201, 201, 201, 0.555);
+    background: #f5f5f5;
 }
 
 /* Tournament Cards */
 .tournament-card {
-    background: rgba(235, 235, 235, 0.9);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0, 110, 255, 1);
-    border-radius: 18px;
+    background: #f0f0f0;
+    /* backdrop-filter eliminado */
+    border: 1px solid rgba(0, 110, 255, 0.9);
+    border-radius: 16px;
     overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+    /* Optimizaciones críticas */
+    contain: content;
+    will-change: transform;
 }
 
-.tournament-card:hover {
-    transform: translateY(-10px) scale(1.03);
-    box-shadow: 0 25px 50px rgba(30, 58, 95, 0.3);
-    background: rgba(255, 255, 255, 0.98);
-    border-color: rgba(45, 90, 160, 0.6);
+/* Hover solo en desktop (no móvil) */
+@media (hover: hover) and (pointer: fine) {
+    .tournament-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 18px 35px rgba(30, 58, 95, 0.2);
+        background: #ffffff;
+        border-color: rgba(45, 90, 160, 0.5);
+    }
 }
 
 .tournament-card-header {
-    background: linear-gradient(135deg, #17a2b8  0%, #001c3a 40%);
+    background: linear-gradient(135deg, #17a2b8 0%, #001c3a 40%);
     position: relative;
     overflow: hidden;
-    border-bottom: 9px solid #00ffe7;
-    box-shadow: 0 0 18px #00ffe7;
+    border-bottom: 6px solid #00ffe7;
+    box-shadow: 0 2px 12px rgba(0, 255, 231, 0.25);
 }
 
 .tournament-crown-badge {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(8px);
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    /* backdrop-filter eliminado */
 }
 
 .tournament-crown-icon {
     color: #fbbf24;
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .tournament-logo {
-    max-height: 70px;
+    max-height: 65px;
     width: auto;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    /* filter optimizado */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+    /* Optimización imágenes */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 .tournament-title {
-    text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
-    font-size: 1.2rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    font-size: 1.1rem;
+    font-weight: 700;
 }
 
 .tournament-description {
-    line-height: 1.6;
-    font-size: 0.9rem;
-    color: #334155;
+    line-height: 1.5;
+    font-size: 0.88rem;
+    color: #2d3748;
 }
 
 .tournament-dates {
-    background: rgba(30, 58, 95, 0.1);
-    border: 1px solid rgba(45, 90, 160, 0.2);
+    background: rgba(30, 58, 95, 0.08);
+    border: 1px solid rgba(45, 90, 160, 0.15);
+    border-radius: 8px;
 }
 
 .tournament-dates-icon {
@@ -143,83 +167,416 @@
 
 .tournament-dates-text {
     color: #0c2340;
+    font-weight: 500;
 }
 
 .tournament-format-badge {
     background: linear-gradient(45deg, #0c2340, #1e3a5f);
     color: white;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 12px;
 }
 
 .tournament-view-btn {
-    background: linear-gradient(135deg, #17a2b8  0%, #001c3a 90%);
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(12, 35, 64, 0.4);
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #17a2b8, #001c3a);
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(12, 35, 64, 0.3);
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    font-weight: 600;
 }
 
 .tournament-view-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 6px 25px rgba(12, 35, 64, 0.5);
+    transform: scale(1.03);
+    box-shadow: 0 5px 18px rgba(12, 35, 64, 0.4);
 }
 
 /* Alert Info */
 .alert-torneos {
-    background: rgba(30, 58, 95, 0.1);
-    border: 1px solid rgba(45, 90, 160, 0.3);
+    background: rgba(30, 58, 95, 0.08);
+    border: 1px solid rgba(45, 90, 160, 0.25);
     color: #1e3a5f;
+    border-radius: 10px;
 }
 
-    /* Mobile: show tournament cards in a single horizontal row (swipeable) */
-    @media (max-width: 600px) {
-        .torneos-body > .row {
-            display: flex;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            gap: 0.25rem;
-            padding-bottom: 0.4rem;
-            -webkit-overflow-scrolling: touch;
-            scroll-snap-type: x mandatory;
-            padding-left: 0.25rem;
-        }
+/* ============================================
+   OPTIMIZACIONES CRÍTICAS PARA MÓVIL
+============================================ */
 
-        .torneos-body > .row > .col-lg-4,
-        .torneos-body > .row > .col-md-6 {
-            flex: 0 0 96%;
-            max-width: 96%;
-            scroll-snap-align: start;
-        }
+/* Hint shown on mobile to indicate horizontal swipe */
+.torneos-swipe-hint {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
 
-        .torneos-body .tournament-card {
-            height: 100%;
-        }
-    }
-    /* Hint shown on mobile to indicate horizontal swipe */
-    .torneos-swipe-hint{
-        display:none;
-        justify-content:center;
-        align-items:center;
-        gap:0.5rem;
-        color: rgba(0,0,0,0.6);
-        margin-top:0.5rem;
-        font-size:0.9rem;
-    }
+.torneos-swipe-hint .swipe-arrows {
+    display: inline-block;
+    font-size: 1rem;
+    color: rgba(0, 0, 0, 0.55);
+    transform: translateX(0);
+    animation: swipeHint 1.5s ease-in-out infinite;
+    will-change: transform;
+}
 
-    .torneos-swipe-hint .swipe-arrows{
-        display:inline-block;
-        font-size:1.05rem;
-        color: rgba(0,0,0,0.55);
-        transform: translateX(0);
-        animation: swipeHint 1.2s ease-in-out infinite;
-    }
+@keyframes swipeHint {
+    0% { transform: translateX(-4px); opacity: 0.7; }
+    50% { transform: translateX(4px); opacity: 1; }
+    100% { transform: translateX(-4px); opacity: 0.7; }
+}
 
-    @keyframes swipeHint{
-        0%{ transform: translateX(-6px); opacity:0.7 }
-        50%{ transform: translateX(6px); opacity:1 }
-        100%{ transform: translateX(-6px); opacity:0.7 }
-    }
+/* ============================================
+   MÓVIL: Optimizaciones específicas para < 768px
+============================================ */
 
-    @media (max-width: 600px){
-        .torneos-swipe-hint{ display:flex; }
-        .hero-title{ font-size:1.3rem; }
+@media (max-width: 768px) {
+    /* Desactiva efectos costosos en móvil */
+    * {
+        /* Reduce o elimina animaciones costosas */
+        animation-duration: 0.02ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.02ms !important;
     }
+    
+    /* Hero optimizado para móvil */
+    .hero-card {
+        padding: 0rem;
+        border-width: 2px;
+        border-radius: 16px;
+        box-shadow: 0 0 8px rgba(0, 255, 231, 0.3);
+        margin: 0rem;
+    }
+    
+    .hero-title {
+        width: auto !important;
+        font-size: 1.4rem !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        padding: 0rem;
+        margin: 0;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.95rem;
+        padding: 0 0rem;
+    }
+    
+    .hero-icon-container {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .hero-icon {
+        font-size: 1.4rem;
+    }
+    
+    /* Torneos card optimizado */
+    .torneos-card {
+        border-radius: 16px;
+        margin: 0rem;
+        height: auto !important;
+        min-height: 40px !important;
+        padding: 0 !important;
+    }
+    #swipeHint {
+        margin-bottom: 0rem;
+        margin-top: 0rem;
+        padding: 0rem !important;
+    }
+    
+    .torneos-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .torneos-header-title {
+        font-size: 1.1rem;
+    }
+    .torneos-body {
+        padding: 0.5rem !important;
+        margin-left: 0.8rem !important;
+        height: auto !important;
+        min-height: 30px !important;
+    }
+    /* Scroll horizontal optimizado para móvil */
+    .torneos-body > .row {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 0.75rem;
+        padding: orem;
+        margin-bottom: 0rem;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        /* Optimizaciones críticas */
+        -webkit-overflow-scrolling: auto;
+        scrollbar-width: none; /* Firefox */
+        contain: content;
+    }
+    
+    .torneos-body > .row::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
+    }
+    
+    .torneos-body > .row > .col-lg-4,
+    .torneos-body > .row > .col-md-6 {
+        flex: 0 0 88%;
+        max-width: 88%;
+        scroll-snap-align: start;
+        /* Content-visibility para scroll fluido */
+        content-visibility: auto;
+        contain-intrinsic-size: 360px;
+        margin-bottom: 0;
+    }
+    
+    /* Tournament cards móvil */
+    .torneos-body .tournament-card {
+        height: auto;
+        min-height: 180px;
+        /* Desactiva transformaciones costosas */
+        transform: none !important;
+        /* Sombra más simple */
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        /* Mejora renderizado */
+        opacity: 1;
+        transition: opacity 0.2s ease;
+    }
+    
+    /* Asegura que las cards sean visibles */
+    .tournament-card {
+        opacity: 1 !important;
+    }
+    
+    .tournament-card-header {
+        border-bottom-width: 4px;
+        padding: 0.75rem;
+    }
+    
+    .tournament-title {
+        font-size: 1rem;
+        text-shadow: none;
+    }
+    
+    .tournament-logo {
+        max-height: 55px;
+    }
+    
+    .tournament-description {
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+    
+    .tournament-view-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Elimina TODOS los backdrop-filter en móvil */
+    .torneos-card,
+    .tournament-card,
+    .hero-icon-container,
+    .torneos-header-gradient,
+    .tournament-crown-badge {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    
+    /* Muestra hint de swipe */
+    .torneos-swipe-hint {
+        display: flex;
+        padding: 0.5rem 0;
+    }
+}
+
+/* ============================================
+   MÓVIL PEQUEÑO: Optimizaciones adicionales < 480px
+============================================ */
+
+@media (max-width: 480px) {
+    .hero-card {
+        border-radius: 14px;
+        margin: 0.25rem;
+    }
+    
+    .hero-title {
+        font-size: 1.2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.88rem;
+    }
+    
+    .torneos-body > .row {
+        gap: 0.5rem;
+        padding: 0.75rem 0.5rem 1.25rem 0.5rem;
+    }
+    
+    .torneos-body > .row > .col-lg-4,
+    .torneos-body > .row > .col-md-6 {
+        flex: 0 0 92%;
+        max-width: 92%;
+        contain-intrinsic-size: 340px;
+    }
+    
+    .torneos-body .tournament-card {
+        min-height: 150px;
+        margin: 0;
+    }
+    
+    .tournament-card-header {
+        padding: 0.1rem;
+    }
+    
+    .tournament-title {
+        font-size: 0.95rem;
+    }
+    
+    .tournament-logo {
+        max-height: 48px;
+    }
+}
+
+/* ============================================
+   PREVENCIÓN DE FLASH BLANCO AL SCROLLEAR
+============================================ */
+
+/* Fondo constante para prevenir flash blanco */
+html, body {
+    background-color: #f0f2f5 !important;
+    min-height: 100vh;
+}
+
+/* Skeleton loading optimizado */
+.skeleton-card {
+    background: linear-gradient(90deg, 
+        #f0f0f0 0%, 
+        #e8e8e8 50%, 
+        #f0f0f0 100%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 14px;
+    min-height: 380px;
+    content-visibility: auto;
+    contain-intrinsic-size: 380px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Clase para ocultar mientras carga */
+.loading {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.loaded {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ============================================
+   MEJORAS DE RENDIMIENTO GENERAL
+============================================ */
+
+/* Aplica contain a elementos grandes */
+.hero-card,
+.torneos-card,
+.tournament-card {
+    contain: layout style paint;
+}
+
+/* Optimiza transformaciones */
+.tournament-card,
+.tournament-view-btn {
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Mejora renderizado de texto */
+.hero-title,
+.torneos-header-title,
+.tournament-title {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   FIX PARA SAFARI/IOS
+============================================ */
+
+@supports (-webkit-touch-callout: none) {
+    /* Fix para iOS */
+    .hero-card,
+    .torneos-card,
+    .tournament-card {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+    
+    .torneos-body > .row {
+        -webkit-overflow-scrolling: auto;
+    }
+}
+
+/* ============================================
+   ESTILOS DE FALLBACK PARA JS DESHABILITADO
+============================================ */
+
+.no-js .tournament-card {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.no-js .torneos-body > .row {
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+}
+
+.no-js .torneos-body > .row > .col-lg-4,
+.no-js .torneos-body > .row > .col-md-6 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+}
+
+/* Características destacadas en una fila */
+#heroFeatures {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+#heroFeatures .col-auto {
+    flex: 0 0 auto;
+    min-width: fit-content;
+}
+
+@media (max-width: 576px) {
+    #heroFeatures {
+        gap: 0.5rem;
+    }
+    
+    #heroFeatures .col-auto {
+        flex: 0 1 auto;
+    }
+    
+    #heroFeatures .d-flex {
+        font-size: 0.85rem;
+    }
+    
+    #heroFeatures i {
+        font-size: 1rem !important;
+    }
+    
+    #heroFeatures .me-4 {
+        margin-right: 0.5rem !important;
+    }
+}
