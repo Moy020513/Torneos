@@ -87,12 +87,7 @@
                                 <label class="admin-form-label" for="{{ form.fecha_inicio.id_for_label }}">
                                     {{ form.fecha_inicio.label }} <span class="text-danger">*</span>
                                 </label>
-                                {# Renderizar el input con value en formato yyyy-mm-dd si es necesario #}
-                                {% if form.fields.fecha_inicio.widget.input_type == 'date' %}
-                                    <input type="date" name="{{ form.fecha_inicio.name }}" id="{{ form.fecha_inicio.id_for_label }}" class="{{ form.fields.fecha_inicio.widget.attrs.class }}" value="{% if form.fecha_inicio.value %}{{ form.fecha_inicio.value|date:'Y-m-d' }}{% endif %}" required>
-                                {% else %}
-                                    {{ form.fecha_inicio }}
-                                {% endif %}
+                                {{ form.fecha_inicio }}
                                 {% if form.fecha_inicio.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.fecha_inicio.errors %}
@@ -107,11 +102,7 @@
                                 <label class="admin-form-label" for="{{ form.fecha_fin.id_for_label }}">
                                     {{ form.fecha_fin.label }} <span class="text-danger">*</span>
                                 </label>
-                                {% if form.fields.fecha_fin.widget.input_type == 'date' %}
-                                    <input type="date" name="{{ form.fecha_fin.name }}" id="{{ form.fecha_fin.id_for_label }}" class="{{ form.fields.fecha_fin.widget.attrs.class }}" value="{% if form.fecha_fin.value %}{{ form.fecha_fin.value|date:'Y-m-d' }}{% endif %}" required>
-                                {% else %}
-                                    {{ form.fecha_fin }}
-                                {% endif %}
+                                {{ form.fecha_fin }}
                                 {% if form.fecha_fin.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.fecha_fin.errors %}
@@ -155,6 +146,33 @@
                         <div class="form-text">Logo del torneo (opcional). Formatos: PNG, JPG, JPEG, GIF</div>
                     </div>
                     
+                    
+                    <!-- Portadas del Torneo -->
+                    <div class="admin-form-group">
+                        <label class="admin-form-label" for="id_portadas">
+                            Portadas del Torneo (hasta 5 imágenes)
+                        </label>
+                        <input type="file" id="id_portadas" name="portadas" multiple accept="image/*" class="admin-form-control form-control">
+                        <div class="form-text">Imágenes que se mostrarán rotando en el encabezado de la tarjeta. Formatos: PNG, JPG, JPEG, GIF</div>
+
+                        {% if portadas %}
+                        <div class="row g-2 mt-2">
+                            {% for portada in portadas %}
+                            <div class="col-6 col-md-4">
+                                <div class="border rounded p-1 h-100 text-center position-relative">
+                                    <img src="{{ portada.imagen.url }}" class="img-fluid rounded" style="object-fit: cover; height: 110px; width: 100%;">
+                                    <div class="small text-muted mt-1">#{{ forloop.counter }}</div>
+                                    <a href="javascript:void(0)" class="btn btn-sm btn-danger" title="Eliminar portada" 
+                                       onclick="eliminarPortada({{ portada.id }}, '{% url 'admin_eliminar_portada' portada.id %}')"
+                                       style="position: absolute; top: 5px; right: 5px;">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
                                     <!-- Reglamento (archivo) -->
                                     <div class="admin-form-group">
                                         <label class="admin-form-label" for="{{ form.reglamento.id_for_label }}">
@@ -301,6 +319,18 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Función para eliminar portada
+    window.eliminarPortada = function(portadaId, url) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta portada?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.innerHTML = '<input type="hidden" name="csrfmiddlewaretoken" value="' + document.querySelector('[name=csrfmiddlewaretoken]').value + '">';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    };
+
     // Validación de fechas
     const fechaInicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
     const fechaFin = document.getElementById('{{ form.fecha_fin.id_for_label }}');
@@ -344,6 +374,73 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 reader.readAsDataURL(file);
             }
+        });
+    }
+    // Preview de la portada
+    const portadaInput = document.getElementById('{{ form.portada.id_for_label }}');
+    if (portadaInput) {
+        portadaInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let preview = document.getElementById('portada-preview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.id = 'portada-preview';
+                        preview.className = 'mt-2';
+                        portadaInput.parentNode.appendChild(preview);
+                    }
+
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" 
+                             class="img-fluid rounded border" 
+                             style="max-height: 220px; width: 100%; object-fit: cover;">
+                        <div class="small text-muted mt-1">Vista previa</div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Preview de portadas múltiples (solo muestra hasta 3 miniaturas nuevas)
+    const portadasInput = document.getElementById('id_portadas');
+    if (portadasInput) {
+        portadasInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files || []);
+            let preview = document.getElementById('portadas-preview');
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.id = 'portadas-preview';
+                preview.className = 'mt-2';
+                portadasInput.parentNode.appendChild(preview);
+            }
+            if (!files.length) {
+                preview.innerHTML = '';
+                return;
+            }
+            const limited = files.slice(0, 3);
+            Promise.all(limited.map(file => new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = ev => resolve({name: file.name, src: ev.target.result});
+                reader.readAsDataURL(file);
+            }))).then(images => {
+                const extra = files.length > 3 ? `<div class="small text-muted mt-1">+${files.length - 3} más...</div>` : '';
+                preview.innerHTML = `
+                    <div class="row g-2">
+                        ${images.map((img, idx) => `
+                            <div class="col-4">
+                                <div class="border rounded p-1 text-center">
+                                    <img src="${img.src}" class="img-fluid rounded" style="object-fit: cover; height: 90px; width: 100%;">
+                                    <div class="small text-muted mt-1">Nueva ${idx + 1}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${extra}
+                `;
+            });
         });
     }
 });

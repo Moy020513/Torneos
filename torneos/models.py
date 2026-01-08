@@ -46,6 +46,13 @@ class Torneo(models.Model):
         blank=True, 
         null=True
     )
+    portada = models.ImageField(
+        upload_to='torneos/portadas/',
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg', 'gif'])],
+        blank=True,
+        null=True,
+        help_text='Imagen de portada que se muestra en la tarjeta del torneo'
+    )
     reglamento = models.FileField(
         upload_to='torneos/reglamentos/',
         validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx', 'odt'])],
@@ -66,40 +73,98 @@ class Torneo(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.logo:
-            img = Image.open(self.logo.path)
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size)
-            # Extraer colores principales únicos
-            img_rgb = img.convert('RGB')
-            img_quant = img_rgb.quantize(colors=256)
-            colors = img_quant.getcolors()
-            palette = img_quant.getpalette()
-            if colors and palette:
-                colors.sort(reverse=True, key=lambda x: x[0])
-                unique_colors = []
-                seen = set()
-                for count, index in colors:
-                    rgb = (palette[index*3], palette[index*3+1], palette[index*3+2])
-                    if rgb not in seen:
-                        unique_colors.append(rgb)
-                        seen.add(rgb)
-                    if len(unique_colors) == 3:
-                        break
-                color1 = '#%02x%02x%02x' % unique_colors[0] if len(unique_colors) >= 1 else None
-                color2 = '#%02x%02x%02x' % unique_colors[1] if len(unique_colors) >= 2 else (color1 if color1 else None)
-                color3 = '#%02x%02x%02x' % unique_colors[2] if len(unique_colors) >= 3 else color2
-            else:
-                color1 = color2 = color3 = None
-            # Comprimir la imagen
-            if img.format == 'JPEG':
-                img.save(self.logo.path, quality=85, optimize=True)
-            elif img.format == 'PNG':
-                img.save(self.logo.path, optimize=True)
-            else:
-                img.save(self.logo.path)
-            # Actualizar colores en la base de datos
-            self.__class__.objects.filter(pk=self.pk).update(color1=color1, color2=color2, color3=color3)
+            try:
+                img = Image.open(self.logo.path)
+                if img.height > 300 or img.width > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size)
+                # Extraer colores principales únicos
+                img_rgb = img.convert('RGB')
+                img_quant = img_rgb.quantize(colors=256)
+                colors = img_quant.getcolors()
+                palette = img_quant.getpalette()
+                if colors and palette:
+                    colors.sort(reverse=True, key=lambda x: x[0])
+                    unique_colors = []
+                    seen = set()
+                    for count, index in colors:
+                        rgb = (palette[index*3], palette[index*3+1], palette[index*3+2])
+                        if rgb not in seen:
+                            unique_colors.append(rgb)
+                            seen.add(rgb)
+                        if len(unique_colors) == 3:
+                            break
+                    color1 = '#%02x%02x%02x' % unique_colors[0] if len(unique_colors) >= 1 else None
+                    color2 = '#%02x%02x%02x' % unique_colors[1] if len(unique_colors) >= 2 else (color1 if color1 else None)
+                    color3 = '#%02x%02x%02x' % unique_colors[2] if len(unique_colors) >= 3 else color2
+                else:
+                    color1 = color2 = color3 = None
+                # Comprimir la imagen
+                if img.format == 'JPEG':
+                    img.save(self.logo.path, quality=85, optimize=True)
+                elif img.format == 'PNG':
+                    img.save(self.logo.path, optimize=True)
+                else:
+                    img.save(self.logo.path)
+                # Actualizar colores en la base de datos
+                self.__class__.objects.filter(pk=self.pk).update(color1=color1, color2=color2, color3=color3)
+            except (FileNotFoundError, OSError):
+                # Si el archivo no existe, simplemente ignorar
+                pass
+
+        if self.portada:
+            try:
+                if os.path.exists(self.portada.path):
+                    cover = Image.open(self.portada.path)
+                    if cover.height > 900 or cover.width > 1600:
+                        cover.thumbnail((1600, 900))
+
+                    cover_ext = self.portada.path.split('.')[-1].lower()
+                    if cover_ext in ['jpg', 'jpeg']:
+                        if cover.mode in ('RGBA', 'LA'):
+                            cover = cover.convert('RGB')
+                        cover.save(self.portada.path, format='JPEG', quality=85, optimize=True)
+                    elif cover_ext == 'png':
+                        cover.save(self.portada.path, format='PNG', optimize=True)
+                    else:
+                        cover.save(self.portada.path)
+            except (FileNotFoundError, OSError):
+                # Si el archivo no existe, simplemente ignorar
+                pass
+
+
+class TorneoPortada(models.Model):
+    torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE, related_name='portadas')
+    imagen = models.ImageField(
+        upload_to='torneos/portadas/',
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg', 'gif'])]
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Portada de {self.torneo.nombre}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.imagen:
+            try:
+                if os.path.exists(self.imagen.path):
+                    cover = Image.open(self.imagen.path)
+                    if cover.height > 900 or cover.width > 1600:
+                        cover.thumbnail((1600, 900))
+
+                    cover_ext = self.imagen.path.split('.')[-1].lower()
+                    if cover_ext in ['jpg', 'jpeg']:
+                        if cover.mode in ('RGBA', 'LA'):
+                            cover = cover.convert('RGB')
+                        cover.save(self.imagen.path, format='JPEG', quality=85, optimize=True)
+                    elif cover_ext == 'png':
+                        cover.save(self.imagen.path, format='PNG', optimize=True)
+                    else:
+                        cover.save(self.imagen.path)
+            except (FileNotFoundError, OSError):
+                # Si el archivo no existe, simplemente ignorar
+                pass
 
 class Categoria(models.Model):
     torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE)

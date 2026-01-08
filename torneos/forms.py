@@ -38,6 +38,10 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import *
 
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
 # Mixin para aplicar clases CSS consistentes a todos los formularios del admin
 class AdminFormMixin:
     """Mixin para aplicar clases CSS consistentes a todos los formularios del admin"""
@@ -74,8 +78,8 @@ class TorneoForm(AdminFormMixin, forms.ModelForm):
         model = Torneo
         fields = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'formato_torneo', 'logo', 'reglamento', 'activo']
         widgets = {
-            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'descripcion': forms.Textarea(attrs={'rows': 4}),
         }
         labels = {

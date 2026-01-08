@@ -19,6 +19,7 @@ admin_urlpatterns = [
     path('panel/torneos/crear/', admin_views.admin_crear_torneo, name='admin_crear_torneo'),
     path('panel/torneos/<int:torneo_id>/editar/', admin_views.admin_editar_torneo, name='admin_editar_torneo'),
     path('panel/torneos/<int:torneo_id>/eliminar/', admin_views.admin_eliminar_torneo, name='admin_eliminar_torneo'),
+    path('panel/torneos/portadas/<int:portada_id>/eliminar/', admin_views.admin_eliminar_portada, name='admin_eliminar_portada'),
 
     # Categorías
     path('panel/categorias/', admin_views.admin_categorias, name='admin_categorias'),

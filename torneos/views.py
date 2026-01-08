@@ -373,7 +373,7 @@ def arbitro_partido_resultado(request, partido_id):
 
 def index(request):
     # Mostrar torneos activos desde el más antiguo al más nuevo
-    torneos_activos = Torneo.objects.filter(activo=True).order_by('fecha_creacion')
+    torneos_activos = Torneo.objects.filter(activo=True).prefetch_related('portadas').order_by('fecha_creacion')
     
     # Estadísticas para el dashboard
     total_torneos = Torneo.objects.count()

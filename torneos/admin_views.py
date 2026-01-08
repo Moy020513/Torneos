@@ -681,6 +681,14 @@ def admin_crear_torneo(request):
             torneo = form.save(commit=False)
             torneo.creado_por = request.user
             torneo.save()
+            # Guardar portadas adicionales (máx 5)
+            new_covers = request.FILES.getlist('portadas')
+            if new_covers:
+                from .models import TorneoPortada
+                for cover_file in new_covers[:5]:
+                    TorneoPortada.objects.create(torneo=torneo, imagen=cover_file)
+                if len(new_covers) > 5:
+                    messages.warning(request, 'Solo se guardaron las primeras 5 portadas cargadas.')
             messages.success(request, 'Torneo creado exitosamente.')
             return redirect('admin_torneos')
     else:
@@ -711,6 +719,17 @@ def admin_editar_torneo(request, torneo_id):
         form = TorneoForm(request.POST, request.FILES, instance=torneo)
         if form.is_valid():
             form.save()
+            # Portadas: respetar máximo 5
+            new_covers = [f for f in request.FILES.getlist('portadas') if f and f.name]
+            if new_covers:
+                from .models import TorneoPortada
+                existing = torneo.portadas.count()
+                available = max(0, 5 - existing)
+                if available > 0:
+                    for cover_file in new_covers[:available]:
+                        TorneoPortada.objects.create(torneo=torneo, imagen=cover_file)
+                if len(new_covers) > available:
+                    messages.warning(request, 'Límite de 5 portadas alcanzado, se ignoraron algunas imágenes adicionales.')
             messages.success(request, 'Torneo actualizado exitosamente.')
             return redirect('admin_torneos')
     else:
@@ -721,6 +740,7 @@ def admin_editar_torneo(request, torneo_id):
         'torneo': torneo,
         'action': 'Editar',
         'total_equipos': total_equipos,
+        'portadas': torneo.portadas.all(),
     }
     return render(request, 'admin/torneos/form.html', context)
 
@@ -739,6 +759,35 @@ def admin_eliminar_torneo(request, torneo_id):
         'torneo': torneo,
     }
     return render(request, 'admin/torneos/eliminar.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_eliminar_portada(request, portada_id):
+    from .models import TorneoPortada
+    portada = get_object_or_404(TorneoPortada, id=portada_id)
+    torneo_id = portada.torneo.id
+    
+    # Si es admin de torneo, solo puede eliminar portadas de su torneo asignado
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if not assigned_torneo or assigned_torneo != torneo_id:
+            return HttpResponseForbidden('No tienes permiso para eliminar esta portada.')
+    
+    if request.method == 'POST':
+        # Eliminar el archivo físico si existe
+        if portada.imagen:
+            try:
+                import os
+                if os.path.exists(portada.imagen.path):
+                    os.remove(portada.imagen.path)
+            except (FileNotFoundError, OSError):
+                pass
+        
+        # Eliminar el registro de la BD
+        portada.delete()
+        messages.success(request, 'Portada eliminada exitosamente.')
+    
+    return redirect('admin_editar_torneo', torneo_id=torneo_id)
 
 # =================== CATEGORÍAS ===================
 from django import forms
