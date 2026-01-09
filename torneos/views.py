@@ -371,6 +371,57 @@ def arbitro_partido_resultado(request, partido_id):
     }
     return render(request, 'torneos/arbitro/partido_resultado.html', context)
 
+
+@login_required
+@user_passes_test(is_arbitro)
+def arbitro_partido_eliminar_resultado(request, partido_id):
+    arbitro = request.user.arbitro
+    partido = get_object_or_404(
+        Partido.objects.select_related('equipo_local', 'equipo_visitante', 'grupo__categoria'),
+        id=partido_id,
+        arbitro=arbitro
+    )
+
+    if request.method != 'POST':
+        messages.warning(request, 'Acción no permitida.')
+        return redirect('arbitro_panel')
+
+    resultado_anterior = f"{partido.goles_local}-{partido.goles_visitante}"
+
+    if not partido.jugado and partido.goles_local == 0 and partido.goles_visitante == 0:
+        messages.info(request, 'El partido no tiene resultado registrado.')
+        return redirect('arbitro_panel')
+
+    partido.goles_local = 0
+    partido.goles_visitante = 0
+    partido.jugado = False
+    partido.fecha = None
+    partido.save(update_fields=['goles_local', 'goles_visitante', 'jugado', 'fecha'])
+
+    try:
+        from .admin_views import registrar_actividad
+        torneo = partido.grupo.categoria.torneo if partido.grupo else None
+        if torneo:
+            descripcion = (
+                f"Resultado eliminado (antes {resultado_anterior}): "
+                f"{partido.equipo_local.nombre} vs {partido.equipo_visitante.nombre} "
+                f"(Jornada {partido.jornada})"
+            )
+            registrar_actividad(
+                torneo=torneo,
+                usuario=request.user,
+                tipo_accion='eliminar',
+                tipo_modelo='resultado',
+                descripcion=descripcion,
+                objeto_id=partido.id,
+                request=request
+            )
+    except Exception:
+        pass
+
+    messages.success(request, 'Resultado eliminado correctamente.')
+    return redirect('arbitro_panel')
+
 def index(request):
     # Mostrar torneos activos desde el más antiguo al más nuevo
     torneos_activos = Torneo.objects.filter(activo=True).prefetch_related('portadas').order_by('fecha_creacion')

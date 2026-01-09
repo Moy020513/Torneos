@@ -1,0 +1,304 @@
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(var(--primary-rgb), 0.2);
+}
+
+.goal-preview {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+    border: 2px solid rgba(40, 167, 69, 0.2);
+    border-radius: 15px;
+    padding: 1.5rem;
+    width: 100%;
+}
+
+.goal-count-display {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+#goalDisplay {
+    font-size: 2rem;
+    color: #28a745;
+}
+
+
+
+/* Lista de goleadores */
+
+/* Ajustes generales para móvil */
+@media (max-width: 767.98px) {
+  /* Container principal sin padding */
+  #admin-goleadores {
+    padding: 0 !important;
+  }
+
+  /* Estadísticas compactas */
+  #stadis .admin-card {
+    padding: 4px !important;
+    font-size: 0.75rem !important;
+  }
+
+  #stadis .col-3 {
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+
+  #stadis .stat-number {
+    font-size: 0.9rem !important;
+  }
+
+  #stadis .stat-label {
+    font-size: 0.7rem !important;
+    margin-bottom: 0;
+  }
+
+  #stadis .stat-icon {
+    font-size: 1rem !important;
+  }
+
+  #stadis .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Tabla de goleadores ocupa todo el ancho */
+  .admin-card {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #seaa {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Tabla responsive */
+  .table-responsive {
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* LA CLAVE: eliminar min-width fijo y permitir ajuste automático */
+  #gol-table {
+    width: 100% !important;
+    table-layout: auto !important;
+    margin: 0 !important;
+    min-width: auto !important;
+  }
+
+  #gol-table th, 
+  #gol-table td {
+    font-size: 0.65rem !important;
+    padding: 0.35rem 0.25rem !important;
+    white-space: nowrap !important;
+    /* ELIMINAR anchos fijos */
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Header con menos padding */
+  #admin-header {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .admin-title {
+    font-size: 1.2rem !important;
+  }
+
+  /* Botones más pequeños */
+  .admin-btn {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.8rem !important;
+  }
+
+  /* Fotos más pequeñas en móvil */
+  .player-photo {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .team-logo-small {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Badge de goles más compacto */
+  .goal-count {
+    padding: 0.25rem 0.35rem !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* Badges más pequeños */
+  .badge {
+    font-size: 0.6rem !important;
+    padding: 0.15rem 0.3rem !important;
+  }
+
+  /* Botones de acción más pequeños */
+  .btn-group-sm .btn {
+    padding: 0.15rem 0.3rem !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Iconos en botones */
+  .btn-group-sm .btn i {
+    font-size: 0.75rem !important;
+  }
+
+  /* Ajustar divs flex dentro de celdas */
+  #gol-table .d-flex {
+    gap: 0.2rem !important;
+  }
+
+  /* Texto más compacto */
+  #gol-table small {
+    font-size: 0.55rem !important;
+    line-height: 1.2 !important;
+  }
+
+  #gol-table .fw-bold {
+    font-size: 0.65rem !important;
+  }
+
+  #gol-table .text-muted {
+    font-size: 0.5rem !important;
+  }
+}
+
+/* Estilos generales */
+#seaa {
+    padding: 10px;
+}
+
+#stadis .admin-card {
+    border-radius: 1.75rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}    
+
+.player-photo {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.team-logo-small {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.goal-count {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+}
+
+.partido-info {
+    max-width: 150px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    margin: 0;
+    opacity: 0.8;
+}
+
+/* Mejorar scroll horizontal en tablas */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0.375rem;
+}
+
+.admin-table {
+    min-width: 1000px;
+}
+
+.admin-table th,
+.admin-table td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.admin-table th:nth-child(2),
+.admin-table td:nth-child(2) {
+    min-width: 150px;
+}
+
+.admin-table th:nth-child(3),
+.admin-table td:nth-child(3) {
+    min-width: 140px;
+}
+
+.admin-table th:nth-child(6),
+.admin-table td:nth-child(6) {
+    min-width: 120px;
+}
+
+/* Scroll bar personalizada */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+
