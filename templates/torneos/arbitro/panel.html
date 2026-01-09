@@ -2,94 +2,115 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="h3 mb-1 text-white">Panel de árbitro</h1>
-      <p class="text-white mb-0">{{ arbitro.usuario.get_full_name|default:arbitro.usuario.username }} · {{ arbitro.torneo.nombre }}</p>
+<div class="p-0 m-0" style="width: 100vw; max-width: 100%; overflow-x: hidden;">
+  <div class="px-2 px-md-3 py-3 py-md-4" style="width: 100%;">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
+      <div>
+        <h1 class="h4 h3-md mb-1 text-white">Panel de árbitro</h1>
+        <p class="text-white mb-0 small">{{ arbitro.usuario.get_full_name|default:arbitro.usuario.username }} · {{ arbitro.torneo.nombre }}</p>
+        <p class="text-white mb-0 small">Administra y registra los resultados de los partidos que te han sido asignados.</p>  
+      </div>
+      <div class="d-flex gap-2">
+        <div class="badge bg-primary p-2 small">Asignados: {{ total_asignados }}</div>
+        <div class="badge bg-warning text-dark p-2 small">Pendientes: {{ total_pendientes }}</div>
+      </div>
     </div>
-    <div class="text-end">
-      <div class="badge bg-primary p-2">Asignados: {{ total_asignados }}</div>
-      <div class="badge bg-warning text-dark p-2 ms-2">Pendientes: {{ total_pendientes }}</div>
-    </div>
-  </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="me-3 rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><i class="fas fa-calendar-alt"></i></div>
-            <div>
-              <div class="text-muted small">Próximos por dirigir</div>
-              <div class="h5 mb-0">{{ pendientes|length }}</div>
+    <!-- Stats Cards -->
+    <div class="row g-2 g-md-3 mb-3 mb-md-4">
+      <div class="col-12 col-md-4">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+              <div class="me-2 me-md-3 rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="fas fa-calendar-alt fa-sm"></i></div>
+              <div>
+                <div class="text-muted small">Próximos por dirigir</div>
+                <div class="h5 mb-0">{{ pendientes|length }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+              <div class="me-2 me-md-3 rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="fas fa-check fa-sm"></i></div>
+              <div>
+                <div class="text-muted small">Finalizados</div>
+                <div class="h5 mb-0">{{ recientes|length }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+              <div class="me-2 me-md-3 rounded-circle bg-info text-white d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="fas fa-map-marker-alt fa-sm"></i></div>
+              <div>
+                <div class="text-muted small">Torneo</div>
+                <div class="h6 mb-0 small">{{ arbitro.torneo.nombre }}</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="me-3 rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><i class="fas fa-check"></i></div>
-            <div>
-              <div class="text-muted small">Finalizados</div>
-              <div class="h5 mb-0">{{ recientes|length }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="me-3 rounded-circle bg-info text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><i class="fas fa-map-marker-alt"></i></div>
-            <div>
-              <div class="text-muted small">Torneo</div>
-              <div class="h6 mb-0">{{ arbitro.torneo.nombre }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="row g-4">
-    <div class="col-lg-7">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Partidos pendientes</h5>
-          <span class="badge bg-warning text-dark">{{ pendientes|length }} pendientes</span>
-        </div>
-        <div class="card-body p-0">
-          {% if pendientes %}
-            <div class="list-group list-group-flush">
-              {% for partido in pendientes %}
-              <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="flex-grow-1">
-                  <div class="d-flex align-items-center mb-2">
-                    <div class="me-2">
+    <!-- Navegación móvil (solo visible en móvil) -->
+    <div class="d-md-none mb-3">
+      <div class="btn-group w-100" role="group">
+        <button type="button" class="btn btn-outline-primary active" id="btnPendientes" onclick="toggleSection('pendientes')">
+          <i class="fas fa-calendar-alt me-1"></i>Pendientes
+          <span class="badge bg-warning text-dark ms-1">{{ pendientes|length }}</span>
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="btnResultados" onclick="toggleSection('resultados')">
+          <i class="fas fa-check me-1"></i>Resultados
+          <span class="badge bg-success ms-1">{{ recientes|length }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-3 g-md-4">
+      <!-- Partidos Pendientes -->
+      <div class="col-12 col-lg-7" id="seccionPendientes">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-2 py-md-3">
+            <h5 class="mb-0 h6 h5-md">Partidos pendientes</h5>
+            <span class="badge bg-warning text-dark small">{{ pendientes|length }}</span>
+          </div>
+          <div class="card-body p-0">
+            {% if pendientes %}
+              <div class="list-group list-group-flush">
+                {% for partido in pendientes %}
+                <div class="list-group-item p-2 p-md-3">
+                  <!-- Equipos -->
+                  <div class="d-flex align-items-center mb-2 flex-wrap">
+                    <div class="d-flex align-items-center me-2">
                       {% if partido.equipo_local.logo %}
-                        <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:32px;height:32px;object-fit:contain;">
+                        <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="me-1" style="width:24px;height:24px;object-fit:contain;">
                       {% else %}
-                        <i class="fas fa-shield-alt text-muted" style="font-size:28px;"></i>
+                        <i class="fas fa-shield-alt text-muted me-1" style="font-size:20px;"></i>
                       {% endif %}
+                      <span class="fw-semibold small">{{ partido.equipo_local.nombre }}</span>
                     </div>
-                    <div class="fw-semibold">{{ partido.equipo_local.nombre }}</div>
-                    <div class="mx-3 text-muted">vs</div>
-                    <div class="me-2">
+                    <span class="mx-2 text-muted small">vs</span>
+                    <div class="d-flex align-items-center">
                       {% if partido.equipo_visitante.logo %}
-                        <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:32px;height:32px;object-fit:contain;">
+                        <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="me-1" style="width:24px;height:24px;object-fit:contain;">
                       {% else %}
-                        <i class="fas fa-shield-alt text-muted" style="font-size:28px;"></i>
+                        <i class="fas fa-shield-alt text-muted me-1" style="font-size:20px;"></i>
                       {% endif %}
+                      <span class="fw-semibold small">{{ partido.equipo_visitante.nombre }}</span>
                     </div>
-                    <div class="fw-semibold">{{ partido.equipo_visitante.nombre }}</div>
                   </div>
-                  <div class="text-muted small">
-                    Jornada {{ partido.jornada }} ·
+                  <!-- Info -->
+                  <div class="text-muted" style="font-size:0.8rem;">
+                    J{{ partido.jornada }} ·
                     {% if partido.grupo and partido.grupo.categoria %}
                       {{ partido.grupo.categoria.nombre }}
                     {% else %}
@@ -100,76 +121,218 @@
                     {% endif %}
                   </div>
                   {% if partido.ubicacion %}
-                    <div class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}</div>
+                    <div class="text-muted mb-2" style="font-size:0.8rem;"><i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}</div>
                   {% endif %}
+                  <!-- Botón -->
+                  <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-primary w-100 mt-2">Registrar resultado</a>
                 </div>
-                <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-primary">Registrar resultado</a>
+                {% endfor %}
               </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="p-4 text-center text-muted">No hay partidos pendientes por ahora.</div>
-          {% endif %}
+            {% else %}
+              <div class="p-3 p-md-4 text-center text-muted small">No hay partidos pendientes por ahora.</div>
+            {% endif %}
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-lg-5">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Últimos resultados</h5>
-          <span class="badge bg-success">{{ recientes|length }}</span>
-        </div>
-        <div class="card-body p-0">
-          {% if recientes %}
-            <ul class="list-group list-group-flush">
-              {% for partido in recientes %}
-              <li class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="flex-grow-1">
-                    <div class="d-flex align-items-center mb-1">
-                      <div class="me-2">
+
+      <!-- Últimos Resultados -->
+      <div class="col-12 col-lg-5" id="seccionResultados">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-2 py-md-3">
+            <h5 class="mb-0 h6 h5-md">Últimos resultados</h5>
+            <span class="badge bg-success small">{{ recientes|length }}</span>
+          </div>
+          <div class="card-body p-0">
+            {% if recientes %}
+              <ul class="list-group list-group-flush">
+                {% for partido in recientes %}
+                <li class="list-group-item p-2 p-md-3">
+                  <div>
+                    <!-- Equipos -->
+                    <div class="d-flex align-items-center mb-1 flex-wrap">
+                      <div class="d-flex align-items-center me-2">
                         {% if partido.equipo_local.logo %}
-                          <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:28px;height:28px;object-fit:contain;">
+                          <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="me-1" style="width:22px;height:22px;object-fit:contain;">
                         {% else %}
-                          <i class="fas fa-shield-alt text-muted" style="font-size:24px;"></i>
+                          <i class="fas fa-shield-alt text-muted me-1" style="font-size:18px;"></i>
                         {% endif %}
+                        <span class="fw-semibold small">{{ partido.equipo_local.nombre }}</span>
                       </div>
-                      <div class="fw-semibold">{{ partido.equipo_local.nombre }}</div>
-                      <div class="mx-2 text-muted">vs</div>
-                      <div class="me-2">
+                      <span class="mx-1 text-muted small">vs</span>
+                      <div class="d-flex align-items-center">
                         {% if partido.equipo_visitante.logo %}
-                          <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:28px;height:28px;object-fit:contain;">
+                          <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="me-1" style="width:22px;height:22px;object-fit:contain;">
                         {% else %}
-                          <i class="fas fa-shield-alt text-muted" style="font-size:24px;"></i>
+                          <i class="fas fa-shield-alt text-muted me-1" style="font-size:18px;"></i>
+                        {% endif %}
+                        <span class="fw-semibold small">{{ partido.equipo_visitante.nombre }}</span>
+                      </div>
+                    </div>
+                    <!-- Info y Score -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <div>
+                        <div class="text-muted" style="font-size:0.75rem;">
+                          J{{ partido.jornada }} ·
+                          {% if partido.grupo and partido.grupo.categoria %}
+                            {{ partido.grupo.categoria.nombre }}
+                          {% else %}
+                            {{ partido.equipo_local.categoria.nombre }}
+                          {% endif %}
+                        </div>
+                        {% if partido.fecha %}
+                          <div class="text-muted" style="font-size:0.75rem;"><i class="fas fa-clock me-1"></i>{{ partido.fecha|date:"d/m/Y H:i" }}</div>
                         {% endif %}
                       </div>
-                      <div class="fw-semibold">{{ partido.equipo_visitante.nombre }}</div>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="badge bg-success">{{ partido.goles_local }}-{{ partido.goles_visitante }}</div>
+                        <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex align-items-center">
+                          <i class="fas fa-edit fa-sm me-1"></i>Editar
+                        </a>
+                      </div>
                     </div>
-                    <div class="text-muted small">Jornada {{ partido.jornada }} ·
-                      {% if partido.grupo and partido.grupo.categoria %}
-                        {{ partido.grupo.categoria.nombre }}
-                      {% else %}
-                        {{ partido.equipo_local.categoria.nombre }}
-                      {% endif %}
-                    </div>
+                    <!-- Botón editar solo móvil -->
+                    <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary w-100 mt-2 d-md-none">
+                      <i class="fas fa-edit fa-sm me-1"></i>Editar resultado
+                    </a>
                   </div>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="badge bg-success fs-6">{{ partido.goles_local }} - {{ partido.goles_visitante }}</div>
-                    <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary" title="Editar resultado"><i class="fas fa-edit"></i></a>
-                  </div>
-                </div>
-                {% if partido.fecha %}
-                  <div class="text-muted small mt-1"><i class="fas fa-clock me-1"></i>{{ partido.fecha|date:"d/m/Y H:i" }}</div>
-                {% endif %}
-              </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <div class="p-4 text-center text-muted">Aún no hay resultados registrados.</div>
-          {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="p-3 p-md-4 text-center text-muted small">Aún no hay resultados registrados.</div>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* Forzar ancho completo en móvil */
+  @media (max-width: 767.98px) {
+    body, html {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    .container, .container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
+      margin: 0 !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    
+    .row {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    
+    .card {
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
+    }
+    
+    .list-group-item {
+      border-left: 0;
+      border-right: 0;
+    }
+    
+    .list-group-item:first-child {
+      border-top: 0;
+    }
+    
+    /* Botones en móvil siempre abajo */
+    .btn.w-100 {
+      margin-top: 0.5rem;
+    }
+    
+    /* Botones de navegación móvil con texto blanco */
+    .btn-outline-primary {
+      color: #fff !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    .btn-outline-primary:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      border-color: rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    .btn-outline-primary.active {
+      background-color: var(--bs-primary) !important;
+      border-color: var(--bs-primary) !important;
+      color: #fff !important;
+    }
+  }
+  
+  /* Desktop: mantener botón inline para últimos resultados */
+  @media (min-width: 768px) {
+    .col-lg-5 .btn.w-100 {
+      width: auto !important;
+      margin-top: 0 !important;
+    }
+    
+    .col-lg-5 .list-group-item {
+      position: relative;
+    }
+    
+    .col-lg-5 .list-group-item > div:first-child {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .col-lg-5 .list-group-item > div:first-child > div:last-child {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+</style>
+
+<script>
+  function toggleSection(section) {
+    const pendientes = document.getElementById('seccionPendientes');
+    const resultados = document.getElementById('seccionResultados');
+    const btnPendientes = document.getElementById('btnPendientes');
+    const btnResultados = document.getElementById('btnResultados');
+    
+    if (section === 'pendientes') {
+      pendientes.style.display = 'block';
+      resultados.style.display = 'none';
+      btnPendientes.classList.add('active');
+      btnResultados.classList.remove('active');
+    } else {
+      pendientes.style.display = 'none';
+      resultados.style.display = 'block';
+      btnPendientes.classList.remove('active');
+      btnResultados.classList.add('active');
+    }
+  }
+  
+  // Inicializar en móvil
+  if (window.innerWidth < 768) {
+    document.getElementById('seccionResultados').style.display = 'none';
+  }
+  
+  // Al cambiar tamaño de ventana, restaurar visibilidad en desktop
+  window.addEventListener('resize', function() {
+    if (window.innerWidth >= 768) {
+      document.getElementById('seccionPendientes').style.display = 'block';
+      document.getElementById('seccionResultados').style.display = 'block';
+    } else {
+      // Mantener la sección activa en móvil
+      const btnPendientes = document.getElementById('btnPendientes');
+      if (btnPendientes.classList.contains('active')) {
+        document.getElementById('seccionPendientes').style.display = 'block';
+        document.getElementById('seccionResultados').style.display = 'none';
+      } else {
+        document.getElementById('seccionPendientes').style.display = 'none';
+        document.getElementById('seccionResultados').style.display = 'block';
+      }
+    }
+  });
+</script>
 {% endblock %}

@@ -137,3 +137,28 @@
     .navbar-brand.d-lg-none:hover i {
         transform: scale(1.2);
     }
+
+    /* Estilos para el dropdown del perfil */
+    .navbar-nav .dropdown-menu {
+        right: 0 !important;
+        left: auto !important;
+        min-width: 200px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e0e0e0;
+    }
+
+    .navbar-nav .dropdown-item {
+        color: #0a2342 !important;
+        padding: 0.75rem 1rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .navbar-nav .dropdown-item:hover,
+    .navbar-nav .dropdown-item:focus {
+        background-color: #f0f0f0;
+        color: #145da0 !important;
+    }
+
+    .navbar-nav .dropdown-divider {
+        margin: 0.5rem 0;
+    }
