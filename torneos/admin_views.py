@@ -1185,19 +1185,19 @@ def admin_jugadores(request):
             Q(equipo__nombre__icontains=search)
         )
     
-    # Calcular edad para cada jugador
+    # Paginación ANTES de calcular edad
+    paginator = Paginator(jugadores, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Calcular edad para cada jugador en la página actual
     from datetime import date
-    for jugador in jugadores:
+    for jugador in page_obj:
         if jugador.fecha_nacimiento:
             today = date.today()
             jugador.edad = today.year - jugador.fecha_nacimiento.year - ((today.month, today.day) < (jugador.fecha_nacimiento.month, jugador.fecha_nacimiento.day))
         else:
             jugador.edad = "N/A"
-    
-    # Paginación
-    paginator = Paginator(jugadores, 15)
-    page_number = request.GET.get('page')
-    jugadores = paginator.get_page(page_number)
     
     # Para filtros (limitar si es admin de torneo)
     if assigned_torneo:
@@ -1208,13 +1208,16 @@ def admin_jugadores(request):
         categorias = Categoria.objects.all()
     
     context = {
-        'jugadores': jugadores,
+        'jugadores': page_obj,
         'equipos': equipos,
         'categorias': categorias,
         'equipo_id': equipo_id,
         'categoria_id': categoria_id,
         'search': search,
     }
+    if request.headers.get('X-Requested-With', '').lower() == 'xmlhttprequest' or request.GET.get('_partial'):
+        return render(request, 'admin/jugadores/_lista_contenido.html', context)
+
     return render(request, 'admin/jugadores/listar.html', context)
 
 @login_required
@@ -1431,6 +1434,9 @@ def admin_partidos(request):
         'jornada': jornada,
         'arbitro_id': arbitro_id,
     }
+
+    if request.headers.get('X-Requested-With', '').lower() == 'xmlhttprequest':
+        return render(request, 'admin/partidos/_lista_contenido.html', context)
 
     return render(request, 'admin/partidos/listar.html', context)
 
@@ -2472,6 +2478,9 @@ def admin_goleadores(request):
         'max_goles': max_goles,
         'categorias_count': categorias_count,
     }
+    if request.headers.get('X-Requested-With', '').lower() == 'xmlhttprequest':
+        return render(request, 'admin/goleadores/_lista_contenido.html', context)
+
     return render(request, 'admin/goleadores/listar.html', context)
 
 @login_required

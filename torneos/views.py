@@ -637,6 +637,12 @@ def administrar_torneo(request, torneo_id):
     except Exception:
         actividades_recientes = []
     
+    # Contar estadísticas del torneo
+    equipos_count = Equipo.objects.filter(categoria__torneo=torneo).count()
+    categorias_count = categorias.count()
+    jugadores_count = Jugador.objects.filter(equipo__categoria__torneo=torneo).count()
+    goleadores_count = Goleador.objects.filter(categoria__torneo=torneo).count()
+    
     if request.method == 'POST':
         form = CategoriaForm(request.POST, assigned_torneo=torneo.id)
         if form.is_valid():
@@ -654,6 +660,10 @@ def administrar_torneo(request, torneo_id):
         'categorias': categorias,
         'form': form,
         'actividades_recientes': actividades_recientes,
+        'equipos_count': equipos_count,
+        'categorias_count': categorias_count,
+        'jugadores_count': jugadores_count,
+        'goleadores_count': goleadores_count,
     }
     return render(request, 'torneos/admin/administrar_torneo.html', context)
 

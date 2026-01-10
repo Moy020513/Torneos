@@ -69,7 +69,7 @@
             </h5>
         </div>
         <div class="card-body">
-            <form method="GET" class="row g-3">
+            <form method="GET" id="goleadores-filter-form" class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Buscar:</label>
                     <input type="text" name="search" class="form-control" 
@@ -107,164 +107,26 @@
                            value="{{ min_goles }}">
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-outline-primary me-2">
-                        <i class="fas fa-search"></i> Buscar
-                    </button>
-                    <a href="{% url 'admin_goleadores' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-times"></i> Limpiar
-                    </a>
+                    <div class="d-flex gap-2">
+                        {% if search or categoria_id or equipo_id or min_goles %}
+                            <a href="{% url 'admin_goleadores' %}" class="btn btn-outline-secondary" title="Limpiar filtros">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </form>
         </div>
     </div>
     
     <!-- Lista de Goleadores -->
-    <div class="admin-card mx-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="fas fa-list me-2"></i>
-                Lista de Goleadores ({{ goleadores|length }} de {{ total_goleadores }})
-            </h5>
-            <span class="badge bg-primary">{{ page_obj.paginator.count }} total</span>
-        </div>
-        <div class="card-body p-0">
-            {% if goleadores %}
-                <div class="table-responsive">
-                    <table class="table table-hover admin-table mb-0" id="gol-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Jugador</th>
-                                <th>Equipo</th>
-                                <th>Goles</th>
-                                <th>Categoría</th>
-                                <th>Fecha</th>
-                                <th class="text-end">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for goleador in goleadores %}
-                                <tr>
-                                    <td>
-                                        <span class="badge bg-{% if forloop.counter <= 3 %}warning{% else %}secondary{% endif %} fs-6">
-                                            {{ forloop.counter }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if goleador.jugador.foto %}
-                                                <img src="{{ goleador.jugador.foto.url }}" 
-                                                     alt="{{ goleador.jugador.nombre }}"
-                                                     class="player-photo me-2">
-                                            {% endif %}
-                                            <div>
-                                                <span class="fw-bold">{{ goleador.jugador.nombre }}</span>
-                                                <small class="d-block text-muted">{{ goleador.jugador.posicion }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if goleador.jugador.equipo.logo %}
-                                                <img src="{{ goleador.jugador.equipo.logo.url }}" 
-                                                     alt="{{ goleador.jugador.equipo.nombre }}"
-                                                     class="team-logo-small me-2">
-                                            {% endif %}
-                                            <span class="fw-semibold">{{ goleador.jugador.equipo.nombre }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success fs-5 goal-count">
-                                            {{ goleador.goles }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <strong class="text-primary">{{ goleador.categoria.nombre }}</strong>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            {{ goleador.fecha_creacion|date:"d/m/Y" }}<br>
-                                            <i class="fas fa-clock me-1"></i>
-                                            {{ goleador.fecha_creacion|date:"H:i" }}
-                                        </small>
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{% url 'admin_editar_goleador' goleador.id %}" 
-                                               class="btn btn-outline-primary" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="{% url 'admin_eliminar_goleador' goleador.id %}" 
-                                               class="btn btn-outline-danger" title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Paginación -->
-                {% if page_obj.has_other_pages %}
-                    <div class="d-flex justify-content-center mt-4">
-                        <nav aria-label="Paginación de goleadores">
-                            <ul class="pagination pagination-sm">
-                                {% if page_obj.has_previous %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if min_goles %}&min_goles={{ min_goles }}{% endif %}">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if min_goles %}&min_goles={{ min_goles }}{% endif %}">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                {% endif %}
-
-                                {% for num in page_obj.paginator.page_range %}
-                                    {% if page_obj.number == num %}
-                                        <li class="page-item active">
-                                            <span class="page-link">{{ num }}</span>
-                                        </li>
-                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if min_goles %}&min_goles={{ min_goles }}{% endif %}">{{ num }}</a>
-                                        </li>
-                                    {% endif %}
-                                {% endfor %}
-
-                                {% if page_obj.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if min_goles %}&min_goles={{ min_goles }}{% endif %}">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if min_goles %}&min_goles={{ min_goles }}{% endif %}">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
-                                    </li>
-                                {% endif %}
-                            </ul>
-                        </nav>
-                    </div>
-                {% endif %}
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-bullseye fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No hay goleadores registrados</h5>
-                    <p class="text-muted">Comienza registrando tu primer goleador</p>
-                    <a href="{% url 'admin_crear_goleador' %}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
-                        Registrar Goleador
-                    </a>
-                </div>
-            {% endif %}
-        </div>
+    <div id="goleadores-results">
+        {% include 'admin/goleadores/_lista_contenido.html' %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'admin/js/goleador/lista.js' %}"></script>
 {% endblock %}
