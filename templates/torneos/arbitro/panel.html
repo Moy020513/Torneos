@@ -122,8 +122,15 @@
                   {% if partido.ubicacion %}
                     <div class="text-muted mb-2" style="font-size:0.8rem;"><i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}</div>
                   {% endif %}
-                  <!-- Botón -->
-                  <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-primary w-100 mt-2">Registrar resultado</a>
+                  <!-- Botones -->
+                  <div class="d-flex gap-2 mt-2">
+                    <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-primary flex-fill">
+                      <i class="fas fa-futbol me-1"></i>Resultado
+                    </a>
+                    <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-sm btn-outline-primary flex-fill">
+                      <i class="fas fa-users me-1"></i>Jugadores
+                    </a>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
@@ -184,6 +191,9 @@
                       </div>
                       <div class="d-flex align-items-center gap-2">
                         <div class="badge bg-success">{{ partido.goles_local }}-{{ partido.goles_visitante }}</div>
+                        <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center">
+                          <i class="fas fa-users fa-sm me-1"></i>Jugadores
+                        </a>
                         <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex align-items-center">
                           <i class="fas fa-edit fa-sm me-1"></i>Editar
                         </a>
@@ -195,10 +205,15 @@
                         </form>
                       </div>
                     </div>
-                    <!-- Botón editar solo móvil -->
-                    <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary w-100 mt-2 d-md-none">
-                      <i class="fas fa-edit fa-sm me-1"></i>Editar resultado
-                    </a>
+                    <!-- Botones solo móvil -->
+                    <div class="d-flex gap-2 mt-2 d-md-none">
+                      <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="fas fa-edit fa-sm me-1"></i>Editar
+                      </a>
+                      <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-sm btn-outline-secondary flex-fill">
+                        <i class="fas fa-users fa-sm me-1"></i>Jugadores
+                      </a>
+                    </div>
                     <form method="post" action="{% url 'arbitro_partido_eliminar_resultado' partido.id %}" class="w-100 mt-2 d-md-none" onsubmit="return confirm('¿Eliminar el resultado de este partido?');">
                       {% csrf_token %}
                       <button type="submit" class="btn btn-sm btn-outline-danger w-100">

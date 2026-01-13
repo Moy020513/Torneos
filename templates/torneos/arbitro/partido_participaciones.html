@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-0 m-0" style="width: 100vw; max-width: 100%; overflow-x: hidden;">
+  <div class="px-0 px-md-3 py-3 py-md-4" style="width: 100%;">
+    <div class="row justify-content-center g-0 mx-0">
+      <div class="col-12 col-lg-10 px-0 mx-0">
+        <!-- Header -->
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-header bg-transparent border-0 py-2 py-md-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+              <div>
+                <h4 class="mb-1 h5 h4-md">Participaciones de jugadores</h4>
+                <small class="text-muted" style="font-size: 0.8rem;">
+                  Jornada {{ partido.jornada }} · 
+                  {% if partido.grupo and partido.grupo.categoria %}
+                    {{ partido.grupo.categoria.nombre }}
+                  {% else %}
+                    {{ partido.equipo_local.categoria.nombre }}
+                  {% endif %}
+                </small>
+              </div>
+              <a href="{% url 'arbitro_panel' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Volver
+              </a>
+            </div>
+          </div>
+          <div class="card-body p-2 p-md-3">
+            <!-- Equipos -->
+            <div class="d-flex align-items-center justify-content-center mb-3 mb-md-4 flex-wrap">
+              <div class="text-center">
+                <div class="mb-2">
+                  {% if partido.equipo_local.logo %}
+                    <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:48px;height:48px;object-fit:contain;" class="d-md-none">
+                    <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" style="width:64px;height:64px;object-fit:contain;" class="d-none d-md-block">
+                  {% else %}
+                    <i class="fas fa-shield-alt text-muted" style="font-size:42px;" class="d-md-none"></i>
+                    <i class="fas fa-shield-alt text-muted" style="font-size:56px;" class="d-none d-md-block"></i>
+                  {% endif %}
+                </div>
+                <div class="fw-semibold small">{{ partido.equipo_local.nombre }}</div>
+              </div>
+              <div class="px-3 px-md-4 text-muted fs-4 fs-md-3">vs</div>
+              <div class="text-center">
+                <div class="mb-2">
+                  {% if partido.equipo_visitante.logo %}
+                    <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:48px;height:48px;object-fit:contain;" class="d-md-none">
+                    <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" style="width:64px;height:64px;object-fit:contain;" class="d-none d-md-block">
+                  {% else %}
+                    <i class="fas fa-shield-alt text-muted" style="font-size:42px;" class="d-md-none"></i>
+                    <i class="fas fa-shield-alt text-muted" style="font-size:56px;" class="d-none d-md-block"></i>
+                  {% endif %}
+                </div>
+                <div class="fw-semibold small">{{ partido.equipo_visitante.nombre }}</div>
+              </div>
+            </div>
+
+            {% if partido.jugado %}
+              <div class="alert alert-info small py-2 mb-3">
+                <i class="fas fa-info-circle me-1"></i>
+                Resultado: <strong>{{ partido.goles_local }} - {{ partido.goles_visitante }}</strong>
+              </div>
+            {% else %}
+              <div class="alert alert-warning small py-2 mb-3">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Este partido aún no tiene resultado registrado
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Botón para registrar/editar participaciones -->
+        <div class="mb-3">
+          <a href="{% url 'arbitro_participacion_agregar' partido.id %}" class="btn btn-primary btn-sm w-100">
+            {% if participaciones|length > 0 %}
+              <i class="fas fa-edit me-1"></i>Editar participaciones
+            {% else %}
+              <i class="fas fa-plus me-1"></i>Registrar participaciones
+            {% endif %}
+          </a>
+        </div>
+
+        <!-- Botones para cambiar equipo (solo en móvil) -->
+        <div class="d-md-none mb-3">
+          <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" name="equipo-tab" id="tab-local" value="local" checked>
+            <label class="btn btn-outline-primary btn-sm btn-equipo-toggle" for="tab-local" style="font-size: 0.85rem;">
+              <i class="fas fa-shield-alt me-1"></i>{{ partido.equipo_local.nombre }}
+            </label>
+            <input type="radio" class="btn-check" name="equipo-tab" id="tab-visitante" value="visitante">
+            <label class="btn btn-outline-primary btn-sm btn-equipo-toggle" for="tab-visitante" style="font-size: 0.85rem;">
+              <i class="fas fa-shield-alt me-1"></i>{{ partido.equipo_visitante.nombre }}
+            </label>
+          </div>
+        </div>
+
+        <!-- Participaciones por equipo -->
+        <div class="row g-3">
+          <!-- Equipo Local -->
+          <div class="col-12 col-md-6 equipo-container" id="container-local">
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-transparent border-0 py-2">
+                <div class="d-flex align-items-center justify-content-between">
+                  <h5 class="mb-0 h6">{{ partido.equipo_local.nombre }}</h5>
+                  <span class="badge bg-primary small">{{ participaciones_local }}</span>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                {% for participacion in participaciones %}
+                  {% if participacion.jugador.equipo == partido.equipo_local %}
+                    <div class="list-group-item p-2 border-0 border-bottom">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center flex-grow-1">
+                          {% if participacion.jugador.foto %}
+                            <img src="{{ participacion.jugador.foto.url }}" alt="{{ participacion.jugador }}" 
+                                 class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">
+                          {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                 style="width:32px;height:32px;">
+                              <i class="fas fa-user text-white" style="font-size:14px;"></i>
+                            </div>
+                          {% endif %}
+                          <div>
+                            <div class="fw-semibold small">{{ participacion.jugador }}</div>
+                            {% if participacion.minutos_jugados %}
+                              <div class="text-muted" style="font-size:0.7rem;">
+                                {{ participacion.minutos_jugados }}min
+                              </div>
+                            {% endif %}
+                          </div>
+                        </div>
+                        <form method="post" action="{% url 'arbitro_participacion_eliminar' participacion.id %}" 
+                              style="display:inline;" onsubmit="return confirm('¿Eliminar participación de {{ participacion.jugador }}?');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-sm btn-danger" title="Eliminar participación">
+                            <i class="fas fa-trash-alt"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+                {% if participaciones_local == 0 %}
+                  <div class="p-3 text-center text-muted small">
+                    <i class="fas fa-users me-1"></i>No hay participaciones registradas
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Equipo Visitante -->
+          <div class="col-12 col-md-6 equipo-container" id="container-visitante">
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-transparent border-0 py-2">
+                <div class="d-flex align-items-center justify-content-between">
+                  <h5 class="mb-0 h6">{{ partido.equipo_visitante.nombre }}</h5>
+                  <span class="badge bg-primary small">{{ participaciones_visitante }}</span>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                {% for participacion in participaciones %}
+                  {% if participacion.jugador.equipo == partido.equipo_visitante %}
+                    <div class="list-group-item p-2 border-0 border-bottom">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center flex-grow-1">
+                          {% if participacion.jugador.foto %}
+                            <img src="{{ participacion.jugador.foto.url }}" alt="{{ participacion.jugador }}" 
+                                 class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">
+                          {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                 style="width:32px;height:32px;">
+                              <i class="fas fa-user text-white" style="font-size:14px;"></i>
+                            </div>
+                          {% endif %}
+                          <div>
+                            <div class="fw-semibold small">{{ participacion.jugador }}</div>
+                            {% if participacion.minutos_jugados %}
+                              <div class="text-muted" style="font-size:0.7rem;">
+                                {{ participacion.minutos_jugados }}min
+                              </div>
+                            {% endif %}
+                          </div>
+                        </div>
+                        <form method="post" action="{% url 'arbitro_participacion_eliminar' participacion.id %}" 
+                              style="display:inline;" onsubmit="return confirm('¿Eliminar participación de {{ participacion.jugador }}?');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-sm btn-danger" title="Eliminar participación">
+                            <i class="fas fa-trash-alt"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+                {% if participaciones_visitante == 0 %}
+                  <div class="p-3 text-center text-muted small">
+                    <i class="fas fa-users me-1"></i>No hay participaciones registradas
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="card shadow-sm border-0 mt-3">
+          <div class="card-body p-2 p-md-3">
+            <div class="row g-2">
+              <div class="col-6 col-md-3">
+                <div class="text-center">
+                  <div class="text-muted small">Total participaciones</div>
+                  <div class="h5 mb-0">{{ participaciones|length }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-center">
+                  <div class="text-muted small">Jugadores local</div>
+                  <div class="h5 mb-0">{{ jugadores_local|length }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-center">
+                  <div class="text-muted small">Jugadores visitante</div>
+                  <div class="h5 mb-0">{{ jugadores_visitante|length }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-center">
+                  <div class="text-muted small">Estado</div>
+                  <div class="h5 mb-0">
+                    {% if partido.jugado %}
+                      <span class="badge bg-success small">Jugado</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark small">Pendiente</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<style>
+@media (max-width: 767px) {
+  #container-visitante {
+    display: none;
+  }
+  #container-visitante.active,
+  #container-local.active {
+    display: block;
+  }
+}
+
+.btn-equipo-toggle {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.btn-check:checked + .btn-equipo-toggle {
+  color: #fff;
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+</style>
+<script src="{% static 'js/partido_parti.js' %}"></script>
+{% endblock %}

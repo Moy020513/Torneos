@@ -36,4 +36,7 @@ urlpatterns = [
         path('arbitro/', views.arbitro_panel, name='arbitro_panel'),
         path('arbitro/partido/<int:partido_id>/resultado/', views.arbitro_partido_resultado, name='arbitro_partido_resultado'),
         path('arbitro/partido/<int:partido_id>/resultado/eliminar/', views.arbitro_partido_eliminar_resultado, name='arbitro_partido_eliminar_resultado'),
+        path('arbitro/partido/<int:partido_id>/participaciones/', views.arbitro_partido_participaciones, name='arbitro_partido_participaciones'),
+        path('arbitro/partido/<int:partido_id>/participaciones/agregar/', views.arbitro_participacion_agregar, name='arbitro_participacion_agregar'),
+        path('arbitro/participacion/<int:participacion_id>/eliminar/', views.arbitro_participacion_eliminar, name='arbitro_participacion_eliminar'),
 ] + admin_urlpatterns + admin_campos_urlpatterns

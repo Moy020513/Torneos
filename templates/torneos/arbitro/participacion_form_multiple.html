@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-0 m-0" style="width: 100vw; max-width: 100%; overflow-x: hidden;">
+  <div class="px-0 px-md-3 py-3 py-md-4" style="width: 100%;">
+    <div class="row justify-content-center g-0">
+      <div class="col-12 col-lg-10">
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-header bg-transparent border-0 py-2 py-md-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+              <div>
+                <h4 class="mb-1 h5 h4-md">{% if participaciones_existentes %}Editar participaciones{% else %}Registrar participaciones{% endif %}</h4>
+                <small class="text-muted" style="font-size: 0.8rem;">
+                  {{ partido.equipo_local.nombre }} vs {{ partido.equipo_visitante.nombre }}
+                  · Jornada {{ partido.jornada }}
+                </small>
+              </div>
+              <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Volver
+              </a>
+            </div>
+          </div>
+          <div class="card-body p-2 p-md-3">
+            <form method="post" id="participacionForm">
+              {% csrf_token %}
+              
+              <!-- Contador de selección -->
+              <div class="alert alert-info small py-2 mb-3">
+                <i class="fas fa-info-circle me-1"></i>
+                Seleccionados: <strong><span id="jugadores-seleccionados">0</span></strong> jugadores
+              </div>
+
+              <!-- Botones de selección rápida -->
+              <div class="d-flex gap-2 mb-3 flex-wrap">
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="seleccionarTodos()">
+                  <i class="fas fa-check-double me-1"></i>Seleccionar todos
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limpiarSeleccion()">
+                  <i class="fas fa-times me-1"></i>Limpiar selección
+                </button>
+              </div>
+
+              <!-- Botones para cambiar equipo (solo en móvil) -->
+              <div class="d-md-none mb-3">
+                <div class="btn-group w-100" role="group">
+                  <input type="radio" class="btn-check" name="equipo-tab" id="tab-local" value="local" checked>
+                  <label class="btn btn-outline-primary btn-sm" for="tab-local" style="font-size: 0.85rem;">
+                    <i class="fas fa-shield-alt me-1"></i>{{ partido.equipo_local.nombre }}
+                  </label>
+                  <input type="radio" class="btn-check" name="equipo-tab" id="tab-visitante" value="visitante">
+                  <label class="btn btn-outline-primary btn-sm" for="tab-visitante" style="font-size: 0.85rem;">
+                    <i class="fas fa-shield-alt me-1"></i>{{ partido.equipo_visitante.nombre }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Jugadores por equipo -->
+              <div class="row g-3">
+                <!-- Equipo Local -->
+                <div class="col-12 col-md-6 equipo-container" id="container-local">
+                  <div class="card border">
+                    <div class="card-header bg-light py-2">
+                      <h6 class="mb-0 d-flex align-items-center">
+                        {% if partido.equipo_local.logo %}
+                          <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" 
+                               class="me-2" style="width:24px;height:24px;object-fit:contain;">
+                        {% else %}
+                          <i class="fas fa-shield-alt text-muted me-2"></i>
+                        {% endif %}
+                        {{ partido.equipo_local.nombre }}
+                        <span class="badge bg-secondary ms-auto small" id="contador-local">0</span>
+                      </h6>
+                    </div>
+                    <div class="card-body p-2">
+                      {% if jugadores_local %}
+                        {% for jugador in jugadores_local %}
+                          <div class="form-check mb-2 p-2 rounded hover-bg" style="transition: background-color 0.2s;">
+                            <div class="d-flex align-items-center">
+                              <input class="form-check-input me-2 jugador-checkbox" type="checkbox" 
+                                     name="jugadores" id="jugador_{{ jugador.id }}" 
+                                     value="{{ jugador.id }}" data-equipo="local"
+                                     {% if jugador.id in jugadores_preseleccionados %}checked{% endif %}>
+                              {% if jugador.foto %}
+                                <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }} {{ jugador.apellido }}" 
+                                     class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">
+                              {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                     style="width:32px;height:32px;">
+                                  <i class="fas fa-user text-white" style="font-size:14px;"></i>
+                                </div>
+                              {% endif %}
+                              <label class="form-check-label mb-0 flex-grow-1" for="jugador_{{ jugador.id }}">
+                                <span class="fw-semibold small">{{ jugador.nombre }} {{ jugador.apellido }}</span>
+                                {% if jugador.numero %}
+                                  <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">#{{ jugador.numero }}</span>
+                                {% endif %}
+                              </label>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      {% else %}
+                        <div class="text-center text-muted small py-3">
+                          <i class="fas fa-users me-1"></i>No hay jugadores verificados
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Equipo Visitante -->
+                <div class="col-12 col-md-6 equipo-container" id="container-visitante">
+                  <div class="card border">
+                    <div class="card-header bg-light py-2">
+                      <h6 class="mb-0 d-flex align-items-center">
+                        {% if partido.equipo_visitante.logo %}
+                          <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" 
+                               class="me-2" style="width:24px;height:24px;object-fit:contain;">
+                        {% else %}
+                          <i class="fas fa-shield-alt text-muted me-2"></i>
+                        {% endif %}
+                        {{ partido.equipo_visitante.nombre }}
+                        <span class="badge bg-secondary ms-auto small" id="contador-visitante">0</span>
+                      </h6>
+                    </div>
+                    <div class="card-body p-2">
+                      {% if jugadores_visitante %}
+                        {% for jugador in jugadores_visitante %}
+                          <div class="form-check mb-2 p-2 rounded hover-bg" style="transition: background-color 0.2s;">
+                            <div class="d-flex align-items-center">
+                              <input class="form-check-input me-2 jugador-checkbox" type="checkbox" 
+                                     name="jugadores" id="jugador_{{ jugador.id }}" 
+                                     value="{{ jugador.id }}" data-equipo="visitante"
+                                     {% if jugador.id in jugadores_preseleccionados %}checked{% endif %}>
+                              {% if jugador.foto %}
+                                <img src="{{ jugador.foto.url }}" alt="{{ jugador.nombre }} {{ jugador.apellido }}" 
+                                     class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">
+                              {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                     style="width:32px;height:32px;">
+                                  <i class="fas fa-user text-white" style="font-size:14px;"></i>
+                                </div>
+                              {% endif %}
+                              <label class="form-check-label mb-0 flex-grow-1" for="jugador_{{ jugador.id }}">
+                                <span class="fw-semibold small">{{ jugador.nombre }} {{ jugador.apellido }}</span>
+                                {% if jugador.numero %}
+                                  <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">#{{ jugador.numero }}</span>
+                                {% endif %}
+                              </label>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      {% else %}
+                        <div class="text-center text-muted small py-3">
+                          <i class="fas fa-users me-1"></i>No hay jugadores registrados
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger small py-2 mt-3">
+                  {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                </div>
+              {% endif %}
+
+              <!-- Botones -->
+              <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-3">
+                <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-outline-secondary btn-sm order-2 order-md-1">
+                  <i class="fas fa-times me-1"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary btn-sm order-1 order-md-2">
+                  <i class="fas fa-save me-1"></i>Registrar participaciones
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-2 p-md-3">
+            <h6 class="small mb-2"><i class="fas fa-info-circle me-1"></i>Información</h6>
+            <ul class="small text-muted mb-0" style="font-size: 0.85rem;">
+              <li>Selecciona los jugadores que participaron en el partido</li>
+              <li>Puedes seleccionar jugadores de ambos equipos</li>
+              <li>Después podrás editar cada participación individualmente para agregar minutos jugados y observaciones</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.hover-bg:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Ocultar equipo visitante en móvil por defecto */
+@media (max-width: 767px) {
+  #container-visitante {
+    display: none;
+  }
+  
+  #container-visitante.active {
+    display: block;
+  }
+  
+  #container-local.active {
+    display: block;
+  }
+}
+</style>
+<script src="{% static 'js/participacion_form_multiple.js' %}"></script>
+{% endblock %}

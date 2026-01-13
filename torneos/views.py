@@ -422,6 +422,141 @@ def arbitro_partido_eliminar_resultado(request, partido_id):
     messages.success(request, 'Resultado eliminado correctamente.')
     return redirect('arbitro_panel')
 
+
+@login_required
+@user_passes_test(is_arbitro)
+def arbitro_partido_participaciones(request, partido_id):
+    """Vista para que el árbitro gestione las participaciones de jugadores en un partido"""
+    arbitro = request.user.arbitro
+    partido = get_object_or_404(
+        Partido.objects.select_related('equipo_local', 'equipo_visitante', 'grupo__categoria'),
+        id=partido_id,
+        arbitro=arbitro
+    )
+    
+    # Obtener participaciones existentes
+    participaciones = ParticipacionJugador.objects.filter(partido=partido).select_related('jugador', 'jugador__equipo').order_by('jugador__equipo__nombre', 'jugador__nombre')
+    
+    # Obtener jugadores de ambos equipos
+    jugadores_local = Jugador.objects.filter(equipo=partido.equipo_local).order_by('nombre', 'apellido')
+    jugadores_visitante = Jugador.objects.filter(equipo=partido.equipo_visitante).order_by('nombre', 'apellido')
+    
+    # Contar participaciones por equipo
+    participaciones_local = participaciones.filter(jugador__equipo=partido.equipo_local).count()
+    participaciones_visitante = participaciones.filter(jugador__equipo=partido.equipo_visitante).count()
+    
+    context = {
+        'partido': partido,
+        'participaciones': participaciones,
+        'jugadores_local': jugadores_local,
+        'jugadores_visitante': jugadores_visitante,
+        'participaciones_local': participaciones_local,
+        'participaciones_visitante': participaciones_visitante,
+    }
+    return render(request, 'torneos/arbitro/partido_participaciones.html', context)
+
+
+@login_required
+@user_passes_test(is_arbitro)
+def arbitro_participacion_agregar(request, partido_id):
+    """Vista para agregar o editar participaciones múltiples de jugadores"""
+    arbitro = request.user.arbitro
+    partido = get_object_or_404(
+        Partido.objects.select_related('equipo_local', 'equipo_visitante'),
+        id=partido_id,
+        arbitro=arbitro
+    )
+    
+    # Verificar si hay participaciones existentes (para determinar modo: agregar o editar)
+    participaciones_existentes = ParticipacionJugador.objects.filter(partido=partido).exists()
+    jugadores_con_participacion = Jugador.objects.filter(
+        participaciones__partido=partido
+    ).distinct()
+    
+    if request.method == 'POST':
+        form = ArbitroParticipacionMultipleForm(request.POST, partido=partido)
+        if form.is_valid():
+            jugadores = form.cleaned_data['jugadores']
+            if not jugadores:
+                messages.warning(request, 'Debes seleccionar al menos un jugador.')
+                return redirect('arbitro_participacion_agregar', partido_id=partido_id)
+            
+            # Si estamos en modo edición (hay participaciones existentes), eliminarlas primero
+            if participaciones_existentes:
+                ParticipacionJugador.objects.filter(partido=partido).delete()
+            
+            creadas = 0
+            for jugador in jugadores:
+                ParticipacionJugador.objects.create(
+                    jugador=jugador,
+                    partido=partido,
+                    titular=True  # Por defecto son titulares
+                )
+                creadas += 1
+            
+            # Mensaje diferenciado según si es edición o creación
+            if participaciones_existentes:
+                messages.success(request, f'{creadas} participación(es) editada(s) correctamente.')
+            else:
+                messages.success(request, f'{creadas} participación(es) registrada(s) correctamente.')
+            
+            return redirect('arbitro_partido_participaciones', partido_id=partido_id)
+    else:
+        # En modo GET (formulario inicial), pasar los jugadores con participación preseleccionados
+        initial_data = {}
+        if participaciones_existentes:
+            # Extraer IDs de los jugadores con participación
+            jugadores_ids = list(jugadores_con_participacion.values_list('id', flat=True))
+            initial_data['jugadores'] = jugadores_ids
+        
+        form = ArbitroParticipacionMultipleForm(
+            partido=partido,
+            initial=initial_data if initial_data else None
+        )
+    
+    # Obtener jugadores organizados por equipo
+    jugadores_local = Jugador.objects.filter(
+        equipo=partido.equipo_local
+    ).order_by('nombre', 'apellido')
+    
+    jugadores_visitante = Jugador.objects.filter(
+        equipo=partido.equipo_visitante
+    ).order_by('nombre', 'apellido')
+    
+    context = {
+        'partido': partido,
+        'form': form,
+        'jugadores_local': jugadores_local,
+        'jugadores_visitante': jugadores_visitante,
+        'accion': 'Agregar',
+        'participaciones_existentes': participaciones_existentes,
+        'jugadores_preseleccionados': list(jugadores_con_participacion.values_list('id', flat=True)),
+    }
+    return render(request, 'torneos/arbitro/participacion_form_multiple.html', context)
+
+
+@login_required
+@user_passes_test(is_arbitro)
+def arbitro_participacion_eliminar(request, participacion_id):
+    """Vista para eliminar una participación de jugador"""
+    arbitro = request.user.arbitro
+    participacion = get_object_or_404(
+        ParticipacionJugador.objects.select_related('partido', 'jugador'),
+        id=participacion_id,
+        partido__arbitro=arbitro
+    )
+    partido = participacion.partido
+    
+    if request.method == 'POST':
+        jugador_nombre = str(participacion.jugador)
+        participacion.delete()
+        messages.success(request, f'Participación de {jugador_nombre} eliminada correctamente.')
+        return redirect('arbitro_partido_participaciones', partido_id=partido.id)
+    
+    messages.warning(request, 'Acción no permitida.')
+    return redirect('arbitro_partido_participaciones', partido_id=partido.id)
+
+
 def index(request):
     # Mostrar torneos activos desde el más antiguo al más nuevo
     torneos_activos = Torneo.objects.filter(activo=True).prefetch_related('portadas').order_by('fecha_creacion')

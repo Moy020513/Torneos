@@ -739,3 +739,54 @@ class AjustePuntosForm(AdminFormMixin, forms.ModelForm):
             'puntos_ajuste': forms.NumberInput(attrs={'class': 'admin-form-control', 'placeholder': 'Ej: 3 o -1'}),
             'razon': forms.TextInput(attrs={'class': 'admin-form-control', 'placeholder': 'Motivo del ajuste'}),
         }
+
+
+class ArbitroParticipacionJugadorForm(forms.ModelForm):
+    """Formulario simplificado para que el árbitro registre participaciones de jugadores"""
+    class Meta:
+        model = ParticipacionJugador
+        fields = ['jugador', 'titular', 'minutos_jugados', 'observaciones']
+        labels = {
+            'jugador': 'Jugador',
+            'titular': '¿Fue titular?',
+            'minutos_jugados': 'Minutos jugados',
+            'observaciones': 'Observaciones',
+        }
+        widgets = {
+            'jugador': forms.Select(attrs={'class': 'form-select'}),
+            'titular': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'minutos_jugados': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '120'}),
+            'observaciones': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        partido = kwargs.pop('partido', None)
+        super().__init__(*args, **kwargs)
+        
+        # Si se proporciona un partido, limitar los jugadores a los equipos participantes
+        if partido:
+            jugadores = Jugador.objects.filter(
+                models.Q(equipo=partido.equipo_local) | models.Q(equipo=partido.equipo_visitante)
+            ).select_related('equipo').order_by('equipo__nombre', 'nombre', 'apellido')
+            self.fields['jugador'].queryset = jugadores
+
+
+class ArbitroParticipacionMultipleForm(forms.Form):
+    """Formulario para que el árbitro registre participaciones múltiples de jugadores"""
+    jugadores = forms.ModelMultipleChoiceField(
+        queryset=Jugador.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        label='Jugadores',
+        required=False
+    )
+    
+    def __init__(self, *args, **kwargs):
+        partido = kwargs.pop('partido', None)
+        super().__init__(*args, **kwargs)
+        
+        # Si se proporciona un partido, limitar los jugadores a los equipos participantes
+        if partido:
+            jugadores = Jugador.objects.filter(
+                models.Q(equipo=partido.equipo_local) | models.Q(equipo=partido.equipo_visitante)
+            ).select_related('equipo').order_by('equipo__nombre', 'nombre', 'apellido')
+            self.fields['jugadores'].queryset = jugadores
