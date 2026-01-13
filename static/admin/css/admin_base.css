@@ -7,13 +7,13 @@
             }
         }
         :root {
-            --navy-primary: #0c2340;
-            --navy-secondary: #1e3a5f;
-            --navy-accent: #2d5aa0;
-            --navy-light: #4a6fa5;
+            --navy-primary: #001c3a; 
+            --navy-secondary: #17a2b8; 
+            --navy-accent: #0099ff;
+            --navy-light: #008cff;
             --navy-bg: #f8fafc;
-            --navy-card: #ffffff;
-            --success-color: #10b981;
+            --navy-card: #ffffffb7;
+            --success-color: #10b956;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
             --info-color: #3b82f6;
@@ -27,7 +27,7 @@
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, var(--navy-bg) 0%, #e2e8f0 100%);
+            background: #b6b6b6;
             min-height: 100vh;
             color: var(--navy-primary);
         }
