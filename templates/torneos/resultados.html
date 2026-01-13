@@ -1,127 +1,9 @@
 {% extends 'torneos/base.html' %}
+{% load static %}
 {% load custom_filters %}
 {% block extra_css %}
 {{ block.super }}
-<style>
-/* Card seccional y fixtures con acento neón */
-.section-card{ border:1px solid rgba(8,247,254,.35); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.08); }
-.section-card .card-header{ background: linear-gradient(135deg, #f8fbff, #eaf2ff); border-bottom:1px solid rgba(8,247,254,.2); }
-
-.match-card { background:#fff; border-radius:14px; padding:16px; margin-bottom:14px; border:2px solid #08F7FE; box-shadow:0 0 0 4px rgba(8,247,254,.14), 0 10px 20px rgba(0,0,0,.10); transition: transform .2s ease, box-shadow .2s ease; width:max-content; max-width:100%; margin-left:auto; margin-right:auto; }
-.match-card:hover { transform: translateY(-2px); box-shadow:0 0 0 6px rgba(8,247,254,.22), 0 16px 28px rgba(0,0,0,.14); }
-.match-card.jugado { border-color: rgba(8,247,254,.55); background: linear-gradient(135deg, #f7fffb 0%, #e9fff6 100%); }
-
-.match-status { font-size: 0.75em; font-weight:800; padding:6px 10px; border-radius:999px; border:1px solid rgba(8,247,254,.45); background: rgba(8,247,254,.08); color:#0a2342; white-space:nowrap; }
-.status-jugado { background: rgba(25, 135, 84, .12); border-color: rgba(25, 135, 84, .35); color:#146c43; }
-
-.team-logo-small { width:44px; height:44px; object-fit:contain; }
-.team-name { font-weight:800; color:#0a2342; margin-top:2px; }
-.team-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; }
-.team-row + .team-row{ border-top:1px dashed rgba(8,247,254,.25); }
-.team-info{ display:flex; align-items:center; gap:10px; }
-
-.team-score { font-size:1.3em; font-weight:900; color:#0a2342; letter-spacing:.5px; }
-.match-date { background:#0a2342; color:#eaf7ff; border:1px solid rgba(8,247,254,.45); border-radius:999px; padding:6px 12px; font-size:.8em; font-weight:700; box-shadow:0 0 0 2px rgba(8,247,254,.12); display:inline-flex; align-items:center; gap:6px; margin-top:4px; }
-.match-date-chip, .match-time-chip{ background:#0a2342; color:#eaf7ff; border:1px solid rgba(8,247,254,.45); border-radius:999px; padding:6px 12px; font-size:.8em; font-weight:700; box-shadow:0 0 0 2px rgba(8,247,254,.12); display:inline-flex; align-items:center; gap:6px; }
-.match-loc { background: rgba(8,247,254,.08); color:#0a2342; border:1px solid rgba(8,247,254,.35); border-radius:999px; padding:6px 12px; font-size:.8em; font-weight:700; display:inline-flex; align-items:center; gap:6px; }
-.match-loc i{ color:#0a2342; }
-/* VS circular */
-.vs-text { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; border:2px solid #08F7FE; color:#0a2342; background:#fff; font-weight:900; letter-spacing:.5px; box-shadow:0 0 0 4px rgba(8,247,254,.12); margin:0 auto 6px auto; }
-
-/* Separadores sutiles en desktop para el bloque central */
-@media (min-width: 768px){
-    .match-card .col-md-7{ position: relative; }
-    .match-card .col-md-7:before,
-    .match-card .col-md-7:after{ content:""; position:absolute; top:12px; bottom:12px; width:1px; background: rgba(8,247,254,.25); }
-    .match-card .col-md-7:before{ left:-8px; }
-    .match-card .col-md-7:after{ right:-8px; }
-    .match-card .col-md-1,
-    .match-card .col-md-7,
-    .match-card .col-md-4{ flex:0 0 auto; width:auto; }
-}
-
-/* Optimización para móvil - Más compacto y profesional */
-@media (max-width: 576px){
-    .team-logo-small{ width:auto; height:22px; }
-    .match-card{ 
-        padding:1px 10px; 
-        width:100%; 
-        margin-bottom:1px;
-        box-shadow:0 0 0 2px rgba(8,247,254,.12), 0 4px 8px rgba(0,0,0,.08);
-    }
-    .match-card:hover{
-        box-shadow:0 0 0 3px rgba(8,247,254,.18), 0 6px 12px rgba(0,0,0,.10);
-    }
-    .team-name{ 
-        font-size:0.85em; 
-        font-weight:700;
-        line-height:1.2;
-    }
-    .team-score{ 
-        font-size:1.1em; 
-        font-weight:800;
-    }
-    .team-row{ 
-        padding:1px 0; 
-        gap:8px;
-    }
-    .team-info{ gap:8px; }
-    .match-date-chip, .match-time-chip, .match-loc, .match-status {
-        font-size: 0.55em;
-        margin-right: 2px;
-        height: 16px;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        line-height: 1;
-        padding: 4px 8px;
-    }
-    .match-date-chip i, .match-time-chip i, .match-loc i {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1em;
-        margin: 0;
-        line-height: 1;
-    }
-    .match-loc a.btn.btn-sm.btn-outline-admin {
-        padding: 0;
-        font-size: 0.75rem;
-        height: 24px;
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        font-weight: 700;
-        box-shadow: none;
-        border: none;
-        background: none;
-        color: #0a2342;
-    }
-    .match-meta-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 3px;
-        justify-content: flex-end;
-        align-items: center;
-    }
-    .col-md-4.text-end > div { margin-bottom: 0 !important; }
-    .col-md-1.d-flex.align-items-center.justify-content-center {
-        align-items: center !important;
-        justify-content: center !important;
-        display: flex !important;
-        height: 100%;
-    }
-}
-
-/* Grid de resultados: 1 columna en móvil, 2 en desktop */
-#ultimos-resultados-lista{ display:grid; grid-template-columns: 1fr; gap:16px; justify-content:center; }
-@media (max-width: 576px){
-    #ultimos-resultados-lista{ gap:4px; }
-}
-@media (min-width: 992px){
-    #ultimos-resultados-lista{ grid-template-columns: repeat(2, max-content); }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/resultados.css' %}">
 {% endblock %}
 {% block categoria_content %}
     <!-- Encabezado y navegación ahora se heredan desde torneos/base.html -->
@@ -222,33 +104,6 @@
                 </div>
             {% endif %}
         </div>
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const jornadaFiltroRes = document.getElementById('jornadaFiltroResultados');
-            const resultados = document.querySelectorAll('#ultimos-resultados-lista .match-card');
-            jornadaFiltroRes.addEventListener('change', function() {
-                const val = jornadaFiltroRes.value;
-                resultados.forEach(function(card) {
-                    if (val === 'todos' || card.getAttribute('data-jornada') === val) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-
-            // Hacer las tarjetas clicables pero respetar enlaces/botones internos
-            resultados.forEach(function(card) {
-                const url = card.getAttribute('data-url');
-                if (!url) return;
-                card.style.cursor = 'pointer';
-                card.addEventListener('click', function(e) {
-                    // Si el click fue sobre un enlace o botón, no navegamos
-                    if (e.target.closest('a') || e.target.closest('button')) return;
-                    window.location.href = url;
-                });
-            });
-        });
-        </script>
+        <script src="{% static 'js/resultados.js' %}"></script>
     </div>
 {% endblock %}

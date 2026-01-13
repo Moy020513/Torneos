@@ -1,0 +1,545 @@
+    /* Contenedor principal */
+    .goleadores-container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    /* Card principal */
+    .card-gradient {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .card-gradient .card-header {
+        background: linear-gradient(135deg, #17a2b8  0%, #001c3a 60%);
+        color: white;
+        padding: 20px 24px;
+        border: none;
+    }
+
+    .card-gradient .card-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    /* Card del primer lugar - PREMIUM */
+    .top-scorer-card {
+        background: #d8d8d87c !important;
+        border-radius: 12px;
+        border: 2px solid #001c3a ;
+        padding: 20px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 24px #17a2b8;
+    }
+
+    .top-scorer-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255, 193, 7, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .top-scorer-card::after {
+        content: '👑';
+        position: absolute;
+        top: 1px !important;
+        right: 1px;
+        margin-top: 0;
+        margin-right: 4px;
+        font-size: 40px !important;
+        opacity: 0.85;
+        transform: rotate(20deg);
+    }
+
+    /* Avatar/Foto */
+    .scorer-avatar {
+        width: 100%;
+        max-width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 3px solid #001c3a !important;
+        margin: 0 auto;
+        display: block;
+        box-shadow: 0 4px 12px #17a2b8;;
+        position: relative;
+        z-index: 1;
+    }
+
+    .scorer-avatar-placeholder {
+        width: 100%;
+        max-width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #ccc;
+        margin: 0 auto;
+        border: 3px solid #0092e7ff;
+        box-shadow: 0 4px 12px rgba(0, 17, 255, 1);
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Medalla de posición */
+    .position-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #cf0202ff;
+        color: #ffffffff;
+        font-weight: 900;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    /* Estadísticas del primer lugar */
+    .top-scorer-goals {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #009e00ff;
+        line-height: 1;
+    }
+
+    .top-scorer-stats {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 12px;
+        border: 1px solid #e9ecef;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        font-size: 0.95rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    /* Logo del equipo */
+    .team-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .team-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 12px 0;
+        flex-wrap: wrap;
+    }
+
+    .goals-mobile {
+        margin-left: auto;
+    }
+
+    .goals-mobile .top-scorer-goals {
+        font-size: 1.8rem;
+        margin-bottom: 2px;
+    }
+
+    .goals-mobile small {
+        font-size: 0.7rem;
+    }
+
+    .team-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .player-details {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    /* Tabla de goleadores */
+    .scorers-table {
+        margin-top: 24px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        margin: 0;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .table td,
+    .table th {
+        padding: 14px 12px;
+    }
+
+    .table thead th {
+        background: #001c3a;
+        border-bottom: 2px solid #dee2e6;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #ffffffff;
+        padding: 14px 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .table tbody tr:hover {
+        background-color: #c7c7c7ff;
+    }
+
+    .table td {
+        padding: 14px 12px;
+        vertical-align: middle;
+        font-size: 0.95rem;
+    }
+
+    .position-cell {
+        font-weight: 700;
+        color: #667eea;
+        font-size: 1.1rem;
+    }
+
+    .player-avatar-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .team-logo-small {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        margin-right: 8px;
+    }
+
+    .goals-cell {
+        font-weight: 700;
+        color: #27ae60;
+        font-size: 1.1rem;
+    }
+
+    /* Alert personalizado */
+    .custom-alert {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 32px;
+        text-align: center;
+    }
+
+    .custom-alert i {
+        color: #2196f3;
+        margin-bottom: 16px;
+    }
+
+    .custom-alert h4 {
+        color: #1976d2;
+        font-weight: 700;
+    }
+
+    .custom-alert p {
+        color: #546e7a;
+        margin: 0;
+    }
+
+    /* Responsive Mobile - FOTO OPTIMIZADA */
+    @media (max-width: 768px) {
+        .goleadores-container {
+            padding: 0;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+         /* También asegura que el card ocupe todo el ancho */
+    .card-gradient {
+        margin: 0 -12px !important;  /* Compensa el padding del container */
+        width: calc(100% + 24px) !important;
+        border-radius: 0 !important;
+    }
+        
+        h3 i.fa-crown {
+            margin: 0.5 rem !important;
+        }    
+
+        .card-gradient .card-header {
+            padding: 10px 12px;
+        }
+
+        .card-gradient .card-header h3 {
+            font-size: 0.95rem;
+        }
+
+        .card-gradient .card-header i {
+            font-size: 0.9rem;
+        }
+
+        .card-gradient .card-body {
+            padding: 12px;
+        }
+
+        .top-scorer-card {
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .top-scorer-card::after {
+            font-size: 32px;
+            top: 5px;
+            right: 5px;
+        }
+
+        /* Layout horizontal para móvil */
+        .top-scorer-card .row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-scorer-card .col-12.col-md-4 {
+            flex: 0 0 auto;
+            width: auto;
+            margin-bottom: 0 !important;
+        }
+
+        .top-scorer-card .col-12.col-md-8 {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* FOTO MÁS GRANDE EN MÓVIL */
+        .scorer-avatar,
+        .scorer-avatar-placeholder {
+            max-width: 110px !important;
+            height: 110px !important;
+            width: 110px !important;
+            margin-bottom: 0;
+            border-width: 2px;
+            border-radius: 12px;
+        }
+
+        .scorer-avatar-placeholder {
+            font-size: 36px;
+        }
+
+        .position-badge {
+            width: 24px;
+            height: 24px;
+            font-size: 11px;
+        }
+
+        .top-scorer-card h2 {
+            font-size: 0.9rem !important;
+            line-height: 1.2;
+        }
+
+        .top-scorer-card .d-flex.align-items-center.gap-3 {
+            gap: 8px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .top-scorer-goals {
+            font-size: 1.8rem;
+        }
+
+        .goals-mobile {
+            margin-left: 0;
+            text-align: left;
+        }
+
+        .goals-mobile .top-scorer-goals {
+            font-size: 1.8rem;
+            margin-bottom: 0;
+        }
+
+        .goals-mobile small {
+            font-size: 0.65rem;
+        }
+
+        .top-scorer-stats {
+            padding: 8px;
+            margin-top: 8px;
+        }
+
+        .stat-item {
+            font-size: 0.7rem;
+            padding: 2px 0;
+        }
+
+        .team-logo {
+            width: 20px;
+            height: 20px;
+        }
+
+        .team-name {
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .player-details {
+            font-size: 0.65rem;
+            line-height: 1.2;
+        }
+
+        .team-info {
+            gap: 6px;
+            margin: 6px 0;
+        }
+
+        /* Tabla compacta en móvil */
+        .table thead th {
+            padding: 6px 8px;
+            font-size: 0.65rem;
+            letter-spacing: 0.3px;
+        }
+
+        .table td {
+            padding: 6px 8px;
+            font-size: 0.7rem;
+        }
+
+        .position-cell {
+            font-size: 0.8rem;
+        }
+
+        .player-avatar-small {
+            width: 24px;
+            height: 24px;
+            margin-right: 4px;
+        }
+
+        .team-logo-small {
+            width: 18px;
+            height: 18px;
+            margin-right: 3px;
+        }
+
+        .goals-cell {
+            font-size: 0.85rem;
+        }
+
+        .fw-semibold {
+            font-size: 0.7rem;
+        }
+
+        .team-logo-small + span {
+            font-size: 0.7rem;
+        }
+
+        .text-muted small {
+            font-size: 0.65rem;
+        }
+
+        /* Ocultar columnas menos importantes en móvil */
+        .hide-mobile {
+            display: none;
+        }
+
+        .custom-alert {
+            padding: 16px 12px;
+        }
+
+        .custom-alert h4 {
+            font-size: 1rem;
+        }
+
+        .custom-alert p {
+            font-size: 0.8rem;
+        }
+
+        .custom-alert i {
+            font-size: 2rem !important;
+        }
+
+          .scorers-table {
+            margin-top: 0;
+            margin-left: -12px;
+            margin-right: -12px;
+            width: calc(100% + 24px);
+        }
+
+        .table-responsive {
+            margin: 0;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .table {
+            width: auto;
+            table-layout: auto;
+        }
+
+        .table th,
+        .table td {
+            white-space: nowrap;
+        }
+
+        .table th:nth-child(1) {
+            width: auto;
+        }
+
+        .table th:nth-child(4),
+        .table th:nth-child(5) {
+            width: auto;
+        }
+
+        .table td,
+        .table th {
+            padding: 4px 4px;
+        }
+    }
+
+    /* Tablets */
+    @media (min-width: 769px) and (max-width: 991px) {
+        .scorer-avatar,
+        .scorer-avatar-placeholder {
+            max-width: 120px;
+            height: 120px;
+        }
+
+        .top-scorer-goals {
+            font-size: 2.75rem;
+        }
+    }

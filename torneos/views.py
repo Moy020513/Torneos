@@ -1243,6 +1243,10 @@ def partido_detalle(request, partido_id):
     goleadores = [v for v in goles_map.values() if v['goles'] and v['goles'] > 0]
     goleadores.sort(key=lambda x: (-x['goles'], x['jugador'].apellido or ''))
 
+    # Obtener participaciones por equipo
+    participaciones_local = partido.participaciones.filter(jugador__equipo=partido.equipo_local).select_related('jugador').order_by('-titular', 'jugador__nombre')
+    participaciones_visitante = partido.participaciones.filter(jugador__equipo=partido.equipo_visitante).select_related('jugador').order_by('-titular', 'jugador__nombre')
+
     # Determinar categoría del partido (por grupo si existe, si no por equipo)
     categoria = None
     try:
@@ -1261,5 +1265,7 @@ def partido_detalle(request, partido_id):
         'goleadores': goleadores,
         'categoria': categoria,
         'torneo': torneo,
+        'participaciones_local': participaciones_local,
+        'participaciones_visitante': participaciones_visitante,
     }
     return render(request, 'torneos/partido_detalle.html', context)

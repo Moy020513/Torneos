@@ -1,0 +1,128 @@
+    /* Desktop styles */
+    @media (min-width: 768px) {
+        .team-logo {
+            max-width: 100px !important;
+            height: 100px !important;
+        }
+        
+        .team-logo-placeholder {
+            width: 100px !important;
+            height: 100px !important;
+        }
+        
+        .team-logo-placeholder i {
+            font-size: 3rem !important;
+        }
+    }
+    
+    .info-card {
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .info-card:hover {
+        border-color: #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .team-scorers-card {
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .team-scorers-card:hover {
+        border-color: #dee2e6;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .scorer-item {
+        transition: background-color 0.2s ease;
+    }
+    
+    .scorer-item:hover {
+        background-color: rgba(255,255,255,0.5);
+    }
+    
+    .scorer-item:last-child {
+        border-bottom: none !important;
+    }
+    
+    /* GOALS DISPLAY - 3 per row */
+    .goals-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-content: flex-start;
+        width: 54px;
+        gap: 2px;
+    }
+    
+    .goal-ball {
+        font-size: 0.9rem;
+        width: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .scorer-photo {
+        flex-shrink: 0;
+        border: 2px solid rgba(0,0,0,0.04);
+    }
+    
+    .scorer-photo-placeholder {
+        flex-shrink: 0;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 767px) {
+        .container-fluid {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        
+        .card {
+            border-radius: 0 !important;
+            border-left: 0 !important;
+            border-right: 0 !important;
+        }
+        
+        .row.align-items-center {
+            align-items: center !important;
+        }
+        
+        .team-container h5 {
+            line-height: 1.2;
+            margin-bottom: 0.25rem !important;
+        }
+        
+        .badge {
+            white-space: nowrap;
+        }
+        
+        .goals-container {
+            width: 45px;
+            gap: 1px;
+        }
+        
+        .goal-ball {
+            font-size: 0.75rem;
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+       /* Map container for field location */
+    .field-map { width: 100%; height: 220px; border-radius: 8px; overflow: hidden; background: #f6f7f9; }
+    @media (min-width: 768px) { .field-map { height: 300px; } }
+    /* helper while debugging map rendering */
+    .field-map.debug-border { border: 1px dashed rgba(0,0,0,0.08); }
+    /* Improve touch interactions on mobile so users can pan the map */
+    @media (max-width: 767px) {
+        .field-map { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+    }
+    #match-fondo {
+        background-color: #cfcfcfc2;
+        border-radius: 8px;
+    }
