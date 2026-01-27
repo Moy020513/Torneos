@@ -1,3 +1,142 @@
+    @media (max-width: 576px) {
+        #proximos-partidos-card .match-card.proximo .descanso-bg {
+            background: #e0e0e0 !important;
+        }
+        #proximos-partidos-card .match-card.proximo .descanso-bg ~ .team-row .team-name {
+            color: #222 !important;
+        }
+    }
+    #proximos-partidos-card .match-card.proximo .match-meta-row > span {
+        vertical-align: middle !important;
+        display: inline-flex;
+        align-items: center;
+    }
+@media (max-width: 576px) {
+    #proximos-partidos-card .match-card.proximo .team-row.d-flex {
+        position: relative;
+    }
+    #proximos-partidos-card .match-card.proximo .vs-container-center {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        min-width: 60px;
+    }
+    #proximos-partidos-card .match-card.proximo .team-info.left-team {
+        padding-right: 0px;
+    }
+    #proximos-partidos-card .match-card.proximo .team-info.right-team {
+        padding-left: 0 !important;
+        margin-left: 0 !important;
+    }
+    #proximos-partidos-card .match-card.proximo .vs-container-center {
+        margin-right: 0 !important;
+    }
+    #proximos-partidos-card .match-card.proximo .vs-text {
+        margin: 0;
+    }
+}
+@media (max-width: 576px) {
+    #proximos-partidos-card .match-card.proximo .team-rows {
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+    /* Fondo dividido */
+    #proximos-partidos-card .match-card.proximo .split-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, #000000 0%, #004b7e 50%, white 50%, rgb(158, 158, 158) 100%);
+        z-index: 0;
+    }
+    /* Ajustar el punto de división desde el VS */
+    #proximos-partidos-card .match-card.proximo .team-row {
+        position: relative;
+        z-index: 1;
+    }
+    /* Contenedor del VS */
+    #proximos-partidos-card .match-card.proximo .vs-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* Línea tipo rayo/neón */
+    #proximos-partidos-card .match-card.proximo .lightning-line {
+        position: absolute;
+        top: -100%;
+        bottom: -100%;
+        width: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        background:
+            linear-gradient(90deg, transparent 0%, #00ffff 20%, transparent 40%),
+            linear-gradient(90deg, transparent 60%, #ff00ff 80%, transparent 100%);
+        mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="200" viewBox="0 0 6 200"><path d="M3,0 Q1,50 3,100 Q5,150 3,200" fill="white"/></svg>');
+        mask-repeat: repeat-y;
+        mask-size: 6px 200px;
+        box-shadow:
+            0 0 10px #00ffff,
+            0 0 20px #00ffff,
+            0 0 30px #ff00ff,
+            0 0 40px rgba(255, 0, 255, 0.5);
+        z-index: 0;
+        animation: lightning-bolt 3s infinite alternate;
+    }
+    /* VS sobre la línea */
+    #proximos-partidos-card .match-card.proximo .vs-text {
+        background: rgba(26, 35, 126, 0.8);
+        padding: 5px 10px;
+        border-radius: 20px;
+        color: white;
+        font-weight: bold;
+        z-index: 2;
+        position: relative;
+        border: 2px solid white;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    /* Equipo izquierdo - fondo azul */
+    #proximos-partidos-card .match-card.proximo .left-team .team-name {
+        color: white !important;
+        font-weight: bold;
+    }
+    /* Equipo derecho - fondo blanco */
+    #proximos-partidos-card .match-card.proximo .right-team .team-name {
+        color: #000538 !important;
+        font-weight: bold;
+    }
+    /* Animación del neón */
+    @keyframes lightning-bolt {
+        0% {
+            opacity: 0.3;
+            transform: translateX(-50%) scaleX(0.8);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(-50%) scaleX(1.2);
+        }
+    }
+    /* Hacer que los logos se vean bien en ambos fondos */
+    #proximos-partidos-card .match-card.proximo .team-logo-small {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        padding: 3px;
+    }
+    #proximos-partidos-card .match-card.proximo .right-team .team-logo-small {
+        background: rgba(26, 35, 126, 0.1);
+    }
+}
+/* Importar Inter Variable desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wdth,wght@50..100,400..900&display=swap');
   /* Card seccional con el mismo estilo que torneo_detalle */
     .section-card{ border:1px solid rgba(8,247,254,.35); border-radius:14px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.08); }
     .section-card .card-header{ background: linear-gradient(135deg, #f8fbff, #eaf2ff); border-bottom:1px solid rgba(8,247,254,.2); }
@@ -213,6 +352,82 @@
     
     /* Optimización para móvil - Más compacto y profesional */
     @media (max-width: 576px){
+                                                                #proximos-partidos-card .match-card.proximo .match-time-chip {
+                                                                    display: inline-flex;
+                                                                    align-items: center;
+                                                                    justify-content: center;
+                                                                    line-height: 1.2;
+                                                                }
+                                                                #proximos-partidos-card .match-card.proximo .match-time-chip i {
+                                                                    font-size: 1em;
+                                                                    margin-right: 4px;
+                                                                }
+                                                        #proximos-partidos-card .match-card.proximo .match-time-chip {
+                                                            display: inline-flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                        }
+                                                        #proximos-partidos-card .match-card.proximo .match-time-chip i {
+                                                            display: inline-flex;
+                                                            align-items: center;
+                                                        }
+                                                #proximos-partidos-card .match-card.proximo .match-time-chip {
+                                                    display: inline-flex;
+                                                    align-items: center;
+                                                    vertical-align: middle;
+                                                }
+                                                #proximos-partidos-card .match-card.proximo .match-time-chip i {
+                                                    display: inline-flex;
+                                                    align-items: center;
+                                                    height: 100%;
+                                                }
+                                        /* Alinear el horario al centro verticalmente en móvil */
+                                        #proximos-partidos-card .match-card.proximo .match-time-chip {
+                                            display: inline-flex;
+                                            align-items: center;
+                                            vertical-align: middle;
+                                        }
+                                #proximos-partidos-card .match-card.proximo .team-row.d-flex .team-info:last-child {
+                                    margin-left: 50px;
+                                }
+                               /* Esta es la solución más limpia */
+#proximos-partidos-card .match-card.proximo .team-row.d-flex.d-sm-none .team-info:first-child {
+    transform: translateX(9px); /* Mueve 15px hacia la derecha */
+}
+
+                        /* VS centrado y con fondo azul marino y letra blanca en móvil */
+                        #proximos-partidos-card .match-card.proximo .team-row.d-flex {
+                            position: relative;
+                        }
+                        #proximos-partidos-card .match-card.proximo .team-row.d-flex .vs-text {
+                            position: absolute;
+                            left: 50%;
+                            top: 50%;
+                            transform: translate(-50%, -50%);
+                            background: #0a2342;
+                            color: #fff;
+                            border-radius: 50%;
+                            min-width: 24px;
+                            min-height: 24px;
+                            width: 24px;
+                            height: 24px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            font-size: 0.95em;
+                            box-shadow: 0 2px 8px rgba(10,35,66,0.10);
+                            z-index: 2;
+                        }
+                        #proximos-partidos-card .match-card.proximo .team-row.d-flex .team-info {
+                            width: 45%;
+                        }
+                /* Letra más junta solo en la fila móvil de próximos partidos */
+                #proximos-partidos-card .match-card.proximo .team-row.d-flex .team-name {
+                    font-family: 'Inter', Arial, sans-serif;
+                    font-variation-settings: 'wdth' 0.00001;
+                    letter-spacing: -1px;
+                }
         .team-logo-small{ width:22px; height:22px; }
         .match-card{ 
             padding:1px 1px; 
@@ -224,7 +439,7 @@
             box-shadow:0 0 0 3px rgba(8,247,254,.18), 0 6px 12px rgba(0,0,0,.10);
         }
         .team-name{ 
-            font-size:0.85em; 
+            font-size:0.75em; 
             font-weight:700;
             line-height:1.2;
         }
@@ -304,6 +519,24 @@
     }
     
     @media (max-width: 576px){
+            /* Próximos partidos: equipos en la misma fila y tipografía más junta */
+            #proximos-partidos-card .match-card.proximo .team-row {
+                flex-direction: row !important;
+                justify-content: space-between;
+                align-items: center;
+                gap: 8px;
+            }
+            #proximos-partidos-card .match-card.proximo .team-name {
+                font-family: 'Inter', 'Roboto', Arial, sans-serif;
+                font-stretch: condensed;
+                letter-spacing: -0.5px;
+            }
+            /* Asegura que ambos equipos estén en la misma fila */
+            #proximos-partidos-card .match-card.proximo .team-info {
+                flex-direction: row !important;
+                align-items: center;
+                gap: 6px;
+            }
         #proximos-partidos-lista{ 
             gap:4px;
             grid-template-columns: 1fr; 

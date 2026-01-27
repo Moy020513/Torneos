@@ -31,8 +31,43 @@
                             <span class="match-status status-proximo mb-2">J{{ partido.jornada }}</span>
                         </div>
                         <div class="col-md-7">
-                            <div class="team-rows">
-                                <div class="team-row">
+                            <div class="team-rows position-relative">
+                                {# Fondo dividido o gris según si descansa #}
+                                {% if partido.equipo_local and partido.equipo_visitante %}
+                                    {% if partido.equipo_local != partido.equipo_visitante %}
+                                        <div class="split-background"></div>
+                                        <div class="team-row d-flex d-sm-none justify-content-between align-items-center position-relative z-1">
+                                            <div class="team-info left-team">
+                                                {% if partido.equipo_local.logo %}
+                                                <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
+                                                {% endif %}
+                                                <div class="team-name m-0">{{ partido.equipo_local.nombre }}</div>
+                                            </div>
+                                            <div class="vs-container-center">
+                                                <span class="vs-text">vs</span>
+                                                <div class="lightning-line"></div>
+                                            </div>
+                                            <div class="team-info right-team">
+                                                {% if partido.equipo_visitante.logo %}
+                                                <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small">
+                                                {% endif %}
+                                                <div class="team-name m-0">{{ partido.equipo_visitante.nombre }}</div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="split-background descanso-bg"></div>
+                                        <div class="team-row justify-content-center align-items-center d-flex d-sm-none position-relative z-1">
+                                            <div class="team-info">
+                                                {% if partido.equipo_local.logo %}
+                                                <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
+                                                {% endif %}
+                                                <div class="team-name m-0">{{ partido.equipo_local.nombre }}</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                {# Desktop: filas separadas #}
+                                <div class="team-row d-none d-sm-flex">
                                     <div class="team-info">
                                         {% if partido.equipo_local.logo %}
                                         <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
@@ -40,12 +75,7 @@
                                         <div class="team-name m-0">{{ partido.equipo_local.nombre }}</div>
                                     </div>
                                 </div>
-                                {% if partido.equipo_local and partido.equipo_visitante and partido.equipo_local == partido.equipo_visitante %}
-                                    <div class="text-center my-2">
-                                        <span class="match-status status-proximo" style="font-size:1em;padding:8px 14px;" id="descansa">DESCANSA</span>
-                                    </div>
-                                {% else %}
-                                <div class="team-row">
+                                <div class="team-row d-none d-sm-flex">
                                     <div class="team-info">
                                         {% if partido.equipo_visitante.logo %}
                                         <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small">
@@ -53,7 +83,6 @@
                                         <div class="team-name m-0">{{ partido.equipo_visitante.nombre }}</div>
                                     </div>
                                 </div>
-                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
