@@ -5,13 +5,16 @@
 
 {% block content %}
 <!-- Header Actions -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h2 class="mb-1">Jugadores</h2>
         <p class="text-muted mb-0">Administra todos los jugadores del sistema</p>
     </div>
-    <div>
-        <a href="{% url 'admin_crear_jugador' %}" class="btn btn-admin">
+    <div class="d-flex gap-2 header-btns">
+        <button class="btn btn-outline-success flex-fill" data-bs-toggle="modal" data-bs-target="#modalVerificarMultiples" title="Verificar múltiples jugadores">
+            <i class="fas fa-check-double me-2"></i>Verificar Todos
+        </button>
+        <a href="{% url 'admin_crear_jugador' %}" class="btn btn-admin flex-fill">
             <i class="fas fa-plus me-2"></i>Crear Jugador
         </a>
     </div>
@@ -20,8 +23,8 @@
 <!-- Filters and Search -->
 <div class="admin-card mb-4">
     <div class="admin-card-body">
-        <form method="GET" id="jugadores-filter-form" class="row align-items-end">
-            <div class="col-md-3">
+        <form method="GET" id="jugadores-filter-form" class="row g-1 align-items-end">
+            <div class="col-6 col-md-2">
                 <label class="admin-form-label">Equipo</label>
                 <select name="equipo" class="admin-form-control form-select">
                     <option value="">Todos los equipos</option>
@@ -32,7 +35,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-2">
                 <label class="admin-form-label">Categoría</label>
                 <select name="categoria" class="admin-form-control form-select">
                     <option value="">Todas las categorías</option>
@@ -43,28 +46,37 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-6 col-md-2">
+                <label class="admin-form-label">Estado</label>
+                <select name="verificado" class="admin-form-control form-select">
+                    <option value="">Todos</option>
+                    <option value="true" {% if verificado == "true" %}selected{% endif %}>Verificados</option>
+                    <option value="false" {% if verificado == "false" %}selected{% endif %}>No verificados</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="admin-form-label">Goleadores</label>
+                <select name="solo_goleadores" class="admin-form-control form-select">
+                    <option value="" {% if not solo_goleadores and not no_goleadores %}selected{% endif %}>Todos</option>
+                    <option value="true" {% if solo_goleadores == "true" %}selected{% endif %}>Solo goleadores</option>
+                    <option value="false" {% if no_goleadores == "true" %}selected{% endif %}>Solo no goleadores</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-4">
                 <label class="admin-form-label">Buscar</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="fas fa-search text-muted"></i>
-                    </span>
-                    <input type="text" 
-                           name="search" 
-                           class="admin-form-control border-start-0" 
-                           placeholder="Buscar por nombre, apellido o equipo..."
-                           value="{{ search|default:'' }}">
-                </div>
+                <input type="text" 
+                       name="search" 
+                       class="admin-form-control form-control" 
+                       placeholder="🔍 Buscar..."
+                       value="{{ search|default:'' }}">
             </div>
-            <div class="col-md-2">
-                <div class="d-flex gap-2">
-                    {% if search or categoria_id or equipo_id %}
-                        <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary" title="Limpiar filtros">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    {% endif %}
-                </div>
+            {% if search or categoria_id or equipo_id %}
+            <div class="col-12 col-md-2">
+                <a href="{% url 'admin_jugadores' %}" class="btn btn-outline-secondary w-100" title="Limpiar filtros">
+                    <i class="fas fa-times me-1"></i>Limpiar
+                </a>
             </div>
+            {% endif %}
         </form>
     </div>
 </div>
@@ -74,9 +86,25 @@
     {% include 'admin/jugadores/_lista_contenido.html' %}
 </div>
 
+<!-- Modal para verificar múltiples jugadores -->
+{% include 'admin/jugadores/_form_verificar_multiples.html' %}
+
+<style>
+@media (max-width: 768px) {
+    .header-btns {
+        width: 100%;
+    }
+    .header-btns .btn {
+        font-size: 0.82rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'admin/js/jugadores/lista.js' %}"></script>
+<script src="{% static 'admin/js/jugadores/verificar_multiples.js' %}"></script>
 {% endblock %}

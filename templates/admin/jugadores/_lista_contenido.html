@@ -1,7 +1,6 @@
 <div class="admin-card">
     <div class="admin-card-header d-flex justify-content-between align-items-center">
-        <h3><i class="fas fa-user me-2"></i>Lista de Jugadores</h3>
-        <span class="badge badge-admin">{{ jugadores.paginator.count }} jugador{{ jugadores.paginator.count|pluralize:"es" }}</span>
+        <h3 class="badge badge-admin bg-black">{{ jugadores.paginator.count }} jugador{{ jugadores.paginator.count|pluralize:"es" }}</h3>
     </div>
     <div class="admin-card-body p-0">
         {% if jugadores %}
@@ -9,23 +8,22 @@
             <table class="table table-hover mb-0 jugadores-table admin-table">
                     <thead>
                         <tr>
-                            <th>Foto</th>
-                            <th>Nombre</th>
-                            <th>Equipo</th>
-                            <th>Número</th>
-                            <th>Posición</th>
-                            <th>Edad</th>
-                            <th>Estado</th>
-                            <th>Verificado</th>
-                            <th>Verificado por</th>
-                            <th>Fecha verificación</th>
-                            <th width="120">Acciones</th>
+                            <th class="text-nowrap">Foto</th>
+                            <th class="text-nowrap">Nombre</th>
+                            <th class="text-nowrap">Equipo</th>
+                            <th class="text-nowrap">Número</th>
+                            <th class="text-nowrap">Posición</th>
+                            <th class="text-nowrap">Edad</th>
+                            <th class="text-nowrap">Estado</th>
+                            <th class="text-nowrap">Verificado</th>
+                               <th class="text-nowrap">Goles</th>
+                            <th class="text-nowrap" width="120">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for jugador in jugadores %}
                         <tr>
-                            <td>
+                            <td class="align-middle text-nowrap">
                                 {% if jugador.foto %}
                                     <img src="{{ jugador.foto.url }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
                                 {% else %}
@@ -34,64 +32,48 @@
                                     </div>
                                 {% endif %}
                             </td>
-                            <td>
-                                <div>
-                                    <h6 class="mb-1 fw-semibold">
-                                        <a href="{% url 'admin_detalle_jugador' jugador.id %}" class="text-decoration-none text-dark">
-                                            {{ jugador.nombre }} {{ jugador.apellido }}
-                                        </a>
-                                    </h6>
+                            <td class="align-middle text-nowrap">
+                                <div class="mb-0">
+                                    <a href="{% url 'admin_detalle_jugador' jugador.id %}" class="text-decoration-none text-dark fw-semibold tm-truncate">
+                                        {{ jugador.nombre }} {{ jugador.apellido }}
+                                    </a>
                                 </div>
                             </td>
-                            <td>
+                            <td class="align-middle text-nowrap">
                                 <div class="d-flex align-items-center">
                                     {% if jugador.equipo.logo %}
                                         <img src="{{ jugador.equipo.logo.url }}" class="rounded me-2" width="24" height="24" style="object-fit: cover;">
                                     {% endif %}
-                                    <div>
-                                        <span class="fw-semibold">{{ jugador.equipo.nombre }}</span><br>
-                                    </div>
+                                    <span class="fw-semibold tm-truncate">{{ jugador.equipo.nombre }}</span>
                                 </div>
                             </td>
-                            <td>
+                            <td class="align-middle text-nowrap">
                                 <span class="badge badge-admin fs-6">#{{ jugador.numero_camiseta }}</span>
                             </td>
-                            <td>
-                                <span class="badge badge-success">{{ jugador.get_posicion_display }}</span>
+                            <td class="align-middle text-nowrap">
+                                <span class="badge badge-success tm-truncate">{{ jugador.get_posicion_display }}</span>
                             </td>
-                            <td>
-                                <span class="text-muted">{{ jugador.edad }} años</span>
+                            <td class="align-middle text-nowrap">
+                                <span class="text-muted tm-truncate">{{ jugador.edad }} años</span>
                             </td>
-                            <td>
-                                <span class="badge badge-success">
+                            <td class="align-middle text-nowrap">
+                                <span class="badge badge-success tm-truncate">
                                     <i class="fas fa-check me-1"></i>Activo
                                 </span>
                             </td>
-                            <td>
+                            <td class="align-middle text-nowrap">
                                 {% if jugador.verificado %}
-                                    <span class="badge" style="background:#28a745; color:#fff;
-                                                display:inline-flex; align-items:center; gap:6px;">
+                                    <span class="badge tm-truncate" style="background:#28a745; color:#fff; display:inline-flex; align-items:center; gap:6px;">
                                         <i class="fas fa-check-circle"></i> Verificado
                                     </span>
                                 {% else %}
-                                    <span class="badge" style="background:#6c757d; color:#fff;">No</span>
+                                    <span class="badge tm-truncate" style="background:#6c757d; color:#fff;">No</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                {% if jugador.verificado_por %}
-                                    {{ jugador.verificado_por.get_full_name|default:jugador.verificado_por.username }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if jugador.fecha_verificacion %}
-                                    {{ jugador.fecha_verificacion|date:"d/m/Y H:i" }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
+                                                             <td class="align-middle text-nowrap text-center">
+                                                                 <span class="bg-primary text-white px-2 py-1 rounded">{{ jugador.goles }}</span>  
+                                                             </td>
+                            <td class="align-middle text-nowrap">
                                 <div class="btn-group" role="group">
                                     <a href="{% url 'admin_detalle_jugador' jugador.id %}"
                                        class="btn btn-outline-info btn-sm me-1"
@@ -120,8 +102,16 @@
         <style>
         @media (max-width: 768px) {
             .jugadores-table th, .jugadores-table td {
-                font-size: 0.93rem;
-                padding: 0.45rem 0.4rem;
+                font-size: 0.75rem;
+                padding: 0.4rem 0.35rem;
+            }
+            .jugadores-table .tm-truncate {
+                max-width: 110px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: inline-block;
+                vertical-align: middle;
             }
             .admin-card-header h3 {
                 font-size: 1.1rem;
@@ -151,12 +141,12 @@
     <ul class="pagination justify-content-center">
         {% if jugadores.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}">
+                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if verificado %}&verificado={{ verificado }}{% endif %}{% if no_goleadores %}&no_goleadores={{ no_goleadores }}{% endif %}{% if solo_goleadores %}&solo_goleadores={{ solo_goleadores }}{% endif %}">
                     <i class="fas fa-angle-double-left"></i>
                 </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ jugadores.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}">
+                <a class="page-link" href="?page={{ jugadores.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if verificado %}&verificado={{ verificado }}{% endif %}{% if no_goleadores %}&no_goleadores={{ no_goleadores }}{% endif %}{% if solo_goleadores %}&solo_goleadores={{ solo_goleadores }}{% endif %}">
                     <i class="fas fa-angle-left"></i>
                 </a>
             </li>
@@ -169,19 +159,19 @@
                 </li>
             {% elif num > jugadores.number|add:'-3' and num < jugadores.number|add:'3' %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if verificado %}&verificado={{ verificado }}{% endif %}{% if no_goleadores %}&no_goleadores={{ no_goleadores }}{% endif %}{% if solo_goleadores %}&solo_goleadores={{ solo_goleadores }}{% endif %}">{{ num }}</a>
                 </li>
             {% endif %}
         {% endfor %}
         
         {% if jugadores.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ jugadores.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}">
+                <a class="page-link" href="?page={{ jugadores.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if verificado %}&verificado={{ verificado }}{% endif %}{% if no_goleadores %}&no_goleadores={{ no_goleadores }}{% endif %}{% if solo_goleadores %}&solo_goleadores={{ solo_goleadores }}{% endif %}">
                     <i class="fas fa-angle-right"></i>
                 </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ jugadores.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}">
+                <a class="page-link" href="?page={{ jugadores.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if equipo_id %}&equipo={{ equipo_id }}{% endif %}{% if verificado %}&verificado={{ verificado }}{% endif %}{% if no_goleadores %}&no_goleadores={{ no_goleadores }}{% endif %}{% if solo_goleadores %}&solo_goleadores={{ solo_goleadores }}{% endif %}">
                     <i class="fas fa-angle-double-right"></i>
                 </a>
             </li>

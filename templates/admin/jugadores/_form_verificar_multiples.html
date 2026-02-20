@@ -1,0 +1,52 @@
+<!-- Modal para seleccionar categoría y verificar múltiples jugadores -->
+<div class="modal fade" id="modalVerificarMultiples" tabindex="-1" role="dialog" aria-labelledby="modalVerificarTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalVerificarTitle">
+                    <i class="fas fa-check-circle me-2"></i>Verificar Jugadores
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formVerificarMultiples" method="POST" data-url="{% url 'admin_verificar_multiples_jugadores' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Selecciona una categoría para verificar a todos los jugadores que tengan al menos un partido jugado.</p>
+                    
+                    <div class="mb-3">
+                        <label for="categoriasSeleccionar" class="form-label">Categoría:</label>
+                        <select id="categoriasSeleccionar" name="categoria" class="form-select form-select-lg" required>
+                            <option value="">-- Selecciona una categoría --</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="resumenVerificacion" class="alert alert-info" style="display: none;">
+                        <h6 class="mb-2">
+                            <i class="fas fa-info-circle me-2"></i>Resumen de verificación
+                        </h6>
+                        <p class="mb-0">
+                            Se verificarán <strong id="countJugadores">0</strong> jugador<span id="pluralJugadores">es</span> de la categoría 
+                            <strong id="categoriaNombreResumen"></strong> que tengan al menos un partido jugado.
+                        </p>
+                    </div>
+
+                    <div id="cargandoVerificacion" class="text-center text-muted" style="display: none;">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <span>Buscando jugadores...</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-admin" id="btnVerificarConfirmar" style="display: none;">
+                        <i class="fas fa-check me-2"></i>Verificar Jugadores
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

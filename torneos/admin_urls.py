@@ -41,6 +41,7 @@ admin_urlpatterns = [
     path('panel/jugadores/<int:jugador_id>/editar/', admin_views.admin_editar_jugador, name='admin_editar_jugador'),
     path('panel/jugadores/<int:jugador_id>/eliminar/', admin_views.admin_eliminar_jugador, name='admin_eliminar_jugador'),
         path('panel/jugadores/<int:jugador_id>/detalle/', admin_views.admin_detalle_jugador, name='admin_detalle_jugador'),
+    path('panel/jugadores/verificar-multiples/', admin_views.admin_verificar_multiples_jugadores, name='admin_verificar_multiples_jugadores'),
 
     # Partidos
     path('panel/partidos/', admin_views.admin_partidos, name='admin_partidos'),

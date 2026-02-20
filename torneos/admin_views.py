@@ -1172,6 +1172,9 @@ def admin_jugadores(request):
     equipo_id = request.GET.get('equipo')
     categoria_id = request.GET.get('categoria')
     search = request.GET.get('search')
+    verificado = request.GET.get('verificado')
+    no_goleadores = request.GET.get('no_goleadores')
+    solo_goleadores = request.GET.get('solo_goleadores')
     
     if equipo_id:
         jugadores = jugadores.filter(equipo_id=equipo_id)
@@ -1185,19 +1188,38 @@ def admin_jugadores(request):
             Q(equipo__nombre__icontains=search)
         )
     
+
+    # Filtro por estado de verificación
+    if verificado == 'true':
+        jugadores = jugadores.filter(verificado=True)
+    elif verificado == 'false':
+        jugadores = jugadores.filter(verificado=False)
+
+    # Filtro de no goleadores (jugadores con 0 goles)
+    from torneos.models import Goleador
+    from django.db.models import Sum, Q
+    if no_goleadores == 'true':
+        jugadores = jugadores.annotate(total_goles=Sum('goleador__goles')).filter(Q(total_goles=0) | Q(total_goles__isnull=True))
+    # Filtro de solo goleadores (jugadores con 1+ goles)
+    elif solo_goleadores == 'true':
+        jugadores = jugadores.annotate(total_goles=Sum('goleador__goles')).filter(total_goles__gte=1)
+    
     # Paginación ANTES de calcular edad
     paginator = Paginator(jugadores, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Calcular edad para cada jugador en la página actual
+    # Calcular edad y goles para cada jugador en la página actual
     from datetime import date
+    from torneos.models import Goleador
     for jugador in page_obj:
         if jugador.fecha_nacimiento:
             today = date.today()
             jugador.edad = today.year - jugador.fecha_nacimiento.year - ((today.month, today.day) < (jugador.fecha_nacimiento.month, jugador.fecha_nacimiento.day))
         else:
             jugador.edad = "N/A"
+        # Sumar goles
+        jugador.goles = Goleador.objects.filter(jugador=jugador).aggregate(total=models.Sum('goles'))['total'] or 0
     
     # Para filtros (limitar si es admin de torneo)
     if assigned_torneo:
@@ -1214,6 +1236,9 @@ def admin_jugadores(request):
         'equipo_id': equipo_id,
         'categoria_id': categoria_id,
         'search': search,
+        'verificado': verificado,
+        'no_goleadores': no_goleadores,
+        'solo_goleadores': solo_goleadores,
     }
     if request.headers.get('X-Requested-With', '').lower() == 'xmlhttprequest' or request.GET.get('_partial'):
         return render(request, 'admin/jugadores/_lista_contenido.html', context)
@@ -3139,3 +3164,110 @@ def admin_actividades(request):
     }
     
     return render(request, 'admin/actividades/listar.html', context)
+
+
+# =================== VERIFICACIÓN MÚLTIPLE DE JUGADORES ===================
+@login_required
+@user_passes_test(is_admin)
+def admin_verificar_multiples_jugadores(request):
+    """Verifica múltiples jugadores por categoría"""
+    from datetime import datetime
+    
+    if request.method == 'GET':
+        # GET: retorna solo el conteo (para el modal)
+        categoria_id = request.GET.get('categoria')
+        if not categoria_id:
+            return JsonResponse({'error': 'Categoría no especificada'}, status=400)
+        
+        assigned_torneo = None
+        if not request.user.is_superuser:
+            assigned_torneo = get_assigned_torneo_id(request.user)
+        
+        # Obtener categoría y validar que pertenezca al torneo asignado
+        try:
+            categoria = Categoria.objects.get(id=categoria_id)
+            if assigned_torneo and categoria.torneo_id != assigned_torneo:
+                return JsonResponse({'error': 'No tienes permiso para esta categoría'}, status=403)
+        except Categoria.DoesNotExist:
+            return JsonResponse({'error': 'Categoría no encontrada'}, status=404)
+        
+        # Obtener jugadores que:
+        # 1. Pertenecen a equipos de la categoría
+        # 2. TIENEN AL MENOS UN PARTIDO JUGADO (participaciones donde el partido tiene jugado=True)
+        # 3. NO ESTÁN VERIFICADOS AÚN
+        jugadores_a_verificar = Jugador.objects.filter(
+            equipo__categoria_id=categoria_id,
+            verificado=False
+        ).filter(
+            participaciones__partido__jugado=True
+        ).distinct()
+        
+        count = jugadores_a_verificar.count()
+        
+        return JsonResponse({
+            'success': True,
+            'categoria_nombre': categoria.nombre,
+            'count': count,
+            'jugador_ids': list(jugadores_a_verificar.values_list('id', flat=True)),
+        })
+    
+    elif request.method == 'POST':
+        # POST: realiza la verificación actual
+        categoria_id = request.POST.get('categoria')
+        if not categoria_id:
+            return JsonResponse({'error': 'Categoría no especificada'}, status=400)
+        
+        assigned_torneo = None
+        if not request.user.is_superuser:
+            assigned_torneo = get_assigned_torneo_id(request.user)
+        
+        # Obtener categoría y validar que pertenezca al torneo asignado
+        try:
+            categoria = Categoria.objects.get(id=categoria_id)
+            if assigned_torneo and categoria.torneo_id != assigned_torneo:
+                return JsonResponse({'error': 'No tienes permiso para esta categoría'}, status=403)
+        except Categoria.DoesNotExist:
+            return JsonResponse({'error': 'Categoría no encontrada'}, status=404)
+        
+        # Obtener jugadores que:
+        # 1. Pertenecen a equipos de la categoría
+        # 2. TIENEN AL MENOS UN PARTIDO JUGADO
+        # 3. NO ESTÁN VERIFICADOS AÚN
+        jugadores_a_verificar = Jugador.objects.filter(
+            equipo__categoria_id=categoria_id,
+            verificado=False
+        ).filter(
+            participaciones__partido__jugado=True
+        ).distinct()
+        
+        count = jugadores_a_verificar.count()
+        
+        # Verificar todos los jugadores
+        now = timezone.now()
+        for jugador in jugadores_a_verificar:
+            jugador.verificado = True
+            jugador.verificado_por = request.user
+            jugador.fecha_verificacion = now
+            jugador.save()
+            
+            # Registrar actividad
+            try:
+                torneo = jugador.equipo.categoria.torneo if jugador.equipo else None
+                if torneo:
+                    registrar_actividad(
+                        torneo=torneo,
+                        usuario=request.user,
+                        tipo_accion='modificar',
+                        tipo_modelo='jugador',
+                        descripcion=f"Jugador verificado en lote: {jugador.nombre} {jugador.apellido} ({jugador.equipo.nombre if jugador.equipo else 'Sin equipo'})",
+                        objeto_id=jugador.id,
+                        request=request
+                    )
+            except Exception:
+                pass
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Se verificaron {count} jugadores',
+            'count': count,
+        })

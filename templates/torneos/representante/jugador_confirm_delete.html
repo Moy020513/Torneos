@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Eliminar Jugador</h2>
-<p>¿Estás seguro que deseas eliminar a <strong>{{ jugador.nombre }}</strong>?</p>
-<form method="post">
+<h2 class="text-center text-white">Eliminar Jugador</h2>
+<p class="text-center text-white">¿Estás seguro que deseas eliminar a <strong>{{ jugador.nombre }}</strong>?</p>
+<form method="post" class="text-center d-flex justify-content-center gap-2">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Eliminar</button>
     <a href="{% url 'representante_panel' %}" class="btn btn-secondary">Cancelar</a>

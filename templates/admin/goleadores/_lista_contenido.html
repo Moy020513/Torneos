@@ -10,7 +10,7 @@
     <div class="card-body p-0">
         {% if goleadores %}
             <div class="table-responsive">
-                <table class="table table-hover admin-table mb-0" id="gol-table">
+                <table class="table table-hover admin-table mb-0 gol-table" id="gol-table">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -38,8 +38,8 @@
                                                  class="player-photo me-2">
                                         {% endif %}
                                         <div>
-                                            <span class="fw-bold">{{ goleador.jugador.nombre }}</span>
-                                            <small class="d-block text-muted">{{ goleador.jugador.posicion }}</small>
+                                            <span class="fw-bold gm-truncate">{{ goleador.jugador.nombre }} {{ goleador.jugador.apellido }}</span>
+                                            <small class="d-block text-muted gm-truncate">{{ goleador.jugador.posicion }}</small>
                                         </div>
                                     </div>
                                 </td>
@@ -50,7 +50,7 @@
                                                  alt="{{ goleador.jugador.equipo.nombre }}"
                                                  class="team-logo-small me-2">
                                         {% endif %}
-                                        <span class="fw-semibold">{{ goleador.jugador.equipo.nombre }}</span>
+                                        <span class="fw-semibold gm-truncate">{{ goleador.jugador.equipo.nombre }}</span>
                                     </div>
                                 </td>
                                 <td class="text-center">
@@ -59,7 +59,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <strong class="text-primary">{{ goleador.categoria.nombre }}</strong>
+                                    <strong class="text-primary gm-truncate">{{ goleador.categoria.nombre }}</strong>
                                 </td>
                                 <td>
                                     <small class="text-muted">
@@ -145,3 +145,20 @@
         {% endif %}
     </div>
 </div>
+
+<style>
+@media (max-width: 768px) {
+    .gol-table th, .gol-table td {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.35rem;
+    }
+    .gol-table .gm-truncate {
+        max-width: 110px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        vertical-align: middle;
+    }
+}
+</style>

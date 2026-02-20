@@ -106,8 +106,8 @@
 
   #gol-table th, 
   #gol-table td {
-    font-size: 0.65rem !important;
-    padding: 0.35rem 0.25rem !important;
+    font-size: 0.75rem !important;
+    padding: 0.15rem 0.25rem !important;
     white-space: nowrap !important;
     /* ELIMINAR anchos fijos */
     width: auto !important;
@@ -133,13 +133,13 @@
 
   /* Fotos más pequeñas en móvil */
   .player-photo {
-    width: 22px !important;
-    height: 22px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   .team-logo-small {
     width: 18px !important;
-    height: 18px !important;
+    height: auto !important;
   }
 
   /* Badge de goles más compacto */
@@ -208,9 +208,7 @@
 
 .team-logo-small {
     width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    object-fit: cover;
+    height: auto;
 }
 
 .goal-count {

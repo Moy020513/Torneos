@@ -19,6 +19,32 @@
                     <p class="card-text"><strong>Partidos jugados:</strong> {{ partidos_jugados }}</p>
                     <p class="card-text"><strong>Posición:</strong> {{ jugador.posicion }}</p>
                     <p class="card-text"><strong>Número:</strong> {{ jugador.numero }}</p>
+                    <p class="card-text">
+                        <strong>Verificado:</strong>
+                        {% if jugador.verificado %}
+                            <span class="badge bg-success"><i class="fas fa-check-circle"></i> Sí</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                    </p>
+                    {% if jugador.verificado %}
+                        <p class="card-text">
+                            <strong>Verificado por:</strong>
+                            {% if jugador.verificado_por %}
+                                {{ jugador.verificado_por.get_full_name|default:jugador.verificado_por.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p class="card-text">
+                            <strong>Fecha de verificación:</strong>
+                            {% if jugador.fecha_verificacion %}
+                                {{ jugador.fecha_verificacion|date:"d/m/Y H:i" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    {% endif %}
                 </div>
             </div>
         </div>

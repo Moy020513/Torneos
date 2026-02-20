@@ -9,12 +9,12 @@
 {% block content %}
 <div class="container-fluid px-0" id="admin-goleadores">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 px-3" id="admin-header">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-3 flex-wrap gap-2" id="admin-header">
         <h1 class="admin-title">
             <i class="fas fa-bullseye me-2"></i>
             Gestión de Goleadores
         </h1>
-        <a href="{% url 'admin_crear_goleador' %}" class="btn btn-primary admin-btn">
+        <a href="{% url 'admin_crear_goleador' %}" class="btn btn-primary admin-btn header-btn">
             <i class="fas fa-plus me-2"></i>
             Nuevo Goleador
         </a>
@@ -24,7 +24,7 @@
     <div class="row mb-4 mx-0 px-3" id="stadis">
         <div class="col-3 col-md-3">
             <div class="admin-card stat-card">
-                <div class="card-body text-center">
+                <div class="card-body bg-white text-center">
                     <i class="fas fa-bullseye stat-icon text-primary"></i>
                     <h3 class="stat-number">{{ total_goleadores }}</h3>
                     <p class="stat-label">Total Goleadores</p>
@@ -33,7 +33,7 @@
         </div>
         <div class="col-3 col-md-3">
             <div class="admin-card stat-card">
-                <div class="card-body text-center">
+                <div class="card-body bg-white text-center">
                     <i class="fas fa-futbol stat-icon text-success"></i>
                     <h3 class="stat-number">{{ total_goles_anotados }}</h3>
                     <p class="stat-label">Goles Anotados</p>
@@ -42,7 +42,7 @@
         </div>
         <div class="col-3 col-md-3">
             <div class="admin-card stat-card">
-                <div class="card-body text-center">
+                <div class="card-body bg-white text-center">
                     <i class="fas fa-crown stat-icon text-warning"></i>
                     <h3 class="stat-number">{{ max_goles }}</h3>
                     <p class="stat-label">Máximos Goles</p>
@@ -51,7 +51,7 @@
         </div>
         <div class="col-3 col-md-3">
             <div class="admin-card stat-card">
-                <div class="card-body text-center">
+                <div class="card-body bg-white text-center">
                     <i class="fas fa-tags stat-icon text-info"></i>
                     <h3 class="stat-number">{{ categorias_count }}</h3>
                     <p class="stat-label">Categorías Activas</p>
@@ -69,17 +69,17 @@
             </h5>
         </div>
         <div class="card-body">
-            <form method="GET" id="goleadores-filter-form" class="row g-3">
-                <div class="col-md-3">
+            <form method="GET" id="goleadores-filter-form" class="row g-1">
+                <div class="col-6 col-md-3">
                     <label class="form-label">Buscar:</label>
                     <input type="text" name="search" class="form-control" 
-                           placeholder="Jugador, equipo, categoría..." 
+                           placeholder="🔍 Jugador, equipo..." 
                            value="{{ search }}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label">Categoría:</label>
                     <select name="categoria" class="form-select">
-                        <option value="">Todas las categorías</option>
+                        <option value="">Todas</option>
                         {% for categoria in categorias %}
                             <option value="{{ categoria.id }}" 
                                 {% if request.GET.categoria == categoria.id|stringformat:"s" %}selected{% endif %}>
@@ -88,10 +88,10 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label">Equipo:</label>
                     <select name="equipo" class="form-select">
-                        <option value="">Todos los equipos</option>
+                        <option value="">Todos</option>
                         {% for equipo in equipos %}
                             <option value="{{ equipo.id }}" 
                                 {% if request.GET.equipo == equipo.id|stringformat:"s" %}selected{% endif %}>
@@ -100,21 +100,19 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Mínimo Goles:</label>
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Mín. Goles:</label>
                     <input type="number" name="min_goles" class="form-control" 
                            placeholder="Ej: 3" min="1"
                            value="{{ min_goles }}">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="d-flex gap-2">
-                        {% if search or categoria_id or equipo_id or min_goles %}
-                            <a href="{% url 'admin_goleadores' %}" class="btn btn-outline-secondary" title="Limpiar filtros">
-                                <i class="fas fa-times"></i> Limpiar
-                            </a>
-                        {% endif %}
-                    </div>
+                {% if search or categoria_id or equipo_id or min_goles %}
+                <div class="col-12 col-md-3 d-flex align-items-end">
+                    <a href="{% url 'admin_goleadores' %}" class="btn btn-outline-secondary w-100" title="Limpiar filtros">
+                        <i class="fas fa-times me-1"></i> Limpiar
+                    </a>
                 </div>
+                {% endif %}
             </form>
         </div>
     </div>
@@ -124,6 +122,16 @@
         {% include 'admin/goleadores/_lista_contenido.html' %}
     </div>
 </div>
+
+<style>
+@media (max-width: 768px) {
+    .header-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
