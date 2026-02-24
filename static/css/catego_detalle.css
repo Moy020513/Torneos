@@ -465,7 +465,7 @@
             box-shadow:0 0 0 2px rgba(8,247,254,.12);
         }
         .match-date-chip, .match-time-chip, .match-loc, .match-status {
-            font-size: 0.55em;
+            font-size: 0.50em;
             margin-right: 2px;
             height: 16px;
             display: inline-flex;
@@ -477,7 +477,7 @@
         
         .match-loc a.btn.btn-sm.btn-outline-admin {
             padding: 0;
-            font-size: 0.47rem;
+            font-size: 0.40rem;
             height: 24px;
             display: inline-flex;
             align-items: center;
