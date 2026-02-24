@@ -258,8 +258,13 @@
             font-weight: 700;
             line-height: 1.1;
         }
-        .match-date-chip, .match-time-chip, .match-loc {
+        .match-date-chip, .match-time-chip {
             font-size: 0.62em;
+            padding: 2px 6px;
+            gap: 3px;
+        }
+        .match-loc {
+            font-size: 0.42em !important;
             padding: 2px 6px;
             gap: 3px;
         }
@@ -472,7 +477,7 @@
         
         .match-loc a.btn.btn-sm.btn-outline-admin {
             padding: 0;
-            font-size: 0.75rem;
+            font-size: 0.47rem;
             height: 24px;
             display: inline-flex;
             align-items: center;

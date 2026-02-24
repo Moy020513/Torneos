@@ -114,7 +114,7 @@
                                             DESCANSA
                                         {% else %}
                                             {% if partido.ubicacion %}
-                                                <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>Ver</strong></a>
+                                                <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>{{ partido.ubicacion.nombre }}</strong></a>
                                             {% else %}
                                                 Por definir
                                             {% endif %}
@@ -146,7 +146,7 @@
                                         DESCANSA
                                     {% else %}
                                         {% if partido.ubicacion %}
-                                            <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>Ver</strong></a>
+                                            <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>{{ partido.ubicacion.nombre }}</strong></a>
                                         {% else %}
                                             Por definir
                                         {% endif %}
