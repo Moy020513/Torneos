@@ -1,173 +1,295 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Inicio - Sistema de Torneos{% endblock %}
+{% block title %}Golazo360 — Organiza tu torneo de fútbol{% endblock %}
 
 {% block extra_css %}
-<!-- Preload del CSS de home -->
-<link rel="preload" href="{% static 'css/home.css' %}" as="style">
-
-<!-- CSS completo externo -->
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card mb-2 mb-lg-5 shadow-lg hero-card">
-            <div class="card-body text-center py-3 px-4 position-relative">
-                <!-- Icono principal destacado -->
-                <div class="mb-3">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mx-auto hero-icon-container">
-                        <i class="fa-solid fa-trophy text-white hero-icon"></i>
-                    </div>
-                </div>
-                
-                <!-- Título principal -->
-                <h3 class="display-5 text-white mb-2 fw-bold hero-title" id="heroTitle">
-                    Plataforma profesional para organizar y gestionar competiciones de fútbol
-                </h3>
-                
-                <!-- Línea decorativa -->
-                <div class="d-flex justify-content-center mb-2">
-                    <div class="hero-divider"></div>
-                </div>
-                
-                <!-- Características destacadas -->
-                <div class="row justify-content-center mt-2" id="heroFeatures">
-                    <div class="col-auto">
-                        <div class="d-flex align-items-center text-white-50 me-4">
-                            <i class="fa-solid fa-shield-check me-2 text-success"></i>
-                            <small class="fw-medium">Confiable</small>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="d-flex align-items-center text-white-50 me-4">
-                            <i class="fa-solid fa-bolt me-2 text-warning"></i>
-                            <small class="fw-medium">Rápido</small>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="d-flex align-items-center text-white-50">
-                            <i class="fa-solid fa-users me-2 text-info"></i>
-                            <small class="fw-medium">Fácil de usar</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="landing-page">
 
-<div class="row" id="torneosSection">
-    <div class="col-12">
-        <div class="card mb-4 shadow-lg torneos-card">
-            <!-- Header elegante con gradiente azul -->
-            <div class="card-header text-white text-center position-relative overflow-hidden torneos-header">
-                <div class="torneos-header-gradient"></div>
-                <h2 class="mb-0 fw-bold position-relative torneos-header-title">
-                    <i class="fa-solid fa-trophy me-2"></i>{{ torneos|length }} Torneos Activos
-                </h2>
-            </div>
-            
-            <div class="card-body p-4 torneos-body">
-                {% if torneos %}
-                    <div class="row">
-                        {% for torneo in torneos %}
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card tournament-card h-100 shadow-lg" 
-                                 {% if torneo.color1 and torneo.color2 %}
-                                 style="border-left: 4px solid {{ torneo.color1 }};"
-                                 {% else %}
-                                 style="border-left: 4px solid #1e3a5f;"
-                                 {% endif %}>
-                                
-                                <!-- Header con portada -->
-                                  {% with covers=torneo.portadas.all %}
-                                  <div class="card-header border-0 p-0 tournament-card-header"
-                                      {% if covers %}
-                                      style="--cover-image: url('{{ covers.0.imagen.url }}');"
-                                      data-covers="{% for c in covers %}{{ c.imagen.url }}{% if not forloop.last %}|{% endif %}{% endfor %}"
-                                      {% elif torneo.portada %}
-                                      style="--cover-image: url('{{ torneo.portada.url }}');"
-                                      data-covers="{{ torneo.portada.url }}"
-                                      {% endif %}>
-                                  {% endwith %}
-                                    <div class="tournament-cover-content">
-                                        <div class="position-absolute top-0 end-0 mt-3 me-3">
-                                            <div class="d-flex align-items-center justify-content-center rounded-circle tournament-crown-badge">
-                                                <i class="fa-solid fa-crown tournament-crown-icon"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+    <!-- ========== HERO ========== -->
+    <section class="landing-hero">
+        <div class="hero-inner">
+            <img src="{% static 'img/logo.png' %}" alt="Fútbol" id="hero-logo">
 
-                                {% if torneo.logo %}
-                                <div class="tournament-logo-bridge text-center">
-                                    <div class="tournament-logo-chip">
-                                        <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}" class="tournament-logo">
-                                    </div>
-                                    <h5 class="card-title mb-0 fw-bold mt-2 tournament-title">
-                                        {{ torneo.nombre }}
-                                    </h5>
-                                </div>
-                                {% endif %}
+            <h1 class="hero-headline">
+                El fútbol une.<br>
+                <span class="highlight">La organización también.</span>
+            </h1>
 
-                                <!-- Body con información -->
-                                <div class="card-body p-4 tournament-card-body">
-                                    <div class="d-grid">
-                                        <a href="{% url 'torneo_detalle' torneo.id %}" 
-                                           class="btn btn-lg fw-bold text-white border-0 tournament-view-btn">
-                                            <i class="fa-solid fa-eye me-2"></i>Ver Torneo
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="alert alert-info d-flex align-items-center alert-torneos">
-                        <i class="fa-solid fa-info-circle me-2"></i> 
-                        No hay torneos activos en este momento.
-                    </div>
+            <p class="hero-sub">
+                <strong>Golazo360</strong> organiza tu torneo de principio a fin.<br>
+                Goleadores, resultados en vivo, tablas actualizadas al instante y más.
+            </p>
+            <div class="hero-cta-group">
+                <a href="#torneos" class="btn-cta-primary">
+                    <i class="fa-solid fa-trophy me-2"></i>Ver Torneos
+                </a>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="btn-cta-secondary">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i>Iniciar Sesión
+                </a>
                 {% endif %}
-                <!-- Swipe hint for mobile users -->
-                <div class="torneos-swipe-hint" role="note" aria-hidden="false" id="swipeHint">
-                    <span class="swipe-arrows">⟵⟶</span>
-                    <small>Desliza para ver más torneos</small>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">
+            <i class="fa-solid fa-chevron-down fa-2x"></i>
+        </div>
+    </section>
+
+    <!-- ========== ADIÓS AL CAOS ========== -->
+    <section class="landing-pain">
+        <div class="container">
+            <div class="pain-inner">
+                <h2 class="pain-headline">Adiós al caos organizativo.</h2>
+                <p class="pain-lead">
+                    <strong>Golazo360</strong> elimina los dolores de cabeza de tu torneo:
+                </p>
+                <div class="pain-columns">
+                    <ul class="pain-list pain-bad">
+                        <li><span class="pain-x">✕</span> "¿Contra quién jugamos?"</li>
+                        <li><span class="pain-x">✕</span> "¿Dónde era la cancha?"</li>
+                        <li><span class="pain-x">✕</span> "¿Quién va primero en la tabla?"</li>
+                        <li><span class="pain-x">✕</span> "¿Quién va de goleador?"</li>
+                    </ul>
+                    <div class="pain-solution">
+                        <span class="pain-check">✓</span>
+                        Todo en una app. Automático. En vivo. Con Maps.
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
 
+    <!-- ========== FEATURES ========== -->
+    <section class="landing-features">
+        <div class="container">
+            <h2 class="features-title">Todo lo que necesitas</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon cyan"><i class="fa-solid fa-calendar-days"></i></div>
+                    <h4>Calendarios automáticos</h4>
+                    <p>Calendarios completos con un clic.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon amber"><i class="fa-solid fa-bolt"></i></div>
+                    <h4>Resultados en vivo</h4>
+                    <p>Goles desde la cancha, al instante.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green"><i class="fa-solid fa-ranking-star"></i></div>
+                    <h4>Tablas de posiciones</h4>
+                    <p>Puntos, gol diferencia y más.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon blue"><i class="fa-solid fa-futbol"></i></div>
+                    <h4>Goleadores</h4>
+                    <p>Rankings individuales y por equipo.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon pink"><i class="fa-solid fa-sitemap"></i></div>
+                    <h4>Fase eliminatoria</h4>
+                    <p>Llaves y brackets del grupo a la final.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon purple"><i class="fa-solid fa-users-gear"></i></div>
+                    <h4>Gestión de equipos</h4>
+                    <p>Planteles, jugadores y representantes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <h4>Ubicación con Maps</h4>
+                    <p>Cada partido con su cancha en el mapa.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon amber"><i class="fa-solid fa-flag-checkered"></i></div>
+                    <h4>Panel de árbitros</h4>
+                    <p>Cada árbitro con su panel para cargar resultados.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== SHOWCASE ========== -->
+    <section class="landing-showcase">
+        <div class="container">
+            <h2 class="showcase-title">Así se ve en acción</h2>
+            <p class="showcase-sub">Capturas reales de la plataforma.</p>
+
+            <div class="showcase-carousel-wrapper">
+                <div id="showcaseCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="0" class="active"></button>
+                        <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="1"></button>
+                        <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="2"></button>
+                        <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="3"></button>
+                        <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="4"></button>
+                        <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="5"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img src="{% static 'img/img1.jpeg' %}" class="d-block showcase-img" alt="Vista de la app" data-lightbox>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/img2.jpeg' %}" class="d-block showcase-img" alt="Vista de la app" data-lightbox>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/img3.jpeg' %}" class="d-block showcase-img" alt="Vista de la app" data-lightbox>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/img4.jpeg' %}" class="d-block showcase-img" alt="Vista de la app" data-lightbox>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/img5.jpeg' %}" class="d-block showcase-img" alt="Vista de la app" data-lightbox>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/img6.jpeg' %}" class="d-block showcase-img" alt="Vista de la app" data-lightbox>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#showcaseCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#showcaseCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox overlay -->
+    <div class="lightbox-overlay" id="lightbox">
+        <button class="lightbox-close" id="lightboxClose">&times;</button>
+        <img class="lightbox-img" id="lightboxImg" src="" alt="">
+    </div>
+
+    <!-- ========== HOW IT WORKS ========== -->
+    <section class="landing-how">
+        <div class="container">
+            <h2 class="how-title">¿Cómo funciona?</h2>
+            <div class="how-steps">
+                <div class="how-step">
+                    <div class="how-step-number">1</div>
+                    <h5>Crea tu torneo</h5>
+                    <p>Nombre, categorías y reglas.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-number">2</div>
+                    <h5>Registra equipos</h5>
+                    <p>Jugadores y representantes en minutos.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-number">3</div>
+                    <h5>Genera el calendario</h5>
+                    <p>Un clic y listo.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-number">4</div>
+                    <h5>Registra canchas y árbitros</h5>
+                    <p>Asigna horarios a los partidos</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-number">5</div>
+                    <h5>¡A jugar!</h5>
+                    <p>Golazo360 hace el resto.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== TORNEOS ACTIVOS ========== -->
+    <section class="landing-torneos" id="torneos">
+        <div class="container">
+            <h2 class="torneos-section-title">
+                <i class="fa-solid fa-trophy me-2" style="color: #ffc107;"></i>Torneos Activos
+            </h2>
+            <p class="torneos-section-sub">Elige un torneo y sigue la acción en tiempo real.</p>
+
+            {% if torneos %}
+            <div class="row justify-content-center">
+                {% for torneo in torneos %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="torneo-landing-card">
+                        {% with covers=torneo.portadas.all %}
+                        <div class="torneo-landing-cover"
+                             {% if covers %}
+                             style="background-image: url('{{ covers.0.imagen.url }}');"
+                             {% elif torneo.portada %}
+                             style="background-image: url('{{ torneo.portada.url }}');"
+                             {% endif %}>
+                        </div>
+                        {% endwith %}
+                        <div class="torneo-landing-body text-center">
+                            {% if torneo.logo %}
+                            <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}" class="torneo-landing-logo">
+                            {% endif %}
+                            <h5>{{ torneo.nombre }}</h5>
+                            <a href="{% url 'torneo_detalle' torneo.id %}" class="btn btn-torneo">
+                                <i class="fa-solid fa-eye"></i> Ver Torneo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info d-flex align-items-center justify-content-center mx-auto" style="max-width:500px;">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                No hay torneos activos en este momento.
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- ========== CTA FINAL ========== -->
+    <section class="landing-cta-bottom">
+        <div class="container">
+            <h2 class="cta-bottom-title">¿Listo para dejar las planillas?</h2>
+            <p class="cta-bottom-sub">Organiza tu próximo torneo con Golazo360 y olvídate del caos.</p>
+            <div class="hero-cta-group">
+                <a href="#torneos" class="btn-cta-primary">
+                    <i class="fa-solid fa-rocket me-2"></i>Explorar Torneos
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const headers = document.querySelectorAll('.tournament-card-header[data-covers]');
-    headers.forEach((header) => {
-        const coversAttr = header.dataset.covers || '';
-        const urls = coversAttr.split('|').map(u => u.trim()).filter(Boolean);
-        if (!urls.length) return;
+    const overlay = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightboxImg');
+    const lbClose = document.getElementById('lightboxClose');
 
-        let idx = 0;
-        const applyCover = () => {
-            header.style.setProperty('--cover-image', `url('${urls[idx]}')`);
-        };
+    // Click en imagen del carrusel -> abrir lightbox
+    document.querySelectorAll('.showcase-img[data-lightbox]').forEach(function(img) {
+        img.addEventListener('click', function() {
+            lbImg.src = this.src;
+            overlay.classList.add('active');
+        });
+    });
 
-        applyCover();
+    function closeLightbox() {
+        overlay.classList.remove('active');
+        lbImg.src = '';
+    }
 
-        if (urls.length > 1) {
-            setInterval(() => {
-                idx = (idx + 1) % urls.length;
-                header.classList.add('cover-fade');
-                header.addEventListener('animationend', () => header.classList.remove('cover-fade'), { once: true });
-                applyCover();
-            }, 5000);
-        }
+    lbClose.addEventListener('click', closeLightbox);
+
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeLightbox();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) closeLightbox();
     });
 });
 </script>
