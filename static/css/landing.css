@@ -183,7 +183,7 @@
 /* ---------- ADIÓS AL CAOS ---------- */
 .landing-pain {
     background: linear-gradient(135deg, #0c1e35 0%, #112d4e 100%);
-    padding: 4.5rem 1rem;
+    padding: 1.5rem 1rem;
     text-align: center;
     border-top: 1px solid rgba(8,247,254,.06);
 }
@@ -266,7 +266,7 @@
 /* ---------- FEATURES ---------- */
 .landing-features {
     background: var(--tt-dark);
-    padding: 5rem 1rem;
+    padding: 1.5rem 1rem;
     text-align: center;
 }
 
@@ -680,14 +680,39 @@
         max-width: 320px;
     }
     .feature-grid {
-        grid-template-columns: 1fr;
-        gap: 1.2rem;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.3rem;
     }
     .feature-card {
-        padding: 1.6rem 1.4rem;
+        padding: 0.2rem;
+    }
+    .feature-card h4 {
+        font-size: .85rem;
+    }
+    .feature-card p {
+        font-size: .65rem;
+    }
+    .feature-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+        margin-bottom: .6rem;
     }
     .landing-features {
+        padding-left: 0;
+        padding-right: 0;
         padding-bottom: 0.5rem;
+    }
+    .landing-features .container {
+        padding: 0;
+        max-width: 100%;
+    }
+    .feature-grid {
+        gap: 0.3rem;
+        padding: 0;
+    }
+    .feature-card {
+        border-radius: 10px;
     }
     .landing-showcase {
         padding-top: 0.5rem;
