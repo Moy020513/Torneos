@@ -28,8 +28,8 @@
 }
 
 #hero-logo { display:inline-block; 
-    padding:8px; border-radius:14px; 
-    background: rgba(255, 255, 255, 0.144); 
+    padding:8px; border-radius:24px; 
+    background: rgba(255, 255, 255, 0.239); 
     -webkit-backdrop-filter: blur(4px);
      backdrop-filter: blur(4px); 
      border:1px solid rgba(255, 255, 255, 0.24); 
@@ -43,8 +43,8 @@
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(180deg, transparent 48%, rgba(8,247,254,.06) 50%, transparent 52%),
-        linear-gradient(90deg, transparent 48%, rgba(8,247,254,.04) 50%, transparent 52%);
+        linear-gradient(180deg, transparent 48%, rgba(0, 247, 255, 0.169) 50%, transparent 52%),
+        linear-gradient(90deg, transparent 48%, rgba(8, 246, 254, 0.169) 50%, transparent 52%);
     background-size: 120px 120px;
     pointer-events: none;
     animation: pitchDrift 18s linear infinite;
@@ -287,7 +287,7 @@
 
 .feature-card {
     background: rgba(255,255,255,.04);
-    border: 1px solid rgba(8,247,254,.1);
+    border: 1px solid rgb(8, 246, 254);
     border-radius: 18px;
     padding: 2.2rem 1.8rem;
     transition: transform .25s, border-color .25s, box-shadow .25s;
