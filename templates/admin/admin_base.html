@@ -208,11 +208,23 @@
             <div class="admin-header-content">
                 <h1>{% block page_title %}SuperAdministrador{% endblock %}</h1>
                 <div class="admin-header-actions">
-                    <span class="text-muted">Bienvenido, {{ user.get_full_name|default:user.username }}</span>
-                    <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Salir
-                    </a>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-toggle d-flex align-items-center gap-2 text-decoration-none text-muted"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle fa-lg"></i>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'perfil_usuario' %}"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </header>

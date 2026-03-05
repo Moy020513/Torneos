@@ -34,7 +34,17 @@
             </div>
             <div class="col-12 d-flex gap-2">
               <button type="submit" class="btn btn-primary">Guardar cambios</button>
-              <a href="{% url 'representante_panel' %}" class="btn btn-outline-secondary">Volver al panel</a>
+              {% if user.is_superuser %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">Volver al panel</a>
+              {% elif is_torneo_admin %}
+                <a href="{% url 'administrar_torneo' torneo_admin_obj.torneo.id %}" class="btn btn-outline-secondary">Volver al panel</a>
+              {% elif is_arbitro %}
+                <a href="{% url 'arbitro_panel' %}" class="btn btn-outline-secondary">Volver al panel</a>
+              {% elif user.representante %}
+                <a href="{% url 'representante_panel' %}" class="btn btn-outline-secondary">Volver al panel</a>
+              {% else %}
+                <a href="{% url 'index' %}" class="btn btn-outline-secondary">Volver al inicio</a>
+              {% endif %}
             </div>
           </form>
         </div>
