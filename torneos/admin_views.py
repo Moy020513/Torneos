@@ -1198,7 +1198,7 @@ def admin_jugadores(request):
     # Filtro de no goleadores (jugadores con 0 goles)
     from torneos.models import Goleador
     from django.db.models import Sum, Q
-    if no_goleadores == 'true':
+    if no_goleadores == 'true' or solo_goleadores == 'false':
         jugadores = jugadores.annotate(total_goles=Sum('goleador__goles')).filter(Q(total_goles=0) | Q(total_goles__isnull=True))
     # Filtro de solo goleadores (jugadores con 1+ goles)
     elif solo_goleadores == 'true':

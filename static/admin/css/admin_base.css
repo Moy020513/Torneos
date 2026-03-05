@@ -740,14 +740,44 @@
                 border-radius: 12px;
             }
             
-            .admin-table thead th {
-                padding: 0.75rem 0.5rem;
+            .admin-table thead th,
+            .admin-content table thead th,
+            .admin-content .table thead th {
+                padding: 0.65rem 0.5rem;
                 font-size: 0.75rem;
             }
             
-            .admin-table tbody td {
-                padding: 0.75rem 0.5rem;
-                font-size: 0.85rem;
+            .admin-table tbody td,
+            .admin-content table tbody td,
+            .admin-content .table tbody td {
+                padding: 0.65rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            /* Normalizar elementos dentro de celdas */
+            .admin-table tbody td h6,
+            .admin-content table tbody td h6,
+            .admin-content .table tbody td h6 {
+                font-size: 0.75rem;
+                margin-bottom: 0;
+            }
+            
+            .admin-table tbody td small,
+            .admin-content table tbody td small {
+                font-size: 0.7rem;
+            }
+
+            /* Logos en tablas */
+            .admin-table tbody td img,
+            .admin-content table tbody td img {
+                width: 28px !important;
+                height: auto !important;
+            }
+            
+            .admin-table tbody td .rounded[style*="width: 40px"],
+            .admin-table tbody td div[style*="width: 40px"] {
+                width: 28px !important;
+                height: auto !important;
             }
             
             /* Formularios compactos */
