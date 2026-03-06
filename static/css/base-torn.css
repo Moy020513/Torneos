@@ -1,0 +1,289 @@
+  /* Barra superior y navegación elegante con acento neón */
+  .torneos-header.card{
+    border-radius: 16px;
+    border: 2px solid #ffffffff;
+    box-shadow: 0 0 12px 4px #08F7FE, 0 2px 24px rgba(8,247,254,0.18);
+  }
+  
+  /* Layout con logo a la izquierda, texto centro, franjas derecha */
+  .torneos-header-layout {
+    background: linear-gradient(120deg, #0a2342 0 2.5%, #08F7FE 2.5% 5%, #00cfff 5% 7.5%, #fff 7.5% 100%);
+  }
+  
+  .torneos-header .card-body {
+    padding: 1rem;
+    min-height: 100px;
+  }
+  
+  .torneos-header .header-left {
+    flex-shrink: 0;
+    width: 80px;
+  }
+  
+  .torneos-header .header-logo{
+    width:80px; height:80px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; box-shadow:none; border:none;
+  }
+  .torneos-header .header-logo img{ max-width:100%; max-height:100%; object-fit:contain; border:none; box-shadow:none; }
+
+  .torneos-nav{
+    background:#fff; border:1px solid rgba(8,247,254,.35); border-radius:12px; padding:8px; box-shadow:0 8px 20px rgba(0,0,0,.06); width:100%;
+  }
+  .torneos-nav .nav-link{
+    border-radius:10px; font-weight:700; color:#0a2342; border:1px solid transparent;
+  }
+  .torneos-nav .nav-link:hover{
+    background:rgba(8,247,254,.10); border-color:rgba(8,247,254,.35);
+  }
+  .torneos-nav .nav-link.active{
+    background:#0a2342; color:#eaf7ff; border-color:#0a2342; box-shadow:0 0 0 3px rgba(8,247,254,.18);
+  }
+  .torneos-nav .nav-link i{ color:#08F7FE; }
+
+  .torneos-actions{ gap:8px; }
+  .btn-navy{ background:#0a2342; border:1px solid #0a2342; color:#fff; }
+  .btn-navy:hover{ background:#0c2850; border-color:#0c2850; }
+
+  /* Menú hamburguesa responsivo */
+  .menu-toggle-btn {
+    background: #0a2342;
+    border: 1px solid #ffffffff;
+    box-shadow: 0 0 8px rgba(0, 247, 255, 0.68);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: none;
+  }
+
+  .menu-toggle-btn:hover {
+    background: #0c2850;
+  }
+
+  /* Botón hamburguesa en el header (móvil) */
+  .menu-toggle-btn-header {
+    background: #0a2342;
+    border: 1px solid #ffffffff;
+    box-shadow: 0 0 8px rgba(0, 247, 255, 0.68);
+    color: #fff;
+    padding: 0.375rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    min-width: auto;
+  }
+
+  .menu-toggle-btn-header:hover {
+    background: #0c2850;
+  }
+
+  .torneos-nav-mobile {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    border: 1px solid rgba(8,247,254,.35);
+    border-radius: 12px;
+    margin-top: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.15);
+    padding: 8px;
+    z-index: 1000;
+    min-width: 200px;
+  }
+
+  .torneos-nav-mobile.show {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .torneos-nav-mobile .nav-link {
+    border-radius: 10px;
+    font-weight: 700;
+    color: #0a2342;
+    border: 1px solid transparent;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .torneos-nav-mobile .nav-link:hover {
+    background: rgba(8,247,254,.10);
+    border-color: rgba(8,247,254,.35);
+  }
+
+  .torneos-nav-mobile .nav-link.active {
+    background: #0a2342;
+    color: #eaf7ff;
+    border-color: #0a2342;
+  }
+
+  .torneos-nav-mobile .nav-link i {
+    color: #08F7FE;
+    min-width: 20px;
+  }
+
+  /* Wrapper para el menú del header */
+  .menu-header-wrapper {
+    display: none;
+  }
+
+  .menu-header-wrapper .torneos-nav-mobile {
+    position: absolute;
+    top: 100%;
+    right: 0;
+  }
+
+  /* Centrado en móvil */
+  @media (max-width: 768px) {
+    .torneos-header .card-body {
+      flex-direction: column !important;
+      text-align: center;
+      padding: 0.75rem !important;
+    }
+
+    .torneos-header .header-left {
+      position: static !important;
+      left: auto !important;
+      width: auto;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .torneos-header .header-center {
+      margin-left: 0 !important;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .torneos-header .header-center h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .torneos-header .header-logo {
+      width: 50px;
+      height: 50px;
+      margin: 0;
+    }
+
+    /* Mover el logo dentro del h2 visualmente */
+    .torneos-header .card-body {
+      display: flex;
+      flex-direction: row !important;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 991px) {
+    .torneos-nav {
+      display: none;
+    }
+
+    .menu-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu-toggle-btn-header {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu-header-wrapper {
+      display: block;
+    }
+  }
+
+  @media (min-width: 992px) {
+    .menu-header-wrapper {
+      display: none !important;
+    }
+
+    .menu-toggle-btn-header {
+      display: none !important;
+    }
+  }
+
+  /* CSS para tabla de clasificación en móvil */
+  /* Reducir espacios en móvil */
+  @media (max-width: 991px) {
+    .torneos-nav-row {
+      margin-bottom: 0 !important;
+    }
+
+    .torneos-nav-row + .block-content {
+      margin-top: 0 !important;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .tabla-posiciones-card {
+      margin: 0 -12px !important;
+      width: calc(100% + 24px) !important;
+      max-width: calc(100% + 24px) !important;
+      border-radius: 0 !important;
+    }
+    
+    .tabla-posiciones-card .card-body {
+      padding: 0 !important;
+    }
+    
+    .tabla-posiciones {
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+    
+    .table-responsive {
+      margin: 0 !important;
+      border-radius: 0 !important;
+    }
+    
+    .tabla-simbolos li {
+      font-size: 0.55rem !important;
+    }
+    
+    .tabla-posiciones th,
+    .tabla-posiciones td {
+      font-size: 0.65rem !important;
+    }
+    h2 {
+        font-size: 1rem !important;
+    }
+    #cate {
+        font-size: 0.8rem !important;
+    }
+  }
+
+  /* Centrar todos los td y th excepto la columna Equipo */
+  .tabla-posiciones th:not(:nth-child(2)),
+  .tabla-posiciones td:not(:nth-child(2)) {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+
+  /* Reducir altura de las filas de la tabla de posiciones */
+  .tabla-posiciones th,
+  .tabla-posiciones td {
+    padding-top: 0.01rem !important;
+    padding-bottom: 0.01rem !important;
+    font-size: 0.80em !important;
+  }

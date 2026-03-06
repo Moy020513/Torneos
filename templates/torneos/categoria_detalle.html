@@ -18,7 +18,7 @@
             <div class="card-header d-flex justify-content-end align-items-center gap-3">
                 {% if grupos %}
                 <div>
-                    <label for="grupoFiltro" class="form-label mb-0 me-2" style="display: inline;">Grupo:</label>
+                    <label for="grupoFiltro" class="form-label mb-0 me-2" style="display: inline;"></label>
                     <select id="grupoFiltro" class="form-select" style="max-width: 220px; display: inline-block;">
                         <option value="todos">Todos</option>
                         {% for grupo in grupos %}
@@ -28,7 +28,7 @@
                 </div>
                 {% endif %}
                 <div>
-                    <label for="jornadaFiltro" class="form-label mb-0 me-2" style="display: inline;">Jornada:</label>
+                    <label for="jornadaFiltro" class="form-label mb-0 me-2" style="display: inline;"></label>
                     <select id="jornadaFiltro" class="form-select" style="max-width: 220px; display: inline-block;">
                         <option value="todos">Todas las jornadas</option>
                         {% for j in jornadas %}

@@ -81,7 +81,11 @@
             padding-left: 0 !important;
             padding-right: 0 !important;
         }
-        
+        #match-con {
+        margin: 0 -12px !important;  /* Compensa el padding del container */
+        width: calc(100% + 24px) !important;
+        border-radius: 0 !important;
+    }
         .card {
             border-radius: 0 !important;
             border-left: 0 !important;
