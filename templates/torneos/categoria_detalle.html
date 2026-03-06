@@ -19,20 +19,20 @@
                 {% if grupos %}
                 <div>
                     <label for="grupoFiltro" class="form-label mb-0 me-2" style="display: inline;"></label>
-                    <select id="grupoFiltro" class="form-select" style="max-width: 220px; display: inline-block;">
-                        <option value="todos">Todos</option>
+                    <select id="grupoFiltro" class="form-select" style="max-width: 220px; display: inline-block;" onchange="filtrarPorGrupoProximo(this.value)">
+                        <option value="todos" {% if grupo_filtro_proximo == 'todos' %}selected{% endif %}>Todos</option>
                         {% for grupo in grupos %}
-                            <option value="{{ grupo.id }}" data-grupo-id="{{ grupo.id }}">{{ grupo.nombre }}</option>
+                            <option value="{{ grupo.id }}" {% if grupo_filtro_proximo == grupo.id|stringformat:"s" %}selected{% endif %} data-grupo-id="{{ grupo.id }}">{{ grupo.nombre }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 {% endif %}
                 <div>
                     <label for="jornadaFiltro" class="form-label mb-0 me-2" style="display: inline;"></label>
-                    <select id="jornadaFiltro" class="form-select" style="max-width: 220px; display: inline-block;">
-                        <option value="todos">Todas las jornadas</option>
+                    <select id="jornadaFiltro" class="form-select" style="max-width: 220px; display: inline-block;" onchange="filtrarPorJornadaProximo(this.value)">
+                        <option value="todos" {% if jornada_filtro_proximo == 'todos' %}selected{% endif %}>Todas las jornadas</option>
                         {% for j in jornadas %}
-                            <option value="{{ j }}">Jornada {{ j }}</option>
+                            <option value="{{ j }}" {% if jornada_filtro_proximo == j|stringformat:"s" %}selected{% endif %}>Jornada {{ j }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -172,6 +172,32 @@
                 </div>
                 {% endfor %}
             </div>
+            <!-- Paginación de Próximos Partidos -->
+            {% if proximos_partidos.paginator.num_pages > 1 %}
+            <nav class="d-flex justify-content-center mt-4">
+                <ul class="pagination">
+                    {% if proximos_partidos.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page_proximo=1{% if jornada_filtro_proximo != 'todos' %}&jornada_filtro_proximo={{ jornada_filtro_proximo }}{% endif %}{% if grupo_filtro_proximo != 'todos' %}&grupo_filtro_proximo={{ grupo_filtro_proximo }}{% endif %}">Primera</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page_proximo={{ proximos_partidos.previous_page_number }}{% if jornada_filtro_proximo != 'todos' %}&jornada_filtro_proximo={{ jornada_filtro_proximo }}{% endif %}{% if grupo_filtro_proximo != 'todos' %}&grupo_filtro_proximo={{ grupo_filtro_proximo }}{% endif %}">Anterior</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ proximos_partidos.number }} de {{ proximos_partidos.paginator.num_pages }}</span>
+                    </li>
+                    {% if proximos_partidos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page_proximo={{ proximos_partidos.next_page_number }}{% if jornada_filtro_proximo != 'todos' %}&jornada_filtro_proximo={{ jornada_filtro_proximo }}{% endif %}{% if grupo_filtro_proximo != 'todos' %}&grupo_filtro_proximo={{ grupo_filtro_proximo }}{% endif %}">Siguiente</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page_proximo={{ proximos_partidos.paginator.num_pages }}{% if jornada_filtro_proximo != 'todos' %}&jornada_filtro_proximo={{ jornada_filtro_proximo }}{% endif %}{% if grupo_filtro_proximo != 'todos' %}&grupo_filtro_proximo={{ grupo_filtro_proximo }}{% endif %}">Última</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
         <script src="{% static 'js/catego_detalle.js' %}"></script>
     {% else %}

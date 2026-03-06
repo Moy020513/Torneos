@@ -1,33 +1,27 @@
- document.addEventListener('DOMContentLoaded', function() {
-            const jornadaFiltro = document.getElementById('jornadaFiltro');
-            const grupoFiltro = document.getElementById('grupoFiltro');
-            const partidos = document.querySelectorAll('#proximos-partidos-lista .match-card');
-            
-            function aplicarFiltros() {
-                const jornadaVal = jornadaFiltro.value;
-                const grupoVal = grupoFiltro ? grupoFiltro.value : 'todos';
-                
-                partidos.forEach(function(card) {
-                    const jornada = card.getAttribute('data-jornada');
-                    const grupo = card.getAttribute('data-grupo');
-                    
-                    const jornadaCoinc = (jornadaVal === 'todos' || jornada === jornadaVal);
-                    const grupoCoinc = (grupoVal === 'todos' || grupo === grupoVal);
-                    
-                    if (jornadaCoinc && grupoCoinc) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+        function filtrarPorGrupoProximo(grupo) {
+            const url = new URL(window.location);
+            if (grupo === 'todos') {
+                url.searchParams.delete('grupo_filtro_proximo');
+            } else {
+                url.searchParams.set('grupo_filtro_proximo', grupo);
             }
-            
-            jornadaFiltro.addEventListener('change', aplicarFiltros);
-            if (grupoFiltro) {
-                grupoFiltro.addEventListener('change', aplicarFiltros);
-            }
+            url.searchParams.delete('page_proximo');
+            window.location.href = url.toString();
+        }
 
-            // Navegación por clic a detalle del partido (evita interferir con enlaces internos)
+        function filtrarPorJornadaProximo(jornada) {
+            const url = new URL(window.location);
+            if (jornada === 'todos') {
+                url.searchParams.delete('jornada_filtro_proximo');
+            } else {
+                url.searchParams.set('jornada_filtro_proximo', jornada);
+            }
+            url.searchParams.delete('page_proximo');
+            window.location.href = url.toString();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hacer las tarjetas clicables pero respetar enlaces/botones internos
             const proximoCards = document.querySelectorAll('#proximos-partidos-lista .match-card.proximo');
             proximoCards.forEach(function(card){
                 const url = card.getAttribute('data-url');

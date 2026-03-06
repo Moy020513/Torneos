@@ -1,18 +1,17 @@
-        document.addEventListener('DOMContentLoaded', function() {
-            const jornadaFiltroRes = document.getElementById('jornadaFiltroResultados');
-            const resultados = document.querySelectorAll('#ultimos-resultados-lista .match-card');
-            jornadaFiltroRes.addEventListener('change', function() {
-                const val = jornadaFiltroRes.value;
-                resultados.forEach(function(card) {
-                    if (val === 'todos' || card.getAttribute('data-jornada') === val) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
+        function filtrarPorJornada(jornada) {
+            const url = new URL(window.location);
+            if (jornada === 'todos') {
+                url.searchParams.delete('jornada_filtro');
+            } else {
+                url.searchParams.set('jornada_filtro', jornada);
+            }
+            url.searchParams.delete('page');
+            window.location.href = url.toString();
+        }
 
+        document.addEventListener('DOMContentLoaded', function() {
             // Hacer las tarjetas clicables pero respetar enlaces/botones internos
+            const resultados = document.querySelectorAll('#ultimos-resultados-lista .match-card');
             resultados.forEach(function(card) {
                 const url = card.getAttribute('data-url');
                 if (!url) return;

@@ -16,15 +16,34 @@ def resultados_view(request, categoria_id):
         Q(grupo=None, equipo_visitante__categoria=categoria)
     )
     # Incluir partidos con goles aunque jugado no esté marcado aún
-    ultimos_resultados = partidos.filter(
+    partidos_jugados = partidos.filter(
         Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
-    ).order_by('-fecha')[:50]
-    jornadas = sorted(set(p.jornada for p in ultimos_resultados))
+    )
+    # Extraer todas las jornadas sin limitación
+    jornadas = sorted(set(p.jornada for p in partidos_jugados if p.jornada is not None))
+    
+    # Filtro de jornada si se proporciona
+    jornada_filtro = request.GET.get('jornada_filtro', 'todos')
+    if jornada_filtro != 'todos':
+        try:
+            jornada_filtro_int = int(jornada_filtro)
+            ultimos_resultados_all = partidos_jugados.filter(jornada=jornada_filtro_int).order_by('-fecha')
+        except (ValueError, TypeError):
+            ultimos_resultados_all = partidos_jugados.order_by('-fecha')
+    else:
+        ultimos_resultados_all = partidos_jugados.order_by('-fecha')
+    
+    # Paginación: 15 partidos por página
+    paginator = Paginator(ultimos_resultados_all, 15)
+    page_num = request.GET.get('page', 1)
+    ultimos_resultados = paginator.get_page(page_num)
+    
     context = {
         'categoria': categoria,
         'equipos': equipos,
         'ultimos_resultados': ultimos_resultados,
-        'jornadas': jornadas
+        'jornadas': jornadas,
+        'jornada_filtro': jornada_filtro
     }
     return render(request, 'torneos/resultados.html', context)
 # Vista de estadísticas solo para administradores
@@ -105,6 +124,7 @@ def get_categorias_by_torneo(request):
     return JsonResponse({'categorias': categorias})
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.paginator import Paginator
 from .decorators import admin_torneo_required
 from django.contrib import messages
 from django.http import JsonResponse
@@ -723,10 +743,34 @@ def categoria_detalle(request, categoria_id):
         categoria=categoria,
         equipos__isnull=False
     ).distinct().order_by('nombre')
+    
+    # Filtro de jornada si se proporciona
+    jornada_filtro_proximo = request.GET.get('jornada_filtro_proximo', 'todos')
+    if jornada_filtro_proximo != 'todos':
+        try:
+            jornada_filtro_proximo_int = int(jornada_filtro_proximo)
+            proximos_partidos = [p for p in proximos_partidos if p.jornada == jornada_filtro_proximo_int]
+        except (ValueError, TypeError):
+            pass
+    
+    # Filtro de grupo si se proporciona
+    grupo_filtro_proximo = request.GET.get('grupo_filtro_proximo', 'todos')
+    if grupo_filtro_proximo != 'todos':
+        try:
+            grupo_filtro_proximo_int = int(grupo_filtro_proximo)
+            proximos_partidos = [p for p in proximos_partidos if p.grupo and p.grupo.id == grupo_filtro_proximo_int]
+        except (ValueError, TypeError):
+            pass
+    
+    # Paginación de próximos partidos: 15 partidos por página
+    paginator_proximo = Paginator(proximos_partidos, 15)
+    page_num_proximo = request.GET.get('page_proximo', 1)
+    proximos_partidos_paginated = paginator_proximo.get_page(page_num_proximo)
+    
     context = {
         'categoria': categoria,
         'equipos': equipos,
-        'proximos_partidos': proximos_partidos,
+        'proximos_partidos': proximos_partidos_paginated,
         'ultimos_resultados': ultimos_resultados,
         'total_partidos': total_partidos,
         'partidos_jugados': partidos_jugados,
@@ -734,6 +778,8 @@ def categoria_detalle(request, categoria_id):
         'total_goles': total_goles,
         'jornadas': jornadas,
         'grupos': grupos,
+        'jornada_filtro_proximo': jornada_filtro_proximo,
+        'grupo_filtro_proximo': grupo_filtro_proximo
     }
     return render(request, 'torneos/categoria_detalle.html', context)
 @login_required

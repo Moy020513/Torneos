@@ -12,10 +12,10 @@
             <h3 class="m-0 text-navy"><i class="fa-solid fa-history"></i> Últimos Resultados</h3>
         </div>
         <div class="card-header d-flex justify-content-end align-items-center">
-            <select id="jornadaFiltroResultados" class="form-select" style="max-width: 220px;">
-                <option value="todos">Todas las jornadas</option>
+            <select id="jornadaFiltroResultados" class="form-select" style="max-width: 220px;" onchange="filtrarPorJornada(this.value)">
+                <option value="todos" {% if jornada_filtro == 'todos' %}selected{% endif %}>Todas las jornadas</option>
                 {% for j in jornadas %}
-                    <option value="{{ j }}">Jornada {{ j }}</option>
+                    <option value="{{ j }}" {% if jornada_filtro == j|stringformat:"s" %}selected{% endif %}>Jornada {{ j }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -104,6 +104,32 @@
                 </div>
             {% endif %}
         </div>
+        <!-- Paginación de Resultados -->
+        {% if ultimos_resultados.paginator.num_pages > 1 %}
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="pagination">
+                {% if ultimos_resultados.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if jornada_filtro != 'todos' %}&jornada_filtro={{ jornada_filtro }}{% endif %}">Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ ultimos_resultados.previous_page_number }}{% if jornada_filtro != 'todos' %}&jornada_filtro={{ jornada_filtro }}{% endif %}">Anterior</a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">{{ ultimos_resultados.number }} de {{ ultimos_resultados.paginator.num_pages }}</span>
+                </li>
+                {% if ultimos_resultados.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ ultimos_resultados.next_page_number }}{% if jornada_filtro != 'todos' %}&jornada_filtro={{ jornada_filtro }}{% endif %}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ ultimos_resultados.paginator.num_pages }}{% if jornada_filtro != 'todos' %}&jornada_filtro={{ jornada_filtro }}{% endif %}">Última</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
         <script src="{% static 'js/resultados.js' %}"></script>
     </div>
 {% endblock %}
