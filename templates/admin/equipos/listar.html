@@ -84,7 +84,7 @@
                             <th>Nombre</th>
                             <th>Categoría</th>
                             <th>Jugadores</th>
-                            <th>Colores</th>
+                            <th>Grupos</th>
                             <th>Estado</th>
                             <th>Creado</th>
                             <th width="120">Acciones</th>
@@ -115,10 +115,18 @@
                                 <span class="badge badge-admin">{{ equipo.total_jugadores }} jugadores</span>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded me-1" style="width: 20px; height: 20px; background-color: {{ equipo.color_principal }};"></div>
-                                    <div class="rounded" style="width: 20px; height: 20px; background-color: {{ equipo.color_secundario }};"></div>
-                                </div>
+                                {% if equipo.asignaciones_grupos.all %}
+                                    <div class="small">
+                                        {% for asignacion in equipo.asignaciones_grupos.all %}
+                                            <div class="mb-1">
+                                                <strong class="text-uppercase" style="font-size: 0.75rem; color: #666;">{{ asignacion.get_formato_display }}:</strong>
+                                                <span class="badge" style="background-color: #e8f4f8; color: #0c5460;">{{ asignacion.grupo.nombre }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">Sin grupos asignados</span>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if equipo.activo %}

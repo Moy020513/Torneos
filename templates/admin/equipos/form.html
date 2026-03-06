@@ -85,41 +85,68 @@
                         <div class="form-text">Logo del equipo (opcional). Formatos: PNG, JPG, JPEG, GIF</div>
                     </div>
                     
-                    <!-- Colores -->
-                    <div class="row">
-                        <div class="col-md-6">
+                    <!-- Grupos (Dinámico según formato del torneo) -->
+                    {% if torneo_info %}
+                    <div id="grupos-container">
+                        <h5 class="mb-3 mt-4">Asignación de Grupos</h5>
+                        {% if torneo_info.formato_torneo == 'copa' %}
                             <div class="admin-form-group">
-                                <label class="admin-form-label" for="{{ form.color_principal.id_for_label }}">
-                                    {{ form.color_principal.label }}
-                                </label>
-                                {{ form.color_principal }}
-                                {% if form.color_principal.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.color_principal.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Color principal del equipo</div>
+                                <label class="admin-form-label">Grupo (Copa) <span class="text-danger">*</span></label>
+                                <select name="grupo_copa" class="admin-form-control form-select">
+                                    <option value="">-- Seleccionar Grupo --</option>
+                                    {% for grupo in grupos %}
+                                        <option value="{{ grupo.id }}" {% if grupos_asignados.copa == grupo.id %}selected{% endif %}>{{ grupo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </div>
-                        <div class="col-md-6">
+                        {% elif torneo_info.formato_torneo == 'liga' %}
                             <div class="admin-form-group">
-                                <label class="admin-form-label" for="{{ form.color_secundario.id_for_label }}">
-                                    {{ form.color_secundario.label }}
-                                </label>
-                                {{ form.color_secundario }}
-                                {% if form.color_secundario.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.color_secundario.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Color secundario del equipo</div>
+                                <label class="admin-form-label">Grupo (Liga) <span class="text-danger">*</span></label>
+                                <select name="grupo_liga" class="admin-form-control form-select">
+                                    <option value="">-- Seleccionar Grupo --</option>
+                                    {% for grupo in grupos %}
+                                        <option value="{{ grupo.id }}" {% if grupos_asignados.liga == grupo.id %}selected{% endif %}>{{ grupo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </div>
+                        {% elif torneo_info.formato_torneo == 'copa_liga' %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="admin-form-group">
+                                        <label class="admin-form-label">Grupo (Copa) <span class="text-danger">*</span></label>
+                                        <select name="grupo_copa" class="admin-form-control form-select">
+                                            <option value="">-- Seleccionar Grupo --</option>
+                                            {% for grupo in grupos %}
+                                                <option value="{{ grupo.id }}" {% if grupos_asignados.copa == grupo.id %}selected{% endif %}>{{ grupo.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="admin-form-group">
+                                        <label class="admin-form-label">Grupo (Liga) <span class="text-danger">*</span></label>
+                                        <select name="grupo_liga" class="admin-form-control form-select">
+                                            <option value="">-- Seleccionar Grupo --</option>
+                                            {% for grupo in grupos %}
+                                                <option value="{{ grupo.id }}" {% if grupos_asignados.liga == grupo.id %}selected{% endif %}>{{ grupo.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif torneo_info.formato_torneo == 'eliminatoria' %}
+                            <div class="admin-form-group">
+                                <label class="admin-form-label">Grupo (Eliminatorias) <span class="text-danger">*</span></label>
+                                <select name="grupo_eliminatoria" class="admin-form-control form-select">
+                                    <option value="">-- Seleccionar Grupo --</option>
+                                    {% for grupo in grupos %}
+                                        <option value="{{ grupo.id }}" {% if grupos_asignados.eliminatoria == grupo.id %}selected{% endif %}>{{ grupo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
                     </div>
+                    {% endif %}
                     
                     <!-- Estado activo -->
                     <div class="admin-form-group">

@@ -14,7 +14,10 @@
         <h2 class="mb-1">Partidos</h2>
         <p class="text-muted mb-0">Administra todos los partidos del sistema</p>
     </div>
-    <div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_crear_jornada' %}" class="btn btn-outline-primary">
+            <i class="fas fa-calendar-plus me-2"></i>Crear Jornada
+        </a>
         <a href="{% url 'admin_crear_partido' %}" class="btn btn-admin">
             <i class="fas fa-plus me-2"></i>Crear Partido
         </a>

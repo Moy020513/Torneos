@@ -973,7 +973,7 @@ def admin_eliminar_categoria(request, categoria_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_equipos(request):
-    equipos = Equipo.objects.all().select_related('categoria', 'categoria__torneo').order_by('-fecha_creacion')
+    equipos = Equipo.objects.all().select_related('categoria', 'categoria__torneo').prefetch_related('asignaciones_grupos', 'asignaciones_grupos__grupo').order_by('-fecha_creacion')
     # Limitar por torneo si el usuario es AdministradorTorneo
     assigned_torneo = None
     if not request.user.is_superuser:
@@ -1044,6 +1044,24 @@ def admin_crear_equipo(request):
                 else:
                     equipo = form.save()
                     
+                    # Guardar asignaciones de grupos según el formato del torneo
+                    from .models import EquipoGrupo
+                    torneo = equipo.categoria.torneo
+                    
+                    # Procesar asignaciones de grupos dinámicas
+                    for formato in ['copa', 'liga', 'eliminatoria']:
+                        grupo_id = request.POST.get(f'grupo_{formato}')
+                        if grupo_id:
+                            try:
+                                grupo = Grupo.objects.get(id=grupo_id, categoria=equipo.categoria)
+                                EquipoGrupo.objects.get_or_create(
+                                    equipo=equipo,
+                                    grupo=grupo,
+                                    formato=formato
+                                )
+                            except Grupo.DoesNotExist:
+                                pass
+                    
                     # Registrar actividad
                     registrar_actividad(
                         torneo=equipo.categoria.torneo,
@@ -1059,6 +1077,24 @@ def admin_crear_equipo(request):
                     return redirect('admin_equipos')
             else:
                 equipo = form.save()
+                
+                # Guardar asignaciones de grupos según el formato del torneo
+                from .models import EquipoGrupo
+                torneo = equipo.categoria.torneo
+                
+                # Procesar asignaciones de grupos dinámicas
+                for formato in ['copa', 'liga', 'eliminatoria']:
+                    grupo_id = request.POST.get(f'grupo_{formato}')
+                    if grupo_id:
+                        try:
+                            grupo = Grupo.objects.get(id=grupo_id, categoria=equipo.categoria)
+                            EquipoGrupo.objects.get_or_create(
+                                equipo=equipo,
+                                grupo=grupo,
+                                formato=formato
+                            )
+                        except Grupo.DoesNotExist:
+                            pass
                 
                 # Registrar actividad
                 registrar_actividad(
@@ -1076,9 +1112,22 @@ def admin_crear_equipo(request):
     else:
         form = EquipoForm(assigned_torneo=assigned_torneo)
     
+    # Obtener información del torneo si está asignado
+    torneo_info = None
+    grupos = []
+    if assigned_torneo:
+        try:
+            torneo_info = Torneo.objects.get(id=assigned_torneo)
+            # Obtener grupos de la categoría seleccionada
+            grupos = list(Grupo.objects.filter(categoria__torneo_id=assigned_torneo).values('id', 'nombre', 'categoria__nombre').order_by('nombre'))
+        except Torneo.DoesNotExist:
+            pass
+    
     context = {
         'form': form,
         'action': 'Crear',
+        'torneo_info': torneo_info,
+        'grupos': grupos,
     }
     return render(request, 'admin/equipos/form.html', context)
 
@@ -1101,6 +1150,24 @@ def admin_editar_equipo(request, equipo_id):
                 else:
                     equipo = form.save()
                     
+                    # Actualizar asignaciones de grupos
+                    from .models import EquipoGrupo
+                    for formato in ['copa', 'liga', 'eliminatoria']:
+                        grupo_id = request.POST.get(f'grupo_{formato}')
+                        # Eliminar asignaciones previas del formato
+                        EquipoGrupo.objects.filter(equipo=equipo, formato=formato).delete()
+                        # Crear nueva asignación si se seleccionó grupo
+                        if grupo_id:
+                            try:
+                                grupo = Grupo.objects.get(id=grupo_id, categoria=equipo.categoria)
+                                EquipoGrupo.objects.get_or_create(
+                                    equipo=equipo,
+                                    grupo=grupo,
+                                    formato=formato
+                                )
+                            except Grupo.DoesNotExist:
+                                pass
+                    
                     # Registrar actividad
                     registrar_actividad(
                         torneo=equipo.categoria.torneo,
@@ -1116,6 +1183,24 @@ def admin_editar_equipo(request, equipo_id):
                     return redirect('admin_equipos')
             else:
                 equipo = form.save()
+                
+                # Actualizar asignaciones de grupos
+                from .models import EquipoGrupo
+                for formato in ['copa', 'liga', 'eliminatoria']:
+                    grupo_id = request.POST.get(f'grupo_{formato}')
+                    # Eliminar asignaciones previas del formato
+                    EquipoGrupo.objects.filter(equipo=equipo, formato=formato).delete()
+                    # Crear nueva asignación si se seleccionó grupo
+                    if grupo_id:
+                        try:
+                            grupo = Grupo.objects.get(id=grupo_id, categoria=equipo.categoria)
+                            EquipoGrupo.objects.get_or_create(
+                                equipo=equipo,
+                                grupo=grupo,
+                                formato=formato
+                            )
+                        except Grupo.DoesNotExist:
+                            pass
                 
                 # Registrar actividad
                 registrar_actividad(
@@ -1133,10 +1218,22 @@ def admin_editar_equipo(request, equipo_id):
     else:
         form = EquipoForm(instance=equipo, assigned_torneo=assigned_torneo)
     
+    # Obtener información del torneo
+    torneo_info = equipo.categoria.torneo
+    grupos = list(Grupo.objects.filter(categoria=equipo.categoria).values('id', 'nombre', 'categoria__nombre').order_by('nombre'))
+    
+    # Obtener asignaciones existentes
+    grupos_asignados = {}
+    for asignacion in equipo.asignaciones_grupos.all():
+        grupos_asignados[asignacion.formato] = asignacion.grupo_id
+    
     context = {
         'form': form,
         'equipo': equipo,
         'action': 'Editar',
+        'torneo_info': torneo_info,
+        'grupos': grupos,
+        'grupos_asignados': grupos_asignados,
     }
     return render(request, 'admin/equipos/form.html', context)
 
@@ -1581,6 +1678,279 @@ def admin_editar_partido(request, partido_id):
         'action': 'Editar',
     }
     return render(request, 'admin/partidos/form.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_crear_jornada(request):
+    """Crear una jornada completa de partidos usando round-robin"""
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+    
+    if request.method == 'POST':
+        categoria_id = request.POST.get('categoria')
+        numero_jornada = request.POST.get('numero_jornada')
+        formato = request.POST.get('formato')
+        grupo_copa = request.POST.get('grupo_copa')
+        grupo_liga = request.POST.get('grupo_liga')
+        
+        if not categoria_id or not numero_jornada:
+            messages.error(request, 'Debes seleccionar una categoría y un número de jornada.')
+            return redirect('admin_crear_jornada')
+        
+        categoria = get_object_or_404(Categoria, id=categoria_id)
+        
+        # Validar que el usuario pueda acceder a esta categoría
+        if assigned_torneo and categoria.torneo_id != assigned_torneo:
+            messages.error(request, 'No tienes permiso para acceder a esta categoría.')
+            return redirect('admin_partidos')
+        
+        try:
+            numero_jornada = int(numero_jornada)
+        except (ValueError, TypeError):
+            messages.error(request, 'Número de jornada inválido.')
+            return redirect('admin_crear_jornada')
+        
+        # Obtener equipos según el formato y grupo
+        from .models import EquipoGrupo
+        grupos = Grupo.objects.filter(categoria=categoria).order_by('nombre')
+        
+        if grupos.exists():
+            # Si hay grupos, usar los especificados
+            if not formato:
+                messages.error(request, 'Debes seleccionar un formato.')
+                return redirect('admin_crear_jornada')
+            
+            if formato == 'copa_liga':
+                # Dos formatos: Copa y Liga
+                if not grupo_copa or not grupo_liga:
+                    messages.error(request, 'Debes seleccionar un grupo para Copa y otro para Liga.')
+                    return redirect('admin_crear_jornada')
+                crear_partidos_jornada(categoria, numero_jornada, grupo_copa, 'copa')
+                crear_partidos_jornada(categoria, numero_jornada, grupo_liga, 'liga')
+                messages.success(request, f'Jornada {numero_jornada} creada para Copa y Liga.')
+            elif formato in ['copa', 'liga', 'eliminatoria']:
+                grupo_id = grupo_copa if formato in ['copa', 'eliminatoria'] else grupo_liga
+                if not grupo_id:
+                    messages.error(request, f'Debes seleccionar un grupo para {formato.capitalize()}.')
+                    return redirect('admin_crear_jornada')
+                crear_partidos_jornada(categoria, numero_jornada, grupo_id, formato)
+                messages.success(request, f'Jornada {numero_jornada} creada para {formato.capitalize()}.')
+            else:
+                messages.error(request, f'Formato "{formato}" no es válido.')
+                return redirect('admin_crear_jornada')
+        else:
+            # Sin grupos, crear partidos para toda la categoría
+            crear_partidos_jornada_sin_grupo(categoria, numero_jornada)
+            messages.success(request, f'Jornada {numero_jornada} creada.')
+        
+        return redirect('admin_partidos')
+    
+    # GET: mostrar formulario
+    if assigned_torneo:
+        categorias = Categoria.objects.filter(torneo_id=assigned_torneo)
+    else:
+        categorias = Categoria.objects.all()
+    
+    context = {
+        'categorias': categorias,
+    }
+    return render(request, 'admin/partidos/crear_jornada.html', context)
+
+def crear_partidos_jornada(categoria, numero_jornada, grupo_id, nombre_formato):
+    """Crear partidos para una jornada específica de un grupo con round-robin"""
+    from .models import EquipoGrupo
+    
+    if not grupo_id:
+        return
+    
+    grupo = get_object_or_404(Grupo, id=grupo_id, categoria=categoria)
+    
+    # Normalizar el formato a minúsculas
+    formato_db = nombre_formato.lower() if isinstance(nombre_formato, str) else nombre_formato
+    
+    equipos_asignaciones = EquipoGrupo.objects.filter(
+        grupo=grupo,
+        formato=formato_db
+    ).select_related('equipo')
+    
+    if not equipos_asignaciones.exists():
+        return
+    
+    equipos = [asignacion.equipo for asignacion in equipos_asignaciones]
+    
+    if len(equipos) < 2:
+        return
+    
+    # Algoritmo round-robin simple para una jornada
+    n = len(equipos)
+    if n % 2 == 1:
+        equipos.append(None)  # Equipo ficticio para números impares
+        n += 1
+    
+    partidos_por_jornada = n // 2
+    
+    # Generar emparejamientos para esta jornada específica
+    temp_equipos = equipos.copy()
+    
+    # Rotar equipos según la jornada
+    for _ in range(numero_jornada - 1):
+        temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
+    
+    # Crear partidos
+    for i in range(partidos_por_jornada):
+        if numero_jornada % 2 == 1:
+            local = temp_equipos[i]
+            visitante = temp_equipos[n - 1 - i]
+        else:
+            local = temp_equipos[n - 1 - i]
+            visitante = temp_equipos[i]
+        
+        if local is not None and visitante is not None:
+            Partido.objects.create(
+                grupo=grupo,
+                jornada=numero_jornada,
+                equipo_local=local,
+                equipo_visitante=visitante,
+                fecha=None
+            )
+    
+    # Si hay equipo descanso (impar)
+    if None in temp_equipos:
+        equipos_en_jornada = set()
+        for i in range(partidos_por_jornada):
+            if numero_jornada % 2 == 1:
+                local = temp_equipos[i]
+                visitante = temp_equipos[n - 1 - i]
+            else:
+                local = temp_equipos[n - 1 - i]
+                visitante = temp_equipos[i]
+            if local is not None and visitante is not None:
+                equipos_en_jornada.add(local)
+                equipos_en_jornada.add(visitante)
+        
+        equipo_descanso = [eq for eq in temp_equipos if eq not in equipos_en_jornada and eq is not None]
+        if equipo_descanso:
+            eq_descansa = equipo_descanso[0]
+            Partido.objects.create(
+                grupo=grupo,
+                jornada=numero_jornada,
+                equipo_local=eq_descansa,
+                equipo_visitante=eq_descansa,
+                fecha=None
+            )
+
+def crear_partidos_jornada_sin_grupo(categoria, numero_jornada):
+    """Crear partidos para una jornada cuando no hay grupos definidos"""
+    equipos = Equipo.objects.filter(categoria=categoria)
+    
+    if len(equipos) < 2:
+        return
+    
+    # Crear o usar grupo único
+    grupo, _ = Grupo.objects.get_or_create(
+        categoria=categoria,
+        nombre="Grupo Único",
+        defaults={'descripcion': 'Grupo principal de la categoría'}
+    )
+    
+    equipos_list = list(equipos)
+    n = len(equipos_list)
+    if n % 2 == 1:
+        equipos_list.append(None)
+        n += 1
+    
+    partidos_por_jornada = n // 2
+    temp_equipos = equipos_list.copy()
+    
+    # Rotar equipos según la jornada
+    for _ in range(numero_jornada - 1):
+        temp_equipos = [temp_equipos[0]] + [temp_equipos[-1]] + temp_equipos[1:-1]
+    
+    # Crear partidos
+    for i in range(partidos_por_jornada):
+        if numero_jornada % 2 == 1:
+            local = temp_equipos[i]
+            visitante = temp_equipos[n - 1 - i]
+        else:
+            local = temp_equipos[n - 1 - i]
+            visitante = temp_equipos[i]
+        
+        if local is not None and visitante is not None:
+            Partido.objects.create(
+                grupo=grupo,
+                jornada=numero_jornada,
+                equipo_local=local,
+                equipo_visitante=visitante,
+                fecha=None
+            )
+    
+    # Si hay equipo descanso
+    if None in temp_equipos:
+        equipos_en_jornada = set()
+        for i in range(partidos_por_jornada):
+            if numero_jornada % 2 == 1:
+                local = temp_equipos[i]
+                visitante = temp_equipos[n - 1 - i]
+            else:
+                local = temp_equipos[n - 1 - i]
+                visitante = temp_equipos[i]
+            if local is not None and visitante is not None:
+                equipos_en_jornada.add(local)
+                equipos_en_jornada.add(visitante)
+        
+        equipo_descanso = [eq for eq in temp_equipos if eq not in equipos_en_jornada and eq is not None]
+        if equipo_descanso:
+            eq_descansa = equipo_descanso[0]
+            Partido.objects.create(
+                grupo=grupo,
+                jornada=numero_jornada,
+                equipo_local=eq_descansa,
+                equipo_visitante=eq_descansa,
+                fecha=None
+            )
+
+@login_required
+def api_categoria_grupos_formatos(request, categoria_id):
+    """API endpoint para obtener grupos y formatos disponibles de una categoría"""
+    import json
+    from django.http import JsonResponse
+    
+    # Verificar que el usuario sea admin
+    if not is_admin(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    
+    # Obtener grupos
+    grupos = Grupo.objects.filter(categoria=categoria).order_by('nombre')
+    grupos_data = [{'id': g.id, 'nombre': g.nombre} for g in grupos]
+    
+    # Obtener formatos disponibles según la categoría asociada
+    formatos_disponibles = []
+    torneo = categoria.torneo
+    if torneo.formato_torneo == 'copa':
+        formatos_disponibles = ['copa']
+    elif torneo.formato_torneo == 'liga':
+        formatos_disponibles = ['liga']
+    elif torneo.formato_torneo == 'copa_liga':
+        formatos_disponibles = ['copa', 'liga']
+    elif torneo.formato_torneo == 'eliminatoria':
+        formatos_disponibles = ['eliminatoria']
+    
+    return JsonResponse({
+        'tiene_grupos': grupos.exists(),
+        'grupos': grupos_data,
+        'formatos_disponibles': formatos_disponibles,
+        'categorias_info': {
+            'id': categoria.id,
+            'nombre': categoria.nombre,
+            'torneo': {
+                'id': torneo.id,
+                'nombre': torneo.nombre
+            }
+        }
+    })
 
 @login_required
 @user_passes_test(is_admin)

@@ -718,6 +718,11 @@ def categoria_detalle(request, categoria_id):
     equipos = sorted(equipos, key=lambda x: (-x.puntos_totales, -x.diferencia_goles, -x.goles_favor))
     # Obtener jornadas únicas para el filtro
     jornadas = sorted(set(p.jornada for p in proximos_partidos))
+    # Obtener grupos de la categoría que tengan equipos asignados
+    grupos = Grupo.objects.filter(
+        categoria=categoria,
+        equipos__isnull=False
+    ).distinct().order_by('nombre')
     context = {
         'categoria': categoria,
         'equipos': equipos,
@@ -728,6 +733,7 @@ def categoria_detalle(request, categoria_id):
         'partidos_pendientes': partidos_pendientes,
         'total_goles': total_goles,
         'jornadas': jornadas,
+        'grupos': grupos,
     }
     return render(request, 'torneos/categoria_detalle.html', context)
 @login_required
@@ -1097,14 +1103,30 @@ def generar_calendario(request, categoria_id):
 
 # Vista independiente para tabla de posiciones
 def tabla_posiciones_view(request, categoria_id):
+    from .models import EquipoGrupo
+    
     categoria = get_object_or_404(Categoria, id=categoria_id)
-    equipos = Equipo.objects.filter(categoria=categoria)
+    equipos = Equipo.objects.filter(categoria=categoria).prefetch_related('asignaciones_grupos', 'asignaciones_grupos__grupo')
+    
+    # Obtener grupos de la categoría
+    grupos = Grupo.objects.filter(categoria=categoria).order_by('nombre')
+    
+    # Filtro por grupo si se solicita
+    grupo_id = request.GET.get('grupo')
+    grupo_filtro = None
+    if grupo_id:
+        grupo_filtro = get_object_or_404(Grupo, id=grupo_id, categoria=categoria)
+        # Filtrar equipos que están asignados al grupo seleccionado
+        equipos_ids = EquipoGrupo.objects.filter(grupo=grupo_filtro).values_list('equipo_id', flat=True)
+        equipos = equipos.filter(id__in=equipos_ids)
+    
     # Partidos válidos para la tabla: jugados o con goles cargados (>0)
     partidos_validos = Partido.objects.filter(
         Q(equipo_local__categoria=categoria) | Q(equipo_visitante__categoria=categoria)
     ).filter(
         Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
     )
+    
     for equipo in equipos:
         partidos_jugados_eq = partidos_validos.filter(
             Q(equipo_local=equipo) | Q(equipo_visitante=equipo)
@@ -1151,9 +1173,13 @@ def tabla_posiciones_view(request, categoria_id):
         equipo.total_ajuste_puntos = ajustes_puntos  # Guardar ajustes para mostrar en tabla
         equipo.puntos_totales = puntos + ajustes_puntos  # Puntos con ajustes para ordenamiento
     equipos = sorted(equipos, key=lambda x: (-x.puntos_totales, -x.diferencia_goles, -x.goles_favor))
+    
     context = {
         'categoria': categoria,
-        'equipos': equipos
+        'equipos': equipos,
+        'grupos': grupos,
+        'grupo_filtro': grupo_filtro,
+        'grupo_id': grupo_id,
     }
     return render(request, 'torneos/tabla_posiciones.html', context)
 

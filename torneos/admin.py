@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import models
-from .models import Eliminatoria, Torneo, Categoria, Equipo, Jugador, Representante, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
+from .models import Eliminatoria, Torneo, Categoria, Equipo, EquipoGrupo, Jugador, Representante, Partido, PartidoEliminatoria, Goleador, ParticipacionJugador
 from .models import AdministradorTorneo, AjustePuntos, Arbitro, RegistroActividad
 from .forms import EquipoAdminForm
 from django.utils.html import format_html
@@ -383,6 +383,12 @@ class EquipoAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('admin/js/filtrar_categorias.js',)
+
+@admin.register(EquipoGrupo)
+class EquipoGrupoAdmin(admin.ModelAdmin):
+    list_display = ('equipo', 'grupo', 'formato')
+    list_filter = ('formato', 'grupo__categoria')
+    search_fields = ('equipo__nombre', 'grupo__nombre')
 
 @admin.register(Jugador)
 class JugadorAdmin(admin.ModelAdmin):

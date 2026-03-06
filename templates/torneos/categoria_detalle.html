@@ -15,22 +15,36 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="m-0 text-navy"><i class="fa-solid fa-calendar-day"></i> Próximos Enfrentamientos</h3>
             </div>
-            <div class="card-header d-flex justify-content-end align-items-center">
-                <select id="jornadaFiltro" class="form-select" style="max-width: 220px;">
-                    <option value="todos">Todas las jornadas</option>
-                    {% for j in jornadas %}
-                        <option value="{{ j }}">Jornada {{ j }}</option>
-                    {% endfor %}
-                </select>    
+            <div class="card-header d-flex justify-content-end align-items-center gap-3">
+                {% if grupos %}
+                <div>
+                    <label for="grupoFiltro" class="form-label mb-0 me-2" style="display: inline;">Grupo:</label>
+                    <select id="grupoFiltro" class="form-select" style="max-width: 220px; display: inline-block;">
+                        <option value="todos">Todos</option>
+                        {% for grupo in grupos %}
+                            <option value="{{ grupo.id }}" data-grupo-id="{{ grupo.id }}">{{ grupo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div>
+                    <label for="jornadaFiltro" class="form-label mb-0 me-2" style="display: inline;">Jornada:</label>
+                    <select id="jornadaFiltro" class="form-select" style="max-width: 220px; display: inline-block;">
+                        <option value="todos">Todas las jornadas</option>
+                        {% for j in jornadas %}
+                            <option value="{{ j }}">Jornada {{ j }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <div class="card-body" id="proximos-partidos-lista">
                 {% for partido in proximos_partidos %}
-                <div class="match-card proximo" data-jornada="{{ partido.jornada }}" data-url="{% url 'partido_detalle' partido.id %}">
+                <div class="match-card proximo" data-jornada="{{ partido.jornada }}" data-grupo="{{ partido.grupo.id }}" data-url="{% url 'partido_detalle' partido.id %}">
                     <div class="row align-items-center">
                         <div class="col-md-1 d-none d-sm-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
                             <span class="match-status status-proximo mb-2">J{{ partido.jornada }}</span>
                         </div>
-                        <div class="col-md-7">
+                        <div class="col-md-6">
                             <div class="team-rows position-relative">
                                 {# Fondo dividido o gris según si descansa #}
                                 {% if partido.equipo_local and partido.equipo_visitante %}
@@ -85,7 +99,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4 text-end">
+                        <div class="col-md-5 text-end">
                             <div class="d-none d-sm-block"><!-- Desktop: cada dato en su fila -->
                                 <div class="mb-2">
                                     <span class="match-date-chip">

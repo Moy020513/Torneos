@@ -1,0 +1,269 @@
+{% extends 'admin/admin_base.html' %}
+{% block body_class %}admin-page{% endblock %}
+{% load static %}
+
+{% block page_title %}Crear Jornada{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-4">
+    <div>
+        <h2 class="mb-1">Crear Jornada</h2>
+        <p class="text-muted mb-0">Genera automáticamente los partidos de una jornada usando round-robin</p>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3><i class="fas fa-calendar-plus me-2"></i>Nueva Jornada</h3>
+    </div>
+    <div class="admin-card-body">
+        <form method="POST" id="crear-jornada-form" class="row g-4">
+            {% csrf_token %}
+            
+            <!-- Categoría -->
+            <div class="col-md-6">
+                <label class="admin-form-label">Categoría <span class="text-danger">*</span></label>
+                <select name="categoria" id="categoriaSelect" class="admin-form-control form-select" required>
+                    <option value="">-- Selecciona una categoría --</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}" data-torneo="{{ cat.torneo.id }}" data-tiene-grupos="{{ cat.grupos.all|length }}" data-formatos="{% for fmt in cat.grupo_set.all|dictsort:'nombre' %}{{ fmt.nombre }}{% endfor %}">
+                            {{ cat.torneo.nombre }} - {{ cat.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Número de Jornada -->
+            <div class="col-md-6">
+                <label class="admin-form-label">Número de Jornada <span class="text-danger">*</span></label>
+                <input type="number" name="numero_jornada" id="numeroJornada" class="admin-form-control" min="1" max="50" required placeholder="Ej: 1, 2, 3...">
+            </div>
+            
+            <!-- Formato (si aplica) -->
+            <div class="col-md-12" id="formato-container" style="display: none;">
+                <label class="admin-form-label">Formato <span class="text-danger">*</span></label>
+                <div id="formato-options">
+                    <!-- Se llena con AJAX -->
+                </div>
+            </div>
+            
+            <!-- Grupos por Formato (si aplica) -->
+            <div class="col-md-12" id="grupos-container" style="display: none;">
+                <div class="row g-3" id="grupos-row">
+                    <!-- Se llena con AJAX -->
+                </div>
+            </div>
+            
+            <!-- Submit -->
+            <div class="col-12 d-flex justify-content-between pt-3 border-top">
+                <a href="{% url 'admin_partidos' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+                <button type="submit" class="btn btn-admin">
+                    <i class="fas fa-check me-2"></i>Crear Jornada
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoriaSelect = document.getElementById('categoriaSelect');
+    const formatoContainer = document.getElementById('formato-container');
+    const formatoOptions = document.getElementById('formato-options');
+    const gruposContainer = document.getElementById('grupos-container');
+    const gruposRow = document.getElementById('grupos-row');
+    const form = document.getElementById('crear-jornada-form');
+    
+    categoriaSelect.addEventListener('change', function() {
+        formatoContainer.style.display = 'none';
+        gruposContainer.style.display = 'none';
+        formatoOptions.innerHTML = '';
+        gruposRow.innerHTML = '';
+        
+        if (!this.value) return;
+        
+        // AJAX para cargar grupos y formatos
+        fetch(`/panel/api/categoria/${this.value}/grupos-formatos/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos recibidos:', data);
+                
+                if (data.tiene_grupos) {
+                    // Mostrar selector de formato
+                    formatoContainer.style.display = 'block';
+                    
+                    if (data.formatos_disponibles.includes('copa_liga')) {
+                        // Copa y Liga
+                        formatoOptions.innerHTML = `
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Esta categoría tiene formato Copa y Liga. Se crearán partidos para ambos formatos automáticamente.
+                            </div>
+                            <input type="hidden" name="formato" value="copa_liga">
+                        `;
+                    } else if (data.formatos_disponibles.length === 1) {
+                        // Un solo formato - seleccionarlo automáticamente
+                        const formato = data.formatos_disponibles[0];
+                        const labelMap = {
+                            'copa': 'Copa',
+                            'liga': 'Liga',
+                            'eliminatoria': 'Eliminatorias'
+                        };
+                        formatoOptions.innerHTML = `
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Formato: <strong>${labelMap[formato] || formato}</strong>
+                            </div>
+                            <input type="hidden" name="formato" value="${formato}">
+                        `;
+                    } else if (data.formatos_disponibles.length > 1) {
+                        // Múltiples formatos - mostrar radio buttons
+                        let formatoOptions_html = '<div class="btn-group" role="group">';
+                        data.formatos_disponibles.forEach((fmt, idx) => {
+                            const labelMap = {
+                                'copa': 'Copa',
+                                'liga': 'Liga',
+                                'eliminatoria': 'Eliminatorias'
+                            };
+                            const isFirst = idx === 0;
+                            formatoOptions_html += `
+                                <input type="radio" class="btn-check" name="formato" id="formato_${fmt}" value="${fmt}" ${isFirst ? 'checked' : ''} required>
+                                <label class="btn btn-outline-primary" for="formato_${fmt}">${labelMap[fmt]}</label>
+                            `;
+                        });
+                        formatoOptions_html += '</div>';
+                        formatoOptions.innerHTML = formatoOptions_html;
+                    }
+                    
+                    // Mostrar selectores de grupo
+                    gruposContainer.style.display = 'block';
+                    let gruposHtml = '';
+                    
+                    if (data.formatos_disponibles.includes('copa_liga')) {
+                        gruposHtml = `
+                            <div class="col-md-6">
+                                <label class="admin-form-label">Grupo - Copa <span class="text-danger">*</span></label>
+                                <select name="grupo_copa" class="admin-form-control form-select" required>
+                                    <option value="">-- Selecciona grupo --</option>
+                                    ${data.grupos.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="admin-form-label">Grupo - Liga <span class="text-danger">*</span></label>
+                                <select name="grupo_liga" class="admin-form-control form-select" required>
+                                    <option value="">-- Selecciona grupo --</option>
+                                    ${data.grupos.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    } else {
+                        gruposHtml = `
+                            <div class="col-md-6">
+                                <label class="admin-form-label">Grupo <span class="text-danger">*</span></label>
+                                <select name="grupo_copa" class="admin-form-control form-select" required>
+                                    <option value="">-- Selecciona grupo --</option>
+                                    ${data.grupos.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }
+                    
+                    gruposRow.innerHTML = gruposHtml;
+                } else {
+                    // Sin grupos, crear directamente
+                    formatoContainer.style.display = 'none';
+                    gruposContainer.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar grupos y formatos:', error);
+                alert('Error al cargar los datos. Verifica la consola del navegador.');
+            });
+    });
+    
+    // Validación antes de enviar
+    form.addEventListener('submit', function(e) {
+        const categoriaId = categoriaSelect.value;
+        const numeroJornada = document.getElementById('numeroJornada').value;
+        const formato = document.querySelector('input[name="formato"]:checked')?.value || 
+                       document.querySelector('input[name="formato"]')?.value;
+        
+        if (!categoriaId) {
+            e.preventDefault();
+            alert('Debes seleccionar una categoría.');
+            return;
+        }
+        
+        if (!numeroJornada || parseInt(numeroJornada) < 1) {
+            e.preventDefault();
+            alert('Debes ingresar un número de jornada válido (mínimo 1).');
+            return;
+        }
+        
+        if (!formato) {
+            e.preventDefault();
+            alert('Debes seleccionar un formato.');
+            return;
+        }
+        
+        // Validar que los grupos estén seleccionados si es necesario
+        if (formato === 'copa_liga') {
+            const grupoCopa = document.querySelector('select[name="grupo_copa"]')?.value;
+            const grupoLiga = document.querySelector('select[name="grupo_liga"]')?.value;
+            if (!grupoCopa || !grupoLiga) {
+                e.preventDefault();
+                alert('Debes seleccionar un grupo para Copa y otro para Liga.');
+                return;
+            }
+        } else {
+            const grupoSelect = formato === 'liga' ? 'grupo_liga' : 'grupo_copa';
+            const grupo = document.querySelector(`select[name="${grupoSelect}"]`)?.value;
+            if (!grupo) {
+                e.preventDefault();
+                alert('Debes seleccionar un grupo.');
+                return;
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.admin-card-body {
+    padding: 2rem;
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-form-label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.admin-form-control {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.admin-form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+</style>
+{% endblock %}

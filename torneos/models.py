@@ -1,4 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.core.validators import FileExtensionValidator
+from PIL import Image
+import os
 
 class ParticipacionJugador(models.Model):
     jugador = models.ForeignKey('Jugador', on_delete=models.CASCADE, related_name='participaciones')
@@ -24,22 +28,19 @@ class UbicacionCampo(models.Model):
 
     def __str__(self):
         return self.nombre
-from django.db import models
-from django.contrib.auth.models import User
-from django.core.validators import FileExtensionValidator
-from PIL import Image
-import os
+
 
 class Torneo(models.Model):
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True)
     fecha_inicio = models.DateField()
-    fecha_fin = models.DateField()
+    fecha_fin = models.DateField(blank=True, null=True)
     formato_torneo = models.CharField(max_length=50, choices=[
+        ('copa', 'Copa'),
         ('liga', 'Liga'),
-        ('eliminatoria', 'Eliminatoria'),
-        ('mixto', 'Mixto (Liga + Eliminatoria)')
-    ])
+        ('copa_liga', 'Copa y Liga'),
+        ('eliminatoria', 'Eliminatorias')
+    ], default='liga')
     logo = models.ImageField(
         upload_to='torneos/logos/', 
         validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg', 'gif'])],
@@ -186,8 +187,6 @@ class Equipo(models.Model):
         blank=True, 
         null=True
     )
-    color_principal = models.CharField(max_length=7, default='#000000')
-    color_secundario = models.CharField(max_length=7, default='#FFFFFF')
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
@@ -337,6 +336,25 @@ class Grupo(models.Model):
     
     def __str__(self):
         return f"{self.categoria.nombre} - {self.nombre}"
+
+class EquipoGrupo(models.Model):
+    """Relación entre Equipo y Grupo con soporte para múltiples formatos"""
+    equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='asignaciones_grupos')
+    grupo = models.ForeignKey(Grupo, on_delete=models.CASCADE, related_name='equipos')
+    formato = models.CharField(max_length=50, choices=[
+        ('copa', 'Copa'),
+        ('liga', 'Liga'),
+        ('copa_liga', 'Copa y Liga'),
+        ('eliminatoria', 'Eliminatorias')
+    ])
+    
+    class Meta:
+        unique_together = ('equipo', 'grupo', 'formato')
+        verbose_name = 'Asignación de Equipo a Grupo'
+        verbose_name_plural = 'Asignaciones de Equipos a Grupos'
+    
+    def __str__(self):
+        return f"{self.equipo.nombre} en {self.grupo.nombre} ({self.formato})"
 
 class Partido(models.Model):
     grupo = models.ForeignKey(Grupo, on_delete=models.CASCADE, null=True, blank=True)

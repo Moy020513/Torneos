@@ -139,17 +139,11 @@ class CategoriaForm(AdminFormMixin, forms.ModelForm):
 class EquipoForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Equipo
-        fields = ['categoria', 'nombre', 'logo', 'color_principal', 'color_secundario', 'activo']
-        widgets = {
-            'color_principal': forms.TextInput(attrs={'type': 'color'}),
-            'color_secundario': forms.TextInput(attrs={'type': 'color'}),
-        }
+        fields = ['categoria', 'nombre', 'logo', 'activo']
         labels = {
             'categoria': 'Categoría',
             'nombre': 'Nombre del Equipo',
             'logo': 'Logo del Equipo',
-            'color_principal': 'Color Principal',
-            'color_secundario': 'Color Secundario',
             'activo': 'Equipo Activo',
         }
 
@@ -453,11 +447,7 @@ class EquipoAdminForm(forms.ModelForm):
 
     class Meta:
         model = Equipo
-        fields = ['torneo', 'categoria', 'nombre', 'logo', 'color_principal', 'color_secundario', 'activo']
-        widgets = {
-            'color_principal': forms.TextInput(attrs={'type': 'color'}),
-            'color_secundario': forms.TextInput(attrs={'type': 'color'}),
-        }
+        fields = ['torneo', 'categoria', 'nombre', 'logo', 'activo']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
