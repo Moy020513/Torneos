@@ -117,7 +117,7 @@
                                         {% if partido.equipo_local and partido.equipo_visitante and partido.equipo_local == partido.equipo_visitante %}
                                             DESCANSA
                                         {% else %}
-                                            {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
+                                            {% if partido.fecha %}{{ partido.fecha|date:"g:i A" }}{% else %}Por definir{% endif %}
                                         {% endif %}
                                     </span>
                                 </div>
@@ -151,7 +151,7 @@
                                     {% if partido.equipo_local and partido.equipo_visitante and partido.equipo_local == partido.equipo_visitante %}
                                         DESCANSA
                                     {% else %}
-                                        {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
+                                        {% if partido.fecha %}{{ partido.fecha|date:"g:i A" }}{% else %}Por definir{% endif %}
                                     {% endif %}
                                 </span>
                                 <span class="match-loc">

@@ -60,7 +60,7 @@
                                 <div class="mb-2">
                                     <span class="match-time-chip">
                                         <i class="fa-solid fa-clock"></i>
-                                        {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
+                                        {% if partido.fecha %}{{ partido.fecha|date:"g:i A" }}{% else %}Por definir{% endif %}
                                     </span>
                                 </div>
                                 <div>
@@ -82,7 +82,7 @@
                                 </span>
                                 <span class="match-time-chip">
                                     <i class="fa-solid fa-clock"></i>
-                                    {% if partido.fecha %}{{ partido.fecha|date:"H:i" }}{% else %}Por definir{% endif %}
+                                    {% if partido.fecha %}{{ partido.fecha|date:"g:i A" }}{% else %}Por definir{% endif %}
                                 </span>
                                 <span class="match-loc">
                                     <i class="fa-solid fa-location-dot"></i>
