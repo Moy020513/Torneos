@@ -19,20 +19,50 @@ def resultados_view(request, categoria_id):
     partidos_jugados = partidos.filter(
         Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
     )
-    # Extraer todas las jornadas sin limitación
-    jornadas = sorted(set(p.jornada for p in partidos_jugados if p.jornada is not None))
-    
+    # Jornadas con al menos un partido jugado normal (no descanso)
+    jornadas_con_resultados = set(
+        p.jornada for p in partidos_jugados
+        if p.jornada is not None
+        and not (p.equipo_local_id == p.equipo_visitante_id)
+    )
+    # Descansos cuya jornada tiene resultados
+    descansos_jugados = list(partidos.filter(
+        equipo_local=F('equipo_visitante'),
+        jornada__in=jornadas_con_resultados
+    ))
+    # Jornadas para el filtro (unión de jugados + descansos)
+    jornadas = sorted(set(
+        p.jornada for p in list(partidos_jugados) + descansos_jugados
+        if p.jornada is not None
+    ))
+
+    def _sort_resultado(p):
+        # Ordenar por jornada desc; dentro de jornada, fecha desc (None al final)
+        j = -(p.jornada or 0)
+        if p.fecha is None:
+            return (j, datetime(1, 1, 1))
+        dt = p.fecha
+        if settings.USE_TZ and timezone.is_aware(dt):
+            dt = timezone.make_naive(dt)
+        return (j, dt)
+
     # Filtro de jornada si se proporciona
     jornada_filtro = request.GET.get('jornada_filtro', 'todos')
     if jornada_filtro != 'todos':
         try:
             jornada_filtro_int = int(jornada_filtro)
-            ultimos_resultados_all = partidos_jugados.filter(jornada=jornada_filtro_int).order_by('-fecha')
+            jugados_list = list(partidos_jugados.filter(jornada=jornada_filtro_int))
+            descansos_list = [p for p in descansos_jugados if p.jornada == jornada_filtro_int]
         except (ValueError, TypeError):
-            ultimos_resultados_all = partidos_jugados.order_by('-fecha')
+            jugados_list = list(partidos_jugados)
+            descansos_list = descansos_jugados
     else:
-        ultimos_resultados_all = partidos_jugados.order_by('-fecha')
-    
+        jugados_list = list(partidos_jugados)
+        descansos_list = descansos_jugados
+
+    ultimos_resultados_all = jugados_list + descansos_list
+    ultimos_resultados_all.sort(key=_sort_resultado, reverse=True)
+
     # Paginación: 15 partidos por página
     paginator = Paginator(ultimos_resultados_all, 15)
     page_num = request.GET.get('page', 1)
@@ -656,11 +686,53 @@ def categoria_detalle(request, categoria_id):
         if not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante)
         or (p.jornada in jornadas_con_partidos_pendientes)
     ]
+    # Jornadas con mínimo 2 partidos normales (no-descanso) con fecha asignada.
+    # Los descansos de esas jornadas se muestran también en Próximos Enfrentamientos.
+    from collections import Counter
+    jornada_fecha_count = Counter(
+        p.jornada for p in proximos_partidos
+        if p.fecha is not None
+        and p.jornada is not None
+        and not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante)
+    )
+    jornadas_con_2_fechas = {j for j, cnt in jornada_fecha_count.items() if cnt >= 2}
+
+    # Próximos Enfrentamientos: partidos con fecha + descansos cuya jornada
+    # tiene ≥2 partidos normales con fecha.
+    proximos_con_fecha = [
+        p for p in proximos_partidos
+        if p.fecha is not None
+        or (
+            p.equipo_local and p.equipo_visitante
+            and p.equipo_local == p.equipo_visitante
+            and p.jornada in jornadas_con_2_fechas
+        )
+    ]
     # Últimos resultados (partidos con goles cargados o marcados como jugados)
     partidos_jugados_query = partidos.filter(
         Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0)
     )
-    ultimos_resultados = partidos_jugados_query.order_by('-fecha')[:10]
+    # Incluir descansos cuya jornada tiene al menos un resultado registrado
+    _jornadas_jugadas = set(
+        p.jornada for p in partidos_jugados_query
+        if p.jornada is not None and not (p.equipo_local_id == p.equipo_visitante_id)
+    )
+    _descansos_jugados = list(partidos.filter(
+        equipo_local=F('equipo_visitante'),
+        jornada__in=_jornadas_jugadas
+    ))
+    _jugados_list = list(partidos_jugados_query.order_by('-fecha')[:50])
+    _todos = _jugados_list + _descansos_jugados
+    def _sort_ult(p):
+        j = -(p.jornada or 0)
+        if p.fecha is None:
+            return (j, datetime(1, 1, 1))
+        dt = p.fecha
+        if settings.USE_TZ and timezone.is_aware(dt):
+            dt = timezone.make_naive(dt)
+        return (j, dt)
+    _todos.sort(key=_sort_ult, reverse=True)
+    ultimos_resultados = _todos[:10]
     # Estadísticas generales
     total_partidos = partidos.count()
     partidos_jugados = partidos_jugados_query.count()
@@ -736,37 +808,47 @@ def categoria_detalle(request, categoria_id):
         equipo.total_ajuste_puntos = ajustes_puntos
         equipo.puntos_totales = puntos + ajustes_puntos  # Puntos con ajustes para ordenamiento
     equipos = sorted(equipos, key=lambda x: (-x.puntos_totales, -x.diferencia_goles, -x.goles_favor))
-    # Obtener jornadas únicas para el filtro
-    jornadas = sorted(set(p.jornada for p in proximos_partidos))
     # Obtener grupos de la categoría que tengan equipos asignados
     grupos = Grupo.objects.filter(
         categoria=categoria,
         equipos__isnull=False
     ).distinct().order_by('nombre')
-    
-    # Filtro de jornada si se proporciona
-    jornada_filtro_proximo = request.GET.get('jornada_filtro_proximo', 'todos')
-    if jornada_filtro_proximo != 'todos':
-        try:
-            jornada_filtro_proximo_int = int(jornada_filtro_proximo)
-            proximos_partidos = [p for p in proximos_partidos if p.jornada == jornada_filtro_proximo_int]
-        except (ValueError, TypeError):
-            pass
-    
-    # Filtro de grupo si se proporciona
+
+    # Filtro de grupo para Próximos Enfrentamientos
     grupo_filtro_proximo = request.GET.get('grupo_filtro_proximo', 'todos')
     if grupo_filtro_proximo != 'todos':
         try:
             grupo_filtro_proximo_int = int(grupo_filtro_proximo)
-            proximos_partidos = [p for p in proximos_partidos if p.grupo and p.grupo.id == grupo_filtro_proximo_int]
+            proximos_con_fecha = [p for p in proximos_con_fecha if p.grupo and p.grupo.id == grupo_filtro_proximo_int]
         except (ValueError, TypeError):
             pass
-    
-    # Paginación de próximos partidos: 15 partidos por página
-    paginator_proximo = Paginator(proximos_partidos, 15)
+
+    # Leyenda de fechas de próximos enfrentamientos (excluye descansos)
+    _DIAS_ES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+    _MESES_ES = {1: 'ene', 2: 'feb', 3: 'mar', 4: 'abr', 5: 'may', 6: 'jun',
+                 7: 'jul', 8: 'ago', 9: 'sep', 10: 'oct', 11: 'nov', 12: 'dic'}
+    from django.utils import timezone as _tz
+    _fechas_unicas = sorted(set(
+        _tz.localtime(p.fecha).date()
+        for p in proximos_con_fecha
+        if p.fecha is not None
+        and not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante)
+    ))
+    _grupos_mes: dict = {}
+    for _f in _fechas_unicas:
+        _key = (_f.year, _f.month)
+        _grupos_mes.setdefault(_key, []).append(_f)
+    _partes = []
+    for (_y, _m), _flist in sorted(_grupos_mes.items()):
+        _dias = ', '.join(f"{_DIAS_ES[_fd.weekday()]} {_fd.day}" for _fd in _flist)
+        _partes.append(f"{_dias} {_MESES_ES[_m]}/{_y}")
+    proximos_fechas_leyenda = ' — '.join(_partes)
+
+    # Paginación Próximos Enfrentamientos: 15 partidos por página
+    paginator_proximo = Paginator(proximos_con_fecha, 15)
     page_num_proximo = request.GET.get('page_proximo', 1)
     proximos_partidos_paginated = paginator_proximo.get_page(page_num_proximo)
-    
+
     context = {
         'categoria': categoria,
         'equipos': equipos,
@@ -776,12 +858,73 @@ def categoria_detalle(request, categoria_id):
         'partidos_jugados': partidos_jugados,
         'partidos_pendientes': partidos_pendientes,
         'total_goles': total_goles,
-        'jornadas': jornadas,
         'grupos': grupos,
-        'jornada_filtro_proximo': jornada_filtro_proximo,
-        'grupo_filtro_proximo': grupo_filtro_proximo
+        'proximos_fechas_leyenda': proximos_fechas_leyenda,
+        'grupo_filtro_proximo': grupo_filtro_proximo,
     }
     return render(request, 'torneos/categoria_detalle.html', context)
+
+
+def jornadas_pendientes_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    partidos = Partido.objects.filter(
+        Q(grupo__categoria=categoria) |
+        Q(grupo=None, equipo_local__categoria=categoria) |
+        Q(grupo=None, equipo_visitante__categoria=categoria)
+    )
+    # Pendientes: no jugados, sin goles, sin fecha asignada
+    pendientes = list(partidos.filter(jugado=False, goles_local=0, goles_visitante=0, fecha__isnull=True))
+
+    # Incluir descansos solo si su jornada tiene otros partidos pendientes normales
+    jornadas_con_normales = set()
+    for p in pendientes:
+        if not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante):
+            if p.jornada is not None:
+                jornadas_con_normales.add(p.jornada)
+    pendientes = [
+        p for p in pendientes
+        if not (p.equipo_local and p.equipo_visitante and p.equipo_local == p.equipo_visitante)
+        or (p.jornada in jornadas_con_normales)
+    ]
+
+    # Ordenar por jornada
+    pendientes.sort(key=lambda p: (p.jornada or 9999,))
+
+    jornadas = sorted(set(p.jornada for p in pendientes if p.jornada is not None))
+    grupos = Grupo.objects.filter(
+        categoria=categoria,
+        equipos__isnull=False
+    ).distinct().order_by('nombre')
+
+    jornada_filtro_pendiente = request.GET.get('jornada_filtro_pendiente', 'todos')
+    if jornada_filtro_pendiente != 'todos':
+        try:
+            jornada_filtro_pendiente_int = int(jornada_filtro_pendiente)
+            pendientes = [p for p in pendientes if p.jornada == jornada_filtro_pendiente_int]
+        except (ValueError, TypeError):
+            pass
+
+    grupo_filtro_pendiente = request.GET.get('grupo_filtro_pendiente', 'todos')
+    if grupo_filtro_pendiente != 'todos':
+        try:
+            grupo_filtro_pendiente_int = int(grupo_filtro_pendiente)
+            pendientes = [p for p in pendientes if p.grupo and p.grupo.id == grupo_filtro_pendiente_int]
+        except (ValueError, TypeError):
+            pass
+
+    paginator = Paginator(pendientes, 15)
+    page_num = request.GET.get('page_pendiente', 1)
+    jornadas_pendientes = paginator.get_page(page_num)
+
+    context = {
+        'categoria': categoria,
+        'jornadas_pendientes': jornadas_pendientes,
+        'jornadas': jornadas,
+        'grupos': grupos,
+        'jornada_filtro_pendiente': jornada_filtro_pendiente,
+        'grupo_filtro_pendiente': grupo_filtro_pendiente,
+    }
+    return render(request, 'torneos/jornadas_pendientes.html', context)
 @login_required
 @user_passes_test(is_admin)
 def administracion_dashboard(request):

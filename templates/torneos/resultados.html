@@ -27,6 +27,22 @@
                         <div class="col-md-1 d-none d-sm-flex align-items-center justify-content-center" style="height: 100%; min-height: 70px;">
                             <span class="match-status status-jugado mb-2">J{{ partido.jornada }}</span>
                         </div>
+                        {% if partido.equipo_local == partido.equipo_visitante %}
+                        {# Partido de descanso #}
+                        <div class="col-md-7">
+                            <div class="team-rows">
+                                <div class="team-row">
+                                    <div class="team-info">
+                                        {% if partido.equipo_local.logo %}
+                                        <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
+                                        {% endif %}
+                                        <div class="team-name">{{ partido.equipo_local.nombre }}</div>
+                                    </div>
+                                    <div class="team-score" style="color:#888; font-size:.85em; font-weight:700;">DESCANSA</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
                         <div class="col-md-7">
                             <div class="team-rows">
                                 <div class="team-row">
@@ -35,8 +51,8 @@
                                         <img src="{{ partido.equipo_local.logo.url }}" alt="{{ partido.equipo_local.nombre }}" class="team-logo-small">
                                         {% endif %}
                                         <div class="team-name {% if partido.goles_local > partido.goles_visitante %}text-success text-strong{% endif %}">{{ partido.equipo_local.nombre }}</div>
-                                                </div>
-                                                <div class="team-score {% if partido.goles_local > partido.goles_visitante %}text-success text-strong{% endif %}">{% if partido.jugado or partido.goles_local or partido.goles_visitante %}{{ partido.goles_local }}{% else %}&mdash;{% endif %}</div>
+                                    </div>
+                                    <div class="team-score {% if partido.goles_local > partido.goles_visitante %}text-success text-strong{% endif %}">{% if partido.jugado or partido.goles_local or partido.goles_visitante %}{{ partido.goles_local }}{% else %}&mdash;{% endif %}</div>
                                 </div>
                                 <div class="team-row">
                                     <div class="team-info">
@@ -44,11 +60,12 @@
                                         <img src="{{ partido.equipo_visitante.logo.url }}" alt="{{ partido.equipo_visitante.nombre }}" class="team-logo-small">
                                         {% endif %}
                                         <div class="team-name {% if partido.goles_visitante > partido.goles_local %}text-success text-strong{% endif %}">{{ partido.equipo_visitante.nombre }}</div>
-                                                </div>
-                                                <div class="team-score {% if partido.goles_visitante > partido.goles_local %}text-success text-strong{% endif %}">{% if partido.jugado or partido.goles_local or partido.goles_visitante %}{{ partido.goles_visitante }}{% else %}&mdash;{% endif %}</div>
+                                    </div>
+                                    <div class="team-score {% if partido.goles_visitante > partido.goles_local %}text-success text-strong{% endif %}">{% if partido.jugado or partido.goles_local or partido.goles_visitante %}{{ partido.goles_visitante }}{% else %}&mdash;{% endif %}</div>
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                         <div class="col-md-4 text-end">
                             <div class="d-none d-sm-block"><!-- Desktop: cada dato en su fila -->
                                 <div class="mb-2">
@@ -87,7 +104,7 @@
                                 <span class="match-loc">
                                     <i class="fa-solid fa-location-dot"></i>
                                     {% if partido.ubicacion and partido.ubicacion.latitud and partido.ubicacion.longitud %}
-                                        <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>{{ partido.ubicacion.nombre }}</strong></a>
+                                        <a href="https://www.google.com/maps?q={{ partido.ubicacion.latitud|floatformat:6|punto_decimal }},{{ partido.ubicacion.longitud|floatformat:6|punto_decimal }}" target="_blank" class="btn btn-sm btn-outline-admin"><strong>{{ partido.ubicacion.nombre|truncatechars:30 }}</strong></a>
                                     {% else %}
                                         Por definir
                                     {% endif %}

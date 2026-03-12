@@ -573,3 +573,14 @@
     #proximos-partidos-card {
         background-color: #0a2342 !important;
     }
+
+    /* Leyenda de fechas en header de próximos */
+    .proximos-fechas-leyenda {
+        color: #a0c4e8;
+        font-size: .82rem;
+        font-style: italic;
+        line-height: 1.4;
+    }
+    .proximos-fechas-leyenda i {
+        opacity: .75;
+    }

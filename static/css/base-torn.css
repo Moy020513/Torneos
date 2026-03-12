@@ -89,7 +89,8 @@
     box-shadow: 0 8px 20px rgba(0,0,0,.15);
     padding: 8px;
     z-index: 1000;
-    min-width: 200px;
+    width: max-content;
+    max-width: 90vw;
   }
 
   .torneos-nav-mobile.show {
