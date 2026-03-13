@@ -576,8 +576,8 @@
 
     /* Leyenda de fechas en header de próximos */
     .proximos-fechas-leyenda {
-        color: #a0c4e8;
-        font-size: .82rem;
+        color: #001b36;
+        font-size: .92rem;
         font-style: italic;
         line-height: 1.4;
     }

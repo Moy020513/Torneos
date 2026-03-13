@@ -38,7 +38,7 @@ def resultados_view(request, categoria_id):
 
     def _sort_resultado(p):
         # Ordenar por jornada desc; dentro de jornada, fecha desc (None al final)
-        j = -(p.jornada or 0)
+        j = (p.jornada or 0)
         if p.fecha is None:
             return (j, datetime(1, 1, 1))
         dt = p.fecha
