@@ -9,7 +9,13 @@
         <h3 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Torneo</h3>
     </div>
     <div class="admin-card-body">
-        <p><strong>Nombre:</strong> <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}" class="me-2" style="height: 32px;">{{ torneo.nombre }}</p>
+        <p>
+            <strong>Nombre:</strong>
+            {% if torneo.logo %}
+                <img src="{{ torneo.logo.url }}" alt="{{ torneo.nombre }}" class="me-2" style="height: 32px;">
+            {% endif %}
+            {{ torneo.nombre }}
+        </p>
         <p><strong>Descripción:</strong>{{ torneo.descripcion|default:'-' }}</p>
         <p><strong>Fechas:</strong>
             {% if torneo.fecha_inicio %}

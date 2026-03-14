@@ -44,7 +44,7 @@
                 {% if user.is_authenticated %}
                     <!-- Icono de Panel según rol (solo móvil) -->
                     {% if user.is_superuser %}
-                        <a href="/admin/" title="Superadministrador"
+                        <a href="{% url 'admin_dashboard' %}" title="Superadministrador"
                            style="text-decoration: none; display: flex; align-items: center; gap: 4px;">
                             <i class="bi bi-grid-fill" style="font-size: 1.5rem; color: #0a2342;"></i>
                             <span style="font-size: .75rem; color: #0a2342; font-weight: 600; white-space: nowrap;">Superadmin</span>
@@ -114,7 +114,7 @@
                     {% if user.is_authenticated %}
                         {% if user.is_superuser %}
                             <li class="nav-item">
-                                <a class="nav-link" href="/admin/">Administración</a>
+                                <a class="nav-link" href="{% url 'admin_dashboard' %}">Administración</a>
                             </li>
                         {% elif is_torneo_admin %}
                             <li class="nav-item">
