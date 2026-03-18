@@ -169,27 +169,11 @@
                         </div>
                         <div class="d-flex justify-content-between mb-1">
                             <span>Jugadores:</span>
-                            <span class="fw-semibold">
-                                {% with categoria.equipo_set.all as equipos %}
-                                    {% if equipos %}
-                                        {{ equipos.0.jugador_set.count|add:equipos.1.jugador_set.count|default:0 }}
-                                    {% else %}
-                                        0
-                                    {% endif %}
-                                {% endwith %}
-                            </span>
+                            <span class="fw-semibold">{{ total_jugadores_categoria|default:0 }}</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Partidos:</span>
-                            <span class="fw-semibold">
-                                {% with categoria.grupo_set.all as grupos %}
-                                    {% if grupos %}
-                                        {{ grupos.0.partido_set.count|default:0 }}
-                                    {% else %}
-                                        0
-                                    {% endif %}
-                                {% endwith %}
-                            </span>
+                            <span class="fw-semibold">{{ total_partidos_categoria|default:0 }}</span>
                         </div>
                     </div>
                 </div>

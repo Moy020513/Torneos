@@ -942,6 +942,8 @@ def admin_crear_categoria(request):
 @user_passes_test(is_admin)
 def admin_editar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
+    total_jugadores_categoria = Jugador.objects.filter(equipo__categoria=categoria).count()
+    total_partidos_categoria = Partido.objects.filter(grupo__categoria=categoria).count()
     # Si el usuario es AdministradorTorneo, obtener su torneo asignado
     assigned_torneo = None
     if not request.user.is_superuser:
@@ -965,6 +967,8 @@ def admin_editar_categoria(request, categoria_id):
         'form': form,
         'categoria': categoria,
         'action': 'Editar',
+        'total_jugadores_categoria': total_jugadores_categoria,
+        'total_partidos_categoria': total_partidos_categoria,
     }
     return render(request, 'admin/categorias/form.html', context)
 
