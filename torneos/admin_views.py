@@ -640,6 +640,11 @@ def admin_dashboard(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_torneos(request):
+    # Solo superadmin puede ver el listado global de torneos.
+    if not request.user.is_superuser:
+        messages.warning(request, 'No tienes permiso para ver todos los torneos.')
+        return redirect('admin_dashboard')
+
     # Anotar con el conteo de categorías
     torneos = Torneo.objects.annotate(
         num_categorias=Count('categoria')
@@ -675,6 +680,10 @@ def admin_torneos(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_torneo(request):
+    if not request.user.is_superuser:
+        messages.warning(request, 'No tienes permiso para crear torneos.')
+        return redirect('admin_dashboard')
+
     if request.method == 'POST':
         form = TorneoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -731,7 +740,9 @@ def admin_editar_torneo(request, torneo_id):
                 if len(new_covers) > available:
                     messages.warning(request, 'Límite de 5 portadas alcanzado, se ignoraron algunas imágenes adicionales.')
             messages.success(request, 'Torneo actualizado exitosamente.')
-            return redirect('admin_torneos')
+            if request.user.is_superuser:
+                return redirect('admin_torneos')
+            return redirect('administrar_torneo', torneo_id=torneo.id)
     else:
         form = TorneoForm(instance=torneo)
 
@@ -747,6 +758,10 @@ def admin_editar_torneo(request, torneo_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_eliminar_torneo(request, torneo_id):
+    if not request.user.is_superuser:
+        messages.warning(request, 'No tienes permiso para eliminar torneos.')
+        return redirect('admin_dashboard')
+
     torneo = get_object_or_404(Torneo, id=torneo_id)
     
     if request.method == 'POST':
