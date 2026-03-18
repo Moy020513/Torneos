@@ -532,6 +532,20 @@ class GrupoForm(AdminFormMixin, forms.ModelForm):
             'descripcion': 'Descripción',
         }
 
+    def __init__(self, *args, **kwargs):
+        """Permite pasar assigned_torneo para filtrar categorías por torneo."""
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
+        super().__init__(*args, **kwargs)
+
+        if assigned_torneo:
+            categorias_qs = Categoria.objects.filter(torneo_id=assigned_torneo)
+
+            # Al editar, permitir ver la categoría actual aunque no cumpla el filtro.
+            if self.instance and getattr(self.instance, 'pk', None) and getattr(self.instance, 'categoria_id', None):
+                categorias_qs = (categorias_qs | Categoria.objects.filter(id=self.instance.categoria_id)).distinct()
+
+            self.fields['categoria'].queryset = categorias_qs
+
 class UsuarioEditForm(AdminFormMixin, forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput(), 

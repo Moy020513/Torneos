@@ -2056,14 +2056,18 @@ def admin_grupos(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_grupo(request):
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = GrupoForm(request.POST)
+        form = GrupoForm(request.POST, assigned_torneo=assigned_torneo)
         if form.is_valid():
             form.save()
             messages.success(request, 'Grupo creado exitosamente.')
             return redirect('admin_grupos')
     else:
-        form = GrupoForm()
+        form = GrupoForm(assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -2075,15 +2079,18 @@ def admin_crear_grupo(request):
 @user_passes_test(is_admin)
 def admin_editar_grupo(request, grupo_id):
     grupo = get_object_or_404(Grupo, id=grupo_id)
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
     
     if request.method == 'POST':
-        form = GrupoForm(request.POST, instance=grupo)
+        form = GrupoForm(request.POST, instance=grupo, assigned_torneo=assigned_torneo)
         if form.is_valid():
             form.save()
             messages.success(request, 'Grupo actualizado exitosamente.')
             return redirect('admin_grupos')
     else:
-        form = GrupoForm(instance=grupo)
+        form = GrupoForm(instance=grupo, assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
