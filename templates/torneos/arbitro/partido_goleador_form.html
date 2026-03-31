@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-4">Editar goles de {{ jugador.nombre }} {{ jugador.apellido }}</h3>
+  <div class="mb-3">
+    <strong>{{ partido.equipo_local.nombre }}</strong> vs <strong>{{ partido.equipo_visitante.nombre }}</strong> | Jornada {{ partido.jornada }}
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <a href="{% url 'arbitro_partido_goleadores' partido.id %}" class="btn btn-secondary">Cancelar</a>
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

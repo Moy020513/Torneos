@@ -805,7 +805,7 @@ def categoria_detalle(request, categoria_id):
         equipo.goles_contra = goles_contra
         equipo.diferencia_goles = diferencia_goles
         equipo.puntos = puntos
-        equipo.total_ajuste_puntos = ajustes_puntos
+        equipo.total_ajuste_puntos = ajustes_puntos  # Guardar ajustes para mostrar en tabla
         equipo.puntos_totales = puntos + ajustes_puntos  # Puntos con ajustes para ordenamiento
     equipos = sorted(equipos, key=lambda x: (-x.puntos_totales, -x.diferencia_goles, -x.goles_favor))
     # Obtener grupos de la categoría que tengan equipos asignados
@@ -1451,8 +1451,12 @@ def partido_detalle(request, partido_id):
         goles_map.setdefault(gid, {'jugador': jugador, 'goles': 0})
         goles_map[gid]['goles'] += (gj.goles or 0)
 
-    # NOTA: ignoramos Goleador.goles (puede ser acumulado del torneo).
-    # Nos basamos únicamente en GoleadorJornada para contar goles en este partido.
+    # También sumar goles de Goleador (flujo árbitro)
+    for g in Goleador.objects.filter(partido=partido).select_related('jugador'):
+        jugador = g.jugador
+        gid = jugador.id
+        goles_map.setdefault(gid, {'jugador': jugador, 'goles': 0})
+        goles_map[gid]['goles'] += (g.goles or 0)
 
     # Filtrar solo jugadores con >0 goles y ordenar por goles desc
     goleadores = [v for v in goles_map.values() if v['goles'] and v['goles'] > 0]
