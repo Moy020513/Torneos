@@ -1,0 +1,99 @@
+{% load static %}
+<style>
+.credencial-card {
+  width: 85.60mm;
+  height: 53.98mm;
+  border: 1.5px solid #0a2342;
+  border-radius: 8px;
+  background: linear-gradient(120deg, #eaf7ff 0%, #c2e9fb 100%);
+  margin: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: 0 2px 8px rgba(8, 247, 254, 0.18);
+  overflow: hidden;
+  position: relative;
+}
+.credencial-foto {
+  width: 25mm;
+  height: 30mm;
+  object-fit: cover;
+  border-radius: 6px;
+  margin: 0 8px 0 8px;
+  background: #f8f9fa;
+  border: 1px solid #b0c4de;
+}
+.credencial-info {
+  flex: 1;
+  padding: 0 8px;
+  color: #0a2342;
+  font-size: 13px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+.credencial-nombre {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+.credencial-equipo {
+  font-size: 0.95em;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: #0077ff;
+}
+.credencial-num {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #0a2342;
+  margin-bottom: 2px;
+}
+.credencial-logo {
+  height: 22px;
+  margin-bottom: 2px;
+}
+.credencial-label {
+  font-size: 0.85em;
+  color: #555;
+  font-weight: 500;
+}
+</style>
+{% for jugador in jugadores %}
+  {% if forloop.first or forloop.counter0|divisibleby:8 %}
+    {% if not forloop.first %}</div>{% endif %}
+    <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; page-break-after: always;">
+  {% endif %}
+  <div class="credencial-card">
+    <div style="width:100%;text-align:center;padding:0.5mm 0 1.5mm 0; position:absolute; top:0; left:0;">
+      {% if torneo and torneo.logo %}
+        <img src="{{ torneo.logo.url }}" alt="Logo {{ torneo.nombre }}" style="height:28px;vertical-align:middle;margin-bottom:1.5mm;" />
+      {% endif %}
+      <span style="font-size:0.78em;font-weight:700;color:#0a2342;vertical-align:middle;">{{ torneo.nombre }}</span>
+      <span style="font-size:0.68em;font-weight:500;color:#0077ff;vertical-align:middle;">{% if categoria %} - {{ categoria.nombre }}{% endif %}</span>
+    </div>
+    <div style="height:32px;"></div>
+    <div style="display:flex; flex-direction:row; align-items:center; height:calc(100% - 32px);">
+      {% if jugador.foto %}
+        <img class="credencial-foto" src="{{ jugador.foto.url }}" alt="Foto {{ jugador.nombre }} {{ jugador.apellido }}">
+      {% else %}
+        <div class="credencial-foto" style="display:flex;align-items:center;justify-content:center;">
+          <span style="color:#aaa;font-size:1.2em;">Sin foto</span>
+        </div>
+      {% endif %}
+      <div class="credencial-info">
+        <div class="credencial-nombre">{{ jugador.nombre }} {{ jugador.apellido }}</div>
+        <div class="credencial-label">Equipo:</div>
+        <div class="credencial-equipo" style="display:flex;align-items:center;gap:6px;">
+          {% if jugador.equipo.logo %}
+            <img class="credencial-logo" src="{{ jugador.equipo.logo.url }}" alt="Logo {{ jugador.equipo.nombre }}">
+          {% endif %}
+          <span>{{ jugador.equipo.nombre }}</span>
+        </div>
+        <div class="credencial-label">Nacimiento:</div>
+        <div>{{ jugador.fecha_nacimiento|date:'d/m/Y' }}</div>
+      </div>
+    </div>
+  </div>
+  {% if forloop.last %}</div>{% endif %}
+{% endfor %}
+

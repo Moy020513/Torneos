@@ -1,3 +1,46 @@
+
+# Decorators deben ir antes de usarse
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+import weasyprint
+
+def is_representante(user):
+    return hasattr(user, 'representante') and user.representante.activo
+
+# Vista para credenciales PDF de jugadores del representante
+@login_required
+@user_passes_test(is_representante)
+def representante_credenciales_pdf(request):
+    representante = request.user.representante
+    equipo = representante.equipo
+    jugadores = Jugador.objects.filter(equipo=equipo)
+    categoria = equipo.categoria if hasattr(equipo, 'categoria') else None
+    torneo = categoria.torneo if categoria and hasattr(categoria, 'torneo') else None
+    context = {
+        'jugadores': jugadores,
+        'categoria': categoria,
+        'torneo': torneo,
+    }
+    html = render_to_string('torneos/representante/credenciales_pdf.html', context)
+    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf(
+        stylesheets=[weasyprint.CSS(string='@page { size: A4; margin: 10mm; }')]
+    )
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'filename="credenciales_jugadores.pdf"'
+    return response
+
+@login_required
+@user_passes_test(is_representante)
+def representante_resultados(request):
+    representante = request.user.representante
+    equipo = representante.equipo
+    # Partidos jugados o con goles cargados
+    partidos = Partido.objects.filter(
+        (Q(equipo_local=equipo) | Q(equipo_visitante=equipo)) &
+        (Q(jugado=True) | Q(goles_local__gt=0) | Q(goles_visitante__gt=0))
+    ).order_by('-fecha')
+    return render(request, 'torneos/representante/resultados.html', {'partidos': partidos})
 def jugadores_view(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     equipos = Equipo.objects.filter(categoria=categoria)
@@ -1509,18 +1552,32 @@ def cedula_partido_view(request, partido_id):
     participaciones_visitante = ParticipacionJugador.objects.filter(partido=partido, jugador__equipo=partido.equipo_visitante)
     # Sanciones por jugador
     sanciones = {s.jugador_id: s for s in Sancion.objects.filter(partido=partido)}
-    # Goles por jugador
-    goles = {}
-    for g in Goleador.objects.filter(partido=partido):
-        goles[g.jugador_id] = goles.get(g.jugador_id, 0) + g.goles
+    # Goles por jugador: sumar todos los registros de Goleador para cada jugador y partido
+    # Goles por jugador: asegurar que solo se cuenten los goles de los jugadores que participaron en el partido
+
+
+    from collections import defaultdict
+    goles_por_jugador = defaultdict(int)
+    # Sumar goles de GoleadorJornada
+    for gj in GoleadorJornada.objects.filter(partido=partido).select_related('goleador__jugador'):
+        jugador = getattr(getattr(gj, 'goleador', None), 'jugador', None)
+        if jugador:
+            goles_por_jugador[jugador.id] += gj.goles or 0
+    # Sumar goles de Goleador
+    for g in Goleador.objects.filter(partido=partido).select_related('jugador'):
+        jugador = g.jugador
+        if jugador:
+            goles_por_jugador[jugador.id] += g.goles or 0
+
     def jugador_info(part):
         sancion = sanciones.get(part.jugador_id)
+        goles_jugador = goles_por_jugador.get(part.jugador_id, 0)
         return {
             'apellido': part.jugador.apellido,
             'nombre': part.jugador.nombre,
             'amonestaciones': sancion.cantidad_amarillas if sancion else 0,
             'expulsado': sancion.tipo_tarjeta == 'roja' if sancion else False,
-            'goles': goles.get(part.jugador_id, 0),
+            'goles': goles_jugador,
         }
     jugadores_local = [jugador_info(p) for p in participaciones_local]
     jugadores_visitante = [jugador_info(p) for p in participaciones_visitante]

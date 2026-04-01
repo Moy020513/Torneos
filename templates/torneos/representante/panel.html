@@ -34,7 +34,7 @@
           </div>
         </div>
       </div>
-      <div class="header-actions">
+      <div class="header-actions" style="display: flex; gap: 1em;">
         <button class="btn-primary-action" 
                 data-action="add-player" 
                 id="addPlayerBtn"
@@ -44,6 +44,9 @@
                 {% if jugadores|length >= 16 %}disabled style="opacity:0.6;cursor:not-allowed;"{% endif %}>
           <i class="fas fa-plus-circle"></i> Agregar Jugador
         </button>
+        <a href="{% url 'representante_resultados' %}" class="btn btn-outline-primary" style="height: 38px; display: flex; align-items: center;">
+          <i class="fas fa-list me-1"></i> Resultados
+        </a>
       </div>
     </div>
   </div>

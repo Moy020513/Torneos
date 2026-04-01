@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/resultados_representante.css' %}">
+<div class="container mt-4 resultados-rep-container">
+  <a href="/representante/" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Volver</a>
+  <a href="{% url 'representante_credenciales_pdf' %}" target="_blank" class="btn btn-info mb-3 ms-2"><i class="fas fa-id-card"></i> Descargar credenciales PDF</a>
+  <h2 class="mb-4 text-white">Resultados de mi equipo</h2>
+  {% if partidos %}
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped resultados-rep-table">
+        <thead>
+          <tr>
+            <th>Jor.</th>
+            <th>Fecha</th>
+            <th>Local</th>
+            <th>Goles</th>
+            <th>Visitante</th>
+            <th>Campo</th>
+            <th>Cédula</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for partido in partidos %}
+          <tr>
+            <td>{{ partido.jornada }}</td>
+            <td>{% if partido.fecha %}{{ partido.fecha|date:'d/m/Y H:i' }}{% else %}Por definir{% endif %}</td>
+            <td>
+              {% if partido.equipo_local.logo %}
+                <img src="{{ partido.equipo_local.logo.url }}" alt="Logo {{ partido.equipo_local.nombre }}" style="height: 28px; vertical-align: middle; margin-right: 0.3em;" />
+              {% endif %}
+              {{ partido.equipo_local.nombre }}
+            </td>
+            <td>{{ partido.goles_local }} - {{ partido.goles_visitante }}</td>
+            <td>
+              {% if partido.equipo_visitante.logo %}
+                <img src="{{ partido.equipo_visitante.logo.url }}" alt="Logo {{ partido.equipo_visitante.nombre }}" style="height: 28px; vertical-align: middle; margin-right: 0.3em;" />
+              {% endif %}
+              {{ partido.equipo_visitante.nombre }}
+            </td>
+            <td>{% if partido.ubicacion %}{{ partido.ubicacion.nombre }}{% else %}Por definir{% endif %}</td>
+            <td>
+              <a href="{% url 'arbitro_partido_cedula' partido.id %}?pdf=1" target="_blank" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-pdf"></i> PDF
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">No hay partidos jugados aún.</div>
+  {% endif %}
+</div>
+{% endblock %}

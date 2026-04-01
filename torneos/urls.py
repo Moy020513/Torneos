@@ -30,7 +30,9 @@ urlpatterns = [
     path('administracion/generar-calendario/<int:categoria_id>/', views.generar_calendario, name='generar_calendario'),
     # URLs de representantes
         path('representante/', views.representante_panel, name='representante_panel'),
+        path('representante/resultados/', views.representante_resultados, name='representante_resultados'),
         path('representante/jugadores/crear/', views.representante_jugador_create, name='representante_jugador_create'),
+        path('representante/credenciales/pdf/', views.representante_credenciales_pdf, name='representante_credenciales_pdf'),
         path('representante/jugadores/<int:jugador_id>/editar/', views.representante_jugador_update, name='representante_jugador_update'),
         path('representante/jugadores/<int:jugador_id>/eliminar/', views.representante_jugador_delete, name='representante_jugador_delete'),
         path('equipo/<int:equipo_id>/gestion/', views.gestion_equipo, name='gestion_equipo'),
