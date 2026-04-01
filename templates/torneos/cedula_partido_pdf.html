@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Acta del partido</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #222; margin: 0.2em 0.2em 0.2em 0.2em; }
+    h2 { margin-bottom: 0.5em; font-size: 1.7em; }
+    h5 { margin-bottom: 0.5em; font-size: 1.1em; }
+    .teams-row { display: flex; flex-direction: row; gap: 1.2em; justify-content: center; }
+    .team-table { width: 320px; table-layout: auto; font-size: 9px; }
+    table { border-collapse: collapse; margin-bottom: 1.2em; }
+    th, td { border: 1px solid #222; padding: 0.18em 0.3em; text-align: center; }
+    th { background: #eee; font-size: 9px; }
+    .expulsado { color: #d32f2f; font-weight: bold; }
+    .team-title { color: #1976d2; text-align: left; margin-bottom: 0.3em; font-size: 10px; }
+    th.amo, td.amo, th.exp, td.exp, th.goles, td.goles {
+      width: 0;
+      padding-left: 1px;
+      padding-right: 1px;
+      white-space: nowrap;
+      text-align: center;
+      font-size: 8px;
+    }
+    th.apellido, td.apellido, th.nombre, td.nombre { width: 110px; }
+  </style>
+</head>
+<body>
+  <h2>Acta del partido</h2>
+  <h5>Acta del partido de fútbol, efectuado el día: {{ partido.fecha|date:'d/m/Y' }}, a las {{ partido.fecha|date:'H:i' }} hrs, en el campo: {{ partido.ubicacion.nombre }}</h5>
+    <div class="teams-row">
+      <div>
+        <table class="team-table">
+          <thead>
+            <tr>
+              <th colspan="5" class="team-title" style="width: 100%; text-align: center;">
+                {% if partido.equipo_local.logo %}
+                  <img src="{{ partido.equipo_local.logo.url }}" alt="Logo {{ partido.equipo_local.nombre }}" style="height: 22px; vertical-align: middle; margin-right: 0.2em; display: inline-block;" />
+                {% endif %}
+                <span style="vertical-align: middle; display: inline-block;">{{ partido.equipo_local.nombre }}</span>
+              </th>
+            </tr>
+            <tr>
+              <th class="amo">Amo.</th>
+              <th class="exp">Exp.</th>
+              <th class="apellido">Apellido</th>
+              <th class="nombre">Nombre</th>
+              <th class="goles">Goles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for jugador in jugadores_local %}
+            <tr>
+              <td class="amo">{{ jugador.amonestaciones }}</td>
+              <td class="exp">{% if jugador.expulsado %}<span class="expulsado">&#9632;</span>{% endif %}</td>
+              <td class="apellido">{{ jugador.apellido }}</td>
+              <td class="nombre">{{ jugador.nombre }}</td>
+              <td class="goles">{{ jugador.goles }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Sin participaciones</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table class="team-table">
+      <thead>
+        <tr>
+          <th colspan="5" class="team-title" style="width: 100%; text-align: center;">
+            {% if partido.equipo_visitante.logo %}
+              <img src="{{ partido.equipo_visitante.logo.url }}" alt="Logo {{ partido.equipo_visitante.nombre }}" style="height: 22px; vertical-align: middle; margin-right: 0.2em; display: inline-block;" />
+            {% endif %}
+            <span style="vertical-align: middle; display: inline-block;">{{ partido.equipo_visitante.nombre }}</span>
+          </th>
+        </tr>
+        <tr>
+          <th class="amo">Amo.</th>
+          <th class="exp">Exp.</th>
+          <th class="apellido">Apellido</th>
+          <th class="nombre">Nombre</th>
+          <th class="goles">Goles</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for jugador in jugadores_visitante %}
+        <tr>
+          <td class="amo">{{ jugador.amonestaciones }}</td>
+          <td class="exp">{% if jugador.expulsado %}<span class="expulsado">&#9632;</span>{% endif %}</td>
+          <td class="apellido">{{ jugador.apellido }}</td>
+          <td class="nombre">{{ jugador.nombre }}</td>
+          <td class="goles">{{ jugador.goles }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">Sin participaciones</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+      <!-- Duplicado erróneo eliminado -->
+</body>
+</html>

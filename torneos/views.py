@@ -1497,3 +1497,42 @@ def torneo_sanciones_view(request, categoria_id):
         'sanciones': sanciones,
     }
     return render(request, 'torneos/torneo_sanciones.html', context)
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+import weasyprint
+
+@login_required
+def cedula_partido_view(request, partido_id):
+    partido = get_object_or_404(Partido.objects.select_related('equipo_local', 'equipo_visitante', 'ubicacion'), id=partido_id)
+    # Jugadores con participación (ejemplo: ParticipacionJugador)
+    participaciones_local = ParticipacionJugador.objects.filter(partido=partido, jugador__equipo=partido.equipo_local)
+    participaciones_visitante = ParticipacionJugador.objects.filter(partido=partido, jugador__equipo=partido.equipo_visitante)
+    # Sanciones por jugador
+    sanciones = {s.jugador_id: s for s in Sancion.objects.filter(partido=partido)}
+    # Goles por jugador
+    goles = {}
+    for g in Goleador.objects.filter(partido=partido):
+        goles[g.jugador_id] = goles.get(g.jugador_id, 0) + g.goles
+    def jugador_info(part):
+        sancion = sanciones.get(part.jugador_id)
+        return {
+            'apellido': part.jugador.apellido,
+            'nombre': part.jugador.nombre,
+            'amonestaciones': sancion.cantidad_amarillas if sancion else 0,
+            'expulsado': sancion.tipo_tarjeta == 'roja' if sancion else False,
+            'goles': goles.get(part.jugador_id, 0),
+        }
+    jugadores_local = [jugador_info(p) for p in participaciones_local]
+    jugadores_visitante = [jugador_info(p) for p in participaciones_visitante]
+    context = {
+        'partido': partido,
+        'jugadores_local': jugadores_local,
+        'jugadores_visitante': jugadores_visitante,
+    }
+    if request.GET.get('pdf'):
+        html = render_to_string('torneos/cedula_partido_pdf.html', context)
+        pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'filename="cedula_partido_{partido.id}.pdf"'
+        return response
+    return render(request, 'torneos/cedula_partido.html', context)

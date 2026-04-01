@@ -50,4 +50,5 @@ urlpatterns = [
     path('arbitro/partido/<int:partido_id>/sanciones/', arbitro_partido_sanciones, name='arbitro_partido_sanciones'),
     path('arbitro/partido/<int:partido_id>/sanciones/<int:jugador_id>/editar/', arbitro_sancion_editar, name='arbitro_sancion_editar'),
     path('categoria/<int:categoria_id>/sanciones/', views.torneo_sanciones_view, name='torneo_sanciones'),
+    path('arbitro/partido/<int:partido_id>/cedula/', views.cedula_partido_view, name='arbitro_partido_cedula'),
 ] + admin_urlpatterns + admin_campos_urlpatterns

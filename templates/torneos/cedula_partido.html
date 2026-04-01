@@ -1,0 +1,68 @@
+{% extends 'torneos/base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Acta del partido</h2>
+    <a href="?pdf=1" class="btn btn-outline-danger"><i class="fas fa-file-pdf me-1"></i>Descargar PDF</a>
+  </div>
+  <div class="mb-4">
+    <h5 class="fw-bold">Acta del partido de fútbol, efectuado el día: {{ partido.fecha|date:'d/m/Y' }}, a las {{ partido.fecha|date:'H:i' }} hrs, en el campo: {{ partido.ubicacion.nombre }}</h5>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h5 class="text-primary">{{ partido.equipo_local.nombre }}</h5>
+      <table class="table table-bordered table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center">Amo.</th>
+            <th class="text-center">Exp.</th>
+            <th>Apellido</th>
+            <th>Nombre</th>
+            <th class="text-center">Goles</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for jugador in jugadores_local %}
+          <tr>
+            <td class="text-center">{{ jugador.amonestaciones }}</td>
+            <td class="text-center">{% if jugador.expulsado %}<span class="fa-solid fa-square-full" style="color:#d32f2f;"></span>{% endif %}</td>
+            <td>{{ jugador.apellido }}</td>
+            <td>{{ jugador.nombre }}</td>
+            <td class="text-center">{{ jugador.goles }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center">Sin participaciones</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <h5 class="text-primary">{{ partido.equipo_visitante.nombre }}</h5>
+      <table class="table table-bordered table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center">Amo.</th>
+            <th class="text-center">Exp.</th>
+            <th>Apellido</th>
+            <th>Nombre</th>
+            <th class="text-center">Goles</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for jugador in jugadores_visitante %}
+          <tr>
+            <td class="text-center">{{ jugador.amonestaciones }}</td>
+            <td class="text-center">{% if jugador.expulsado %}<span class="fa-solid fa-square-full" style="color:#d32f2f;"></span>{% endif %}</td>
+            <td>{{ jugador.apellido }}</td>
+            <td>{{ jugador.nombre }}</td>
+            <td class="text-center">{{ jugador.goles }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center">Sin participaciones</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -132,6 +132,7 @@
                       <li><a class="dropdown-item" href="{% url 'arbitro_partido_participaciones' partido.id %}"><i class="fas fa-users me-1"></i>Jugadores</a></li>
                       <li><a class="dropdown-item" href="{% url 'arbitro_partido_goleadores' partido.id %}"><i class="fas fa-futbol me-1"></i>Goleadores</a></li>
                       <li><a class="dropdown-item" href="{% url 'arbitro_partido_sanciones' partido.id %}"><i class="fas fa-exclamation-triangle me-1"></i>Sanciones</a></li>
+                      <li><a class="dropdown-item" href="{% url 'arbitro_partido_cedula' partido.id %}" target="_blank"><i class="fas fa-file-pdf me-1 text-danger"></i>Cédula PDF</a></li>
                     </ul>
                   </div>
                 </div>
@@ -203,6 +204,7 @@
                             <li><a class="dropdown-item" href="{% url 'arbitro_partido_participaciones' partido.id %}"><i class="fas fa-users me-1"></i>Jugadores</a></li>
                             <li><a class="dropdown-item" href="{% url 'arbitro_partido_goleadores' partido.id %}"><i class="fas fa-futbol me-1"></i>Goleadores</a></li>
                             <li><a class="dropdown-item" href="{% url 'arbitro_partido_sanciones' partido.id %}"><i class="fas fa-exclamation-triangle me-1"></i>Sanciones</a></li>
+                            <li><a class="dropdown-item" href="{% url 'arbitro_partido_cedula' partido.id %}" target="_blank"><i class="fas fa-file-pdf me-1 text-danger"></i>Cédula PDF</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                               <form method="post" action="{% url 'arbitro_partido_eliminar_resultado' partido.id %}" onsubmit="return confirm('¿Eliminar el resultado de este partido?');">
