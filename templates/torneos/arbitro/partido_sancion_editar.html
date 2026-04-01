@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-3 text-white">Editar sanción de {{ jugador.nombre }} {{ jugador.apellido }}</h2>
+  <form method="post" class="bg-white p-4 rounded shadow-sm">
+    {% csrf_token %}
+    <div id="form-fields">
+      <div class="mb-3">
+        {{ form.tipo_tarjeta.label_tag }}
+        {{ form.tipo_tarjeta }}
+      </div>
+      <div class="mb-3">
+        {{ form.cantidad_amarillas.label_tag }}
+        {{ form.cantidad_amarillas }}
+      </div>
+      <div class="mb-3" id="c7-info" style="display: none;">
+        <label class="form-label fw-bold">C7</label>
+        <input type="text" class="form-control bg-light" value="C7 - Doble amonestación en el mismo partido" readonly>
+      </div>
+      <div class="mb-3" id="tipo-roja-group" style="display: none;">
+        {{ form.tipo_roja.label_tag }}
+        {{ form.tipo_roja }}
+      </div>
+      <div class="mb-3">
+        {{ form.observaciones.label_tag }}
+        {{ form.observaciones }}
+      </div>
+    </div>
+    <script>
+      function toggleTipoRoja() {
+        var tarjeta = document.getElementById('id_tipo_tarjeta');
+        var tipoRojaGroup = document.getElementById('tipo-roja-group');
+        if (tarjeta && tarjeta.value === 'roja') {
+          tipoRojaGroup.style.display = '';
+        } else {
+          tipoRojaGroup.style.display = 'none';
+          // Limpiar selección si se oculta
+          var tipoRoja = document.getElementById('id_tipo_roja');
+          if (tipoRoja) tipoRoja.value = '';
+        }
+      }
+
+      function toggleC7Info() {
+        var amarillas = document.getElementById('id_cantidad_amarillas');
+        var c7info = document.getElementById('c7-info');
+        if (amarillas && c7info) {
+          if (parseInt(amarillas.value) === 2) {
+            c7info.style.display = '';
+          } else {
+            c7info.style.display = 'none';
+          }
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var tarjeta = document.getElementById('id_tipo_tarjeta');
+        var amarillas = document.getElementById('id_cantidad_amarillas');
+        if (tarjeta) {
+          tarjeta.addEventListener('change', toggleTipoRoja);
+          toggleTipoRoja();
+        }
+        if (amarillas) {
+          amarillas.addEventListener('input', toggleC7Info);
+          toggleC7Info();
+        }
+      });
+    </script>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{% url 'arbitro_partido_sanciones' partido.id %}" class="btn btn-secondary">Cancelar</a>
+    
+  </form>
+</div>
+{% endblock %}

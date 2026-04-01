@@ -516,3 +516,37 @@ try:
 except Exception:
     # Evitar romper la importación si signals usa modelos que aún no están listos en algunos contextos
     pass
+
+class Sancion(models.Model):
+    TARJETA_CHOICES = [
+        ('ninguna', 'Ninguna'),
+        ('amarilla', 'Tarjeta amarilla'),
+        ('roja', 'Tarjeta roja'),
+    ]
+    ROJA_CHOICES = [
+        ('C1', 'C1'),
+        ('C2', 'C2'),
+        ('C3', 'C3'),
+        ('C4', 'C4'),
+        ('C5', 'C5'),
+        ('C6', 'C6'),
+        ('C7', 'C7'),
+        ('C8', 'C8'),
+        ('C9', 'C9'),
+        ('C10', 'C10'),
+    ]
+    jugador = models.ForeignKey('Jugador', on_delete=models.CASCADE, related_name='sanciones')
+    partido = models.ForeignKey('Partido', on_delete=models.CASCADE, related_name='sanciones')
+    tipo_tarjeta = models.CharField(max_length=10, choices=TARJETA_CHOICES, default='ninguna')
+    cantidad_amarillas = models.PositiveSmallIntegerField(default=0, blank=True, null=True)
+    tipo_roja = models.CharField(max_length=4, choices=ROJA_CHOICES, blank=True, null=True)
+    observaciones = models.CharField(max_length=255, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('jugador', 'partido')
+        verbose_name = 'Sanción'
+        verbose_name_plural = 'Sanciones'
+
+    def __str__(self):
+        return f"{self.jugador} en {self.partido} - {self.get_tipo_tarjeta_display()}"

@@ -1,6 +1,39 @@
 # Importar forms y modelos antes de definir formularios que los usan
 from django import forms
 from .models import *
+# Importar forms y modelos antes de definir formularios que los usan
+from django import forms
+from .models import *
+
+# SancionForm debe ir después de importar forms y modelos
+class SancionForm(forms.ModelForm):
+    class Meta:
+        model = Sancion
+        fields = ['tipo_tarjeta', 'cantidad_amarillas', 'tipo_roja', 'observaciones']
+        labels = {
+            'tipo_tarjeta': 'Tipo de tarjeta',
+            'cantidad_amarillas': 'Cantidad de amarillas',
+            'tipo_roja': 'Tipo de roja',
+            'observaciones': 'Observaciones',
+        }
+        widgets = {
+            'observaciones': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Motivo, minuto, etc.'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Agregar clase bg-white al formulario
+        for field in self.fields.values():
+            css = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f'{css} bg-white'.strip()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cantidad_amarillas = cleaned_data.get('cantidad_amarillas')
+        if cantidad_amarillas == 2:
+            cleaned_data['tipo_tarjeta'] = 'roja'
+            cleaned_data['tipo_roja'] = 'C7'
+        return cleaned_data
 # Formulario para registrar participaciones múltiples
 class ParticipacionMultipleForm(forms.Form):
     equipo = forms.ModelChoiceField(queryset=Equipo.objects.all(), label='Equipo')

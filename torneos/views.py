@@ -1488,3 +1488,12 @@ def partido_detalle(request, partido_id):
         'participaciones_visitante': participaciones_visitante,
     }
     return render(request, 'torneos/partido_detalle.html', context)
+def torneo_sanciones_view(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    sanciones = Sancion.objects.filter(partido__grupo__categoria=categoria) | Sancion.objects.filter(partido__grupo=None, partido__equipo_local__categoria=categoria) | Sancion.objects.filter(partido__grupo=None, partido__equipo_visitante__categoria=categoria)
+    sanciones = sanciones.distinct().select_related('jugador', 'jugador__equipo')
+    context = {
+        'categoria': categoria,
+        'sanciones': sanciones,
+    }
+    return render(request, 'torneos/torneo_sanciones.html', context)

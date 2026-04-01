@@ -122,17 +122,17 @@
                   {% if partido.ubicacion %}
                     <div class="text-muted mb-2" style="font-size:0.8rem;"><i class="fas fa-map-marker-alt me-1"></i>{{ partido.ubicacion.nombre }}</div>
                   {% endif %}
-                  <!-- Botones -->
-                  <div class="d-flex gap-2 mt-2">
-                    <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-primary flex-fill">
-                      <i class="fas fa-futbol me-1"></i>Resultado
-                    </a>
-                    <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-sm btn-outline-primary flex-fill">
-                      <i class="fas fa-users me-1"></i>Jugadores
-                    </a>
-                    <a href="{% url 'arbitro_partido_goleadores' partido.id %}" class="btn btn-sm btn-outline-success flex-fill">
-                      <i class="fas fa-futbol me-1"></i>Goleadores
-                    </a>
+                  <!-- Dropdown de acciones por partido -->
+                  <div class="dropdown mt-2">
+                    <button class="btn btn-sm btn-primary dropdown-toggle w-100" type="button" id="dropdownMenu{{ partido.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fas fa-bars me-1"></i>Acciones
+                    </button>
+                    <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenu{{ partido.id }}">
+                      <li><a class="dropdown-item" href="{% url 'arbitro_partido_resultado' partido.id %}"><i class="fas fa-futbol me-1"></i>Resultado</a></li>
+                      <li><a class="dropdown-item" href="{% url 'arbitro_partido_participaciones' partido.id %}"><i class="fas fa-users me-1"></i>Jugadores</a></li>
+                      <li><a class="dropdown-item" href="{% url 'arbitro_partido_goleadores' partido.id %}"><i class="fas fa-futbol me-1"></i>Goleadores</a></li>
+                      <li><a class="dropdown-item" href="{% url 'arbitro_partido_sanciones' partido.id %}"><i class="fas fa-exclamation-triangle me-1"></i>Sanciones</a></li>
+                    </ul>
                   </div>
                 </div>
                 {% endfor %}
@@ -194,41 +194,26 @@
                       </div>
                       <div class="d-flex align-items-center gap-2">
                         <div class="badge bg-success">{{ partido.goles_local }}-{{ partido.goles_visitante }}</div>
-                        <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center">
-                          <i class="fas fa-users fa-sm me-1"></i>Jugadores
-                        </a>
-                        <a href="{% url 'arbitro_partido_goleadores' partido.id %}" class="btn btn-sm btn-outline-success d-none d-md-inline-flex align-items-center">
-                          <i class="fas fa-futbol me-1"></i>Goleadores
-                        </a>
-                        <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex align-items-center">
-                          <i class="fas fa-edit fa-sm me-1"></i>Editar
-                        </a>
-                        <form method="post" action="{% url 'arbitro_partido_eliminar_resultado' partido.id %}" class="d-none d-md-inline-flex align-items-center" onsubmit="return confirm('¿Eliminar el resultado de este partido?');">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-sm btn-outline-danger">
-                            <i class="fas fa-trash-alt fa-sm me-1"></i>Eliminar
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="dropdownMenuRes{{ partido.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bars me-1"></i>Acciones
                           </button>
-                        </form>
+                          <ul class="dropdown-menu" aria-labelledby="dropdownMenuRes{{ partido.id }}">
+                            <li><a class="dropdown-item" href="{% url 'arbitro_partido_resultado' partido.id %}"><i class="fas fa-futbol me-1"></i>Resultado</a></li>
+                            <li><a class="dropdown-item" href="{% url 'arbitro_partido_participaciones' partido.id %}"><i class="fas fa-users me-1"></i>Jugadores</a></li>
+                            <li><a class="dropdown-item" href="{% url 'arbitro_partido_goleadores' partido.id %}"><i class="fas fa-futbol me-1"></i>Goleadores</a></li>
+                            <li><a class="dropdown-item" href="{% url 'arbitro_partido_sanciones' partido.id %}"><i class="fas fa-exclamation-triangle me-1"></i>Sanciones</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                              <form method="post" action="{% url 'arbitro_partido_eliminar_resultado' partido.id %}" onsubmit="return confirm('¿Eliminar el resultado de este partido?');">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger"><i class="fas fa-trash-alt fa-sm me-1"></i>Eliminar resultado</button>
+                              </form>
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
-                    <!-- Botones solo móvil -->
-                    <div class="d-flex gap-2 mt-2 d-md-none">
-                      <a href="{% url 'arbitro_partido_resultado' partido.id %}" class="btn btn-sm btn-outline-primary flex-fill">
-                        <i class="fas fa-edit fa-sm me-1"></i>Editar
-                      </a>
-                      <a href="{% url 'arbitro_partido_participaciones' partido.id %}" class="btn btn-sm btn-outline-secondary flex-fill">
-                        <i class="fas fa-users fa-sm me-1"></i>Jugadores
-                      </a>
-                      <a href="{% url 'arbitro_partido_goleadores' partido.id %}" class="btn btn-sm btn-outline-success flex-fill">
-                        <i class="fas fa-futbol me-1"></i>Goleadores
-                      </a>
-                    </div>
-                    <form method="post" action="{% url 'arbitro_partido_eliminar_resultado' partido.id %}" class="w-100 mt-2 d-md-none" onsubmit="return confirm('¿Eliminar el resultado de este partido?');">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                        <i class="fas fa-trash-alt fa-sm me-1"></i>Eliminar resultado
-                      </button>
-                    </form>
                   </div>
                 </li>
                 {% endfor %}

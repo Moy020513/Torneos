@@ -3,6 +3,7 @@ from . import views
 
 from .admin_urls import admin_urlpatterns
 from .admin_campos_urls import urlpatterns as admin_campos_urlpatterns
+from .arbitro_sanciones_view import arbitro_partido_sanciones, arbitro_sancion_editar
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -46,4 +47,7 @@ urlpatterns = [
         path('arbitro/partido/<int:partido_id>/participaciones/', views.arbitro_partido_participaciones, name='arbitro_partido_participaciones'),
         path('arbitro/partido/<int:partido_id>/participaciones/agregar/', views.arbitro_participacion_agregar, name='arbitro_participacion_agregar'),
         path('arbitro/participacion/<int:participacion_id>/eliminar/', views.arbitro_participacion_eliminar, name='arbitro_participacion_eliminar'),
+    path('arbitro/partido/<int:partido_id>/sanciones/', arbitro_partido_sanciones, name='arbitro_partido_sanciones'),
+    path('arbitro/partido/<int:partido_id>/sanciones/<int:jugador_id>/editar/', arbitro_sancion_editar, name='arbitro_sancion_editar'),
+    path('categoria/<int:categoria_id>/sanciones/', views.torneo_sanciones_view, name='torneo_sanciones'),
 ] + admin_urlpatterns + admin_campos_urlpatterns
