@@ -111,8 +111,8 @@ LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/login/'
 # Configuración CSRF para producción
 CSRF_TRUSTED_ORIGINS = [
-    'https://tecnoy.me',
-    'https://www.tecnoy.me',
+    'https://ligafezequielmontes.com',
+    'https://www.ligafezequielmontes.com',
 ]
 
 # Asegurar que CSRF use HTTPS
