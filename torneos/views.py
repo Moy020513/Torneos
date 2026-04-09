@@ -1494,8 +1494,8 @@ def partido_detalle(request, partido_id):
         goles_map.setdefault(gid, {'jugador': jugador, 'goles': 0})
         goles_map[gid]['goles'] += (gj.goles or 0)
 
-    # También sumar goles de Goleador (flujo árbitro)
-    for g in Goleador.objects.filter(partido=partido).select_related('jugador'):
+    # También sumar goles de Goleador (flujo árbitro) verificando que no sean registros padre del admin
+    for g in Goleador.objects.filter(partido=partido, jornadas__isnull=True).select_related('jugador'):
         jugador = g.jugador
         gid = jugador.id
         goles_map.setdefault(gid, {'jugador': jugador, 'goles': 0})
@@ -1563,8 +1563,8 @@ def cedula_partido_view(request, partido_id):
         jugador = getattr(getattr(gj, 'goleador', None), 'jugador', None)
         if jugador:
             goles_por_jugador[jugador.id] += gj.goles or 0
-    # Sumar goles de Goleador
-    for g in Goleador.objects.filter(partido=partido).select_related('jugador'):
+    # Sumar goles de Goleador verificando que no sean registros padre del admin
+    for g in Goleador.objects.filter(partido=partido, jornadas__isnull=True).select_related('jugador'):
         jugador = g.jugador
         if jugador:
             goles_por_jugador[jugador.id] += g.goles or 0

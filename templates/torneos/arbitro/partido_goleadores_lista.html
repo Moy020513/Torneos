@@ -39,7 +39,11 @@
               <div class="d-flex align-items-center gap-2">
                 {% with goleador=goles_dict|dict_get:jugador.id %}
                   {% if goleador %}
-                    <span class="badge bg-success fs-6">{{ goleador.goles }}</span>
+                    {% if goleador.goles > 0 %}
+                      <span class="badge bg-success fs-6">{{ goleador.goles }}</span>
+                    {% else %}
+                      <span class="badge bg-secondary fs-6">0</span>
+                    {% endif %}
                   {% else %}
                     <span class="badge bg-secondary fs-6">0</span>
                   {% endif %}
