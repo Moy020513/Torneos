@@ -23,6 +23,11 @@
       font-size: 8px;
     }
     th.apellido, td.apellido, th.nombre, td.nombre { width: 110px; }
+    td.goles.goles-con-anotacion {
+      background: #0b8f86;
+      color: #fff;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -55,7 +60,7 @@
               <td class="exp">{% if jugador.expulsado %}<span class="expulsado">&#9632;</span>{% endif %}</td>
               <td class="apellido">{{ jugador.apellido }}</td>
               <td class="nombre">{{ jugador.nombre }}</td>
-              <td class="goles">{{ jugador.goles }}</td>
+              <td class="goles{% if jugador.goles > 0 %} goles-con-anotacion{% endif %}">{{ jugador.goles }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5">Sin participaciones</td></tr>
@@ -89,7 +94,7 @@
           <td class="exp">{% if jugador.expulsado %}<span class="expulsado">&#9632;</span>{% endif %}</td>
           <td class="apellido">{{ jugador.apellido }}</td>
           <td class="nombre">{{ jugador.nombre }}</td>
-          <td class="goles">{{ jugador.goles }}</td>
+          <td class="goles{% if jugador.goles > 0 %} goles-con-anotacion{% endif %}">{{ jugador.goles }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="5">Sin participaciones</td></tr>
