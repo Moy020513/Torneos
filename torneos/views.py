@@ -3,7 +3,11 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+from django.urls import reverse
 import weasyprint
+import qrcode
+from io import BytesIO
+import base64
 
 def is_representante(user):
     return hasattr(user, 'representante') and user.representante.activo
@@ -14,7 +18,29 @@ def is_representante(user):
 def representante_credenciales_pdf(request):
     representante = request.user.representante
     equipo = representante.equipo
-    jugadores = Jugador.objects.filter(equipo=equipo)
+    jugadores_qs = Jugador.objects.filter(equipo=equipo, verificado=True)
+    jugadores = []
+
+    for jugador in jugadores_qs:
+        detalle_url = request.build_absolute_uri(reverse('jugador_detalle', args=[jugador.id]))
+
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=2,
+        )
+        qr.add_data(detalle_url)
+        qr.make(fit=True)
+        qr_img = qr.make_image(fill_color='black', back_color='white')
+
+        buffer = BytesIO()
+        qr_img.save(buffer, format='PNG')
+        qr_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        jugador.qr_data_uri = f'data:image/png;base64,{qr_b64}'
+
+        jugadores.append(jugador)
+
     categoria = equipo.categoria if hasattr(equipo, 'categoria') else None
     torneo = categoria.torneo if categoria and hasattr(categoria, 'torneo') else None
     context = {
@@ -27,7 +53,9 @@ def representante_credenciales_pdf(request):
         stylesheets=[weasyprint.CSS(string='@page { size: A4; margin: 10mm; }')]
     )
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = 'filename="credenciales_jugadores.pdf"'
+    force_download = request.GET.get('download') in ('1', 'true', 'True')
+    disposition = 'attachment' if force_download else 'inline'
+    response['Content-Disposition'] = f'{disposition}; filename="credenciales_jugadores.pdf"'
     return response
 
 @login_required
@@ -1590,6 +1618,9 @@ def cedula_partido_view(request, partido_id):
         html = render_to_string('torneos/cedula_partido_pdf.html', context)
         pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
         response = HttpResponse(pdf, content_type='application/pdf')
-        response['Content-Disposition'] = f'filename="cedula_partido_{partido.id}.pdf"'
+        # Permite abrir el PDF en navegador o forzar descarga segun query param.
+        force_download = request.GET.get('download') in ('1', 'true', 'True')
+        disposition = 'attachment' if force_download else 'inline'
+        response['Content-Disposition'] = f'{disposition}; filename="cedula_partido_{partido.id}.pdf"'
         return response
     return render(request, 'torneos/cedula_partido.html', context)

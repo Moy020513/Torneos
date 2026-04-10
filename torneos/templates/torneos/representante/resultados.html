@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{% static 'css/resultados_representante.css' %}">
 <div class="container mt-4 resultados-rep-container">
   <a href="/representante/" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Volver</a>
-  <a href="{% url 'representante_credenciales_pdf' %}" target="_blank" class="btn btn-info mb-3 ms-2"><i class="fas fa-id-card"></i> Descargar credenciales PDF</a>
+
   <h2 class="mb-4 text-white">Resultados de mi equipo</h2>
   {% if partidos %}
     <div class="table-responsive">
@@ -40,9 +40,23 @@
             </td>
             <td>{% if partido.ubicacion %}{{ partido.ubicacion.nombre }}{% else %}Por definir{% endif %}</td>
             <td>
-              <a href="{% url 'arbitro_partido_cedula' partido.id %}?pdf=1" target="_blank" class="btn btn-sm btn-danger">
-                <i class="fas fa-file-pdf"></i> PDF
-              </a>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-danger dropdown-toggle" type="button" id="cedulaDropdown{{ partido.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fas fa-file-pdf"></i> Cédula PDF
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="cedulaDropdown{{ partido.id }}">
+                  <li>
+                    <a class="dropdown-item" href="{% url 'arbitro_partido_cedula' partido.id %}?pdf=1" target="_blank">
+                      <i class="fas fa-eye me-1 text-primary"></i>Ver
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'arbitro_partido_cedula' partido.id %}?pdf=1&download=1">
+                      <i class="fas fa-download me-1 text-danger"></i>Descargar
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </td>
           </tr>
           {% endfor %}

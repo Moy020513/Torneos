@@ -34,8 +34,9 @@ body {
 
 .dashboard-container {
   width: 100%;
-  margin: 0;
-  padding: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0.75rem;
 }
 
 /* Header Section */
@@ -302,22 +303,22 @@ body {
 
 /* Players Table */
 .players-table-container {
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(-50vw + 50%);
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .table-wrapper {
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(-50vw + 50%);
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
 }
 
 .players-table {
-  width: 100vw;
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
 }
 
@@ -341,6 +342,11 @@ body {
 .col-name { flex: 1; }
 .col-status { width: 120px; }
 .col-actions { width: 150px; }
+
+.players-table th.col-status,
+.players-table td.col-status {
+  text-align: center;
+}
 
 .player-row {
   border-bottom: 1px solid var(--border-color);
@@ -418,8 +424,13 @@ body {
 }
 
 .status-badge.active {
-  background: var(--success-light);
-  color: var(--success-color);
+  background: var(--success-color);
+  color: #fff;
+}
+
+.status-badge.inactive {
+  background: var(--danger-color);
+  color: #fff;
 }
 
 .action-buttons {
@@ -692,7 +703,19 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboard-container {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: 0;
     padding: 0rem;
+  }
+
+  .players-table-container {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 
   .header-section {

@@ -19,9 +19,26 @@
   height: 30mm;
   object-fit: cover;
   border-radius: 6px;
-  margin: 0 8px 0 8px;
+  margin: 0;
   background: #f8f9fa;
   border: 1px solid #b0c4de;
+}
+.credencial-foto-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0 8px 0 8px;
+}
+.credencial-verificado {
+  font-size: 0.65em;
+  color: #fff;
+  background: #28a745;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 8px;
 }
 .credencial-info {
   flex: 1;
@@ -42,12 +59,6 @@
   margin-bottom: 2px;
   color: #0077ff;
 }
-.credencial-num {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #0a2342;
-  margin-bottom: 2px;
-}
 .credencial-logo {
   height: 22px;
   margin-bottom: 2px;
@@ -57,43 +68,71 @@
   color: #555;
   font-weight: 500;
 }
+.credencial-qr {
+  position: absolute;
+  right: 4mm;
+  bottom: 4mm;
+  width: 14mm;
+  height: 14mm;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  background: #fff;
+}
 </style>
-{% for jugador in jugadores %}
-  {% if forloop.first or forloop.counter0|divisibleby:8 %}
-    {% if not forloop.first %}</div>{% endif %}
-    <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; page-break-after: always;">
-  {% endif %}
-  <div class="credencial-card">
-    <div style="width:100%;text-align:center;padding:0.5mm 0 1.5mm 0; position:absolute; top:0; left:0;">
-      {% if torneo and torneo.logo %}
-        <img src="{{ torneo.logo.url }}" alt="Logo {{ torneo.nombre }}" style="height:28px;vertical-align:middle;margin-bottom:1.5mm;" />
-      {% endif %}
-      <span style="font-size:0.78em;font-weight:700;color:#0a2342;vertical-align:middle;">{{ torneo.nombre }}</span>
-      <span style="font-size:0.68em;font-weight:500;color:#0077ff;vertical-align:middle;">{% if categoria %} - {{ categoria.nombre }}{% endif %}</span>
-    </div>
-    <div style="height:32px;"></div>
-    <div style="display:flex; flex-direction:row; align-items:center; height:calc(100% - 32px);">
-      {% if jugador.foto %}
-        <img class="credencial-foto" src="{{ jugador.foto.url }}" alt="Foto {{ jugador.nombre }} {{ jugador.apellido }}">
-      {% else %}
-        <div class="credencial-foto" style="display:flex;align-items:center;justify-content:center;">
-          <span style="color:#aaa;font-size:1.2em;">Sin foto</span>
-        </div>
-      {% endif %}
-      <div class="credencial-info">
-        <div class="credencial-nombre">{{ jugador.nombre }} {{ jugador.apellido }}</div>
-        <div class="credencial-label">Equipo:</div>
-        <div class="credencial-equipo" style="display:flex;align-items:center;gap:6px;">
-          {% if jugador.equipo.logo %}
-            <img class="credencial-logo" src="{{ jugador.equipo.logo.url }}" alt="Logo {{ jugador.equipo.nombre }}">
-          {% endif %}
-          <span>{{ jugador.equipo.nombre }}</span>
-        </div>
-        <div class="credencial-label">Nacimiento:</div>
-        <div>{{ jugador.fecha_nacimiento|date:'d/m/Y' }}</div>
-      </div>
-    </div>
-  </div>
-  {% if forloop.last %}</div>{% endif %}
-{% endfor %}
 
+{% if jugadores %}
+  {% for jugador in jugadores %}
+    {% if forloop.first or forloop.counter0|divisibleby:8 %}
+      {% if not forloop.first %}</div>{% endif %}
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; page-break-after: always;">
+    {% endif %}
+
+    <div class="credencial-card">
+      <div style="width:100%;text-align:center;padding:0.5mm 0 1.5mm 0;position:absolute;top:0;left:0;">
+        {% if torneo and torneo.logo %}
+          <img src="{{ torneo.logo.url }}" alt="Logo {{ torneo.nombre }}" style="height:28px;vertical-align:middle;margin-bottom:1.5mm;" />
+        {% endif %}
+        <span style="font-size:0.78em;font-weight:700;color:#0a2342;vertical-align:middle;">{{ torneo.nombre }}</span>
+        <br/>
+        <span style="font-size:0.68em;font-weight:500;color:#0077ff;vertical-align:middle;">{% if categoria %} - {{ categoria.nombre }}{% endif %}</span>
+      </div>
+
+      <div style="height:32px;"></div>
+      <div style="display:flex;flex-direction:row;align-items:center;height:calc(100% - 32px);">
+        <div class="credencial-foto-wrap">
+          {% if jugador.foto %}
+            <img class="credencial-foto" src="{{ jugador.foto.url }}" alt="Foto {{ jugador.nombre }} {{ jugador.apellido }}">
+          {% else %}
+            <div class="credencial-foto" style="display:flex;align-items:center;justify-content:center;">
+              <span style="color:#aaa;font-size:1.2em;">Sin foto</span>
+            </div>
+          {% endif %}
+          <div class="credencial-verificado">Verificado</div>
+        </div>
+
+        <div class="credencial-info">
+          <div class="credencial-nombre">{{ jugador.nombre }} {{ jugador.apellido }}</div>
+          <div class="credencial-label">Equipo:</div>
+          <div class="credencial-equipo" style="display:flex;align-items:center;gap:6px;">
+            {% if jugador.equipo.logo %}
+              <img class="credencial-logo" src="{{ jugador.equipo.logo.url }}" alt="Logo {{ jugador.equipo.nombre }}">
+            {% endif %}
+            <span>{{ jugador.equipo.nombre }}</span>
+          </div>
+          <div class="credencial-label">Nacimiento:</div>
+          <div>{{ jugador.fecha_nacimiento|date:'d/m/Y' }}</div>
+        </div>
+      </div>
+      {% if jugador.qr_data_uri %}
+        <img class="credencial-qr" src="{{ jugador.qr_data_uri }}" alt="QR {{ jugador.nombre }} {{ jugador.apellido }}">
+      {% endif %}
+    </div>
+
+    {% if forloop.last %}</div>{% endif %}
+  {% endfor %}
+{% else %}
+  <div style="padding:30px 10px;text-align:center;color:#0a2342;font-family:'Segoe UI',Arial,sans-serif;">
+    <h3 style="margin:0 0 8px 0;font-size:1.1rem;">Sin jugadores verificados</h3>
+    <p style="margin:0;font-size:0.9rem;color:#555;">No hay credenciales para exportar en este momento.</p>
+  </div>
+{% endif %}

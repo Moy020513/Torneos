@@ -7,3 +7,4 @@ whitenoise==6.6.0
 django-crispy-forms==2.5
 crispy-bootstrap5==2025.6
 weasyprint
+qrcode
