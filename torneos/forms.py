@@ -284,6 +284,11 @@ class RepresentanteJugadorForm(AdminFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
+
+        # En creacion la foto es obligatoria; en edicion puede mantenerse la existente.
+        self.fields['foto'].required = not (instance and instance.pk)
+        self.fields['foto'].error_messages['required'] = 'Debes subir una foto del jugador.'
+
         if instance and getattr(instance, 'fecha_nacimiento', None):
             try:
                 self.fields['fecha_nacimiento'].initial = instance.fecha_nacimiento.strftime('%Y-%m-%d')
@@ -531,17 +536,20 @@ class GoleadorForm(AdminFormMixin, forms.ModelForm):
         return cleaned_data
 
 class PartidoEliminatoriaForm(AdminFormMixin, forms.ModelForm):
+    campo = forms.ChoiceField(required=False, label='Campo de Juego')
+
     class Meta:
         model = PartidoEliminatoria
-        fields = ['eliminatoria', 'equipo_local', 'equipo_visitante', 'fecha', 'goles_local', 'goles_visitante', 'goles_local_vuelta', 'goles_visitante_vuelta', 'jugado', 'campo']
+        fields = ['eliminatoria', 'equipo_local', 'equipo_visitante', 'fecha', 'arbitro', 'goles_local', 'goles_visitante', 'goles_local_vuelta', 'goles_visitante_vuelta', 'jugado', 'campo']
         widgets = {
-            'fecha': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fecha': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
         }
         labels = {
             'eliminatoria': 'Eliminatoria',
             'equipo_local': 'Equipo Local',
             'equipo_visitante': 'Equipo Visitante', 
             'fecha': 'Fecha y Hora',
+            'arbitro': 'Arbitro Asignado',
             'goles_local': 'Goles Local (Ida)',
             'goles_visitante': 'Goles Visitante (Ida)',
             'goles_local_vuelta': 'Goles Local (Vuelta)',
@@ -549,6 +557,66 @@ class PartidoEliminatoriaForm(AdminFormMixin, forms.ModelForm):
             'jugado': 'Partido Jugado',
             'campo': 'Campo de Juego',
         }
+
+    def __init__(self, *args, **kwargs):
+        from django.utils import timezone
+        from zoneinfo import ZoneInfo
+
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
+        current_user = kwargs.pop('current_user', None)
+        super().__init__(*args, **kwargs)
+
+        # Asegurar compatibilidad de parseo con input datetime-local del navegador.
+        self.fields['fecha'].input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M']
+
+        campos_qs = UbicacionCampo.objects.all().order_by('nombre')
+
+        if assigned_torneo:
+            campos_qs = UbicacionCampo.objects.filter(
+                models.Q(partidos__grupo__categoria__torneo_id=assigned_torneo) |
+                models.Q(partidos__equipo_local__categoria__torneo_id=assigned_torneo) |
+                models.Q(partidos__equipo_visitante__categoria__torneo_id=assigned_torneo)
+            )
+            if current_user and not getattr(current_user, 'is_superuser', False):
+                campos_qs = (campos_qs | UbicacionCampo.objects.filter(creado_por=current_user)).distinct()
+
+            # Limitar eliminatorias y equipos al torneo asignado
+            self.fields['eliminatoria'].queryset = Eliminatoria.objects.filter(categoria__torneo_id=assigned_torneo).order_by('categoria__nombre', 'orden')
+            self.fields['equipo_local'].queryset = Equipo.objects.filter(categoria__torneo_id=assigned_torneo).order_by('categoria__nombre', 'nombre')
+            self.fields['equipo_visitante'].queryset = Equipo.objects.filter(categoria__torneo_id=assigned_torneo).order_by('categoria__nombre', 'nombre')
+            self.fields['arbitro'].queryset = Arbitro.objects.filter(torneo_id=assigned_torneo).order_by('usuario__username')
+        else:
+            self.fields['arbitro'].queryset = Arbitro.objects.all().order_by('usuario__username')
+
+        campo_choices = [('', '---------')] + [(c.nombre, c.nombre) for c in campos_qs.distinct().order_by('nombre')]
+
+        # Si el valor guardado no esta en el queryset actual, conservarlo para edicion.
+        valor_actual = getattr(self.instance, 'campo', None)
+        if valor_actual and valor_actual not in [valor for valor, _ in campo_choices]:
+            campo_choices.append((valor_actual, valor_actual))
+
+        self.fields['campo'].choices = campo_choices
+
+        if self.instance and getattr(self.instance, 'fecha', None):
+            try:
+                mexico_tz = ZoneInfo('America/Mexico_City')
+                fecha_local = timezone.localtime(self.instance.fecha, mexico_tz)
+                self.initial['fecha'] = fecha_local.strftime('%Y-%m-%dT%H:%M')
+            except Exception:
+                pass
+
+    def clean_fecha(self):
+        from django.utils import timezone
+        from zoneinfo import ZoneInfo
+
+        fecha = self.cleaned_data.get('fecha')
+        if not fecha:
+            return fecha
+
+        mexico_tz = ZoneInfo('America/Mexico_City')
+        if timezone.is_naive(fecha):
+            return timezone.make_aware(fecha, mexico_tz)
+        return timezone.localtime(fecha, mexico_tz)
 
 # Formularios adicionales para las nuevas secciones
 
@@ -744,15 +812,25 @@ class RepresentanteForm(AdminFormMixin, forms.ModelForm):
 class EliminatoriaForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = Eliminatoria
-        fields = ['categoria', 'nombre', 'orden']
+        fields = ['categoria', 'nombre', 'modalidad']
         labels = {
             'categoria': 'Categoría',
             'nombre': 'Fase de Eliminatoria',
-            'orden': 'Orden de Ejecución',
+            'modalidad': 'Modalidad',
         }
         help_texts = {
-            'orden': 'Número que determina el orden de las fases (1=Primera, 2=Segunda, etc.)',
+            'modalidad': 'Defina si la serie se juega a ida y vuelta o a un solo partido.',
         }
+
+    def __init__(self, *args, **kwargs):
+        assigned_torneo = kwargs.pop('assigned_torneo', None)
+        super().__init__(*args, **kwargs)
+
+        if assigned_torneo:
+            categorias_qs = Categoria.objects.filter(torneo_id=assigned_torneo)
+            if self.instance and getattr(self.instance, 'categoria_id', None):
+                categorias_qs = (categorias_qs | Categoria.objects.filter(id=self.instance.categoria_id)).distinct()
+            self.fields['categoria'].queryset = categorias_qs
 
 
 class AjustePuntosForm(AdminFormMixin, forms.ModelForm):

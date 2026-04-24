@@ -80,7 +80,7 @@
                             <th>Fase</th>
                             <th>Categoría</th>
                             <th>Torneo</th>
-                            <th>Orden</th>
+                            <th>Modalidad</th>
                             <th>Partidos</th>
                             <th>Completado</th>
                             <th width="120">Acciones</th>
@@ -115,7 +115,11 @@
                                 <span class="badge bg-primary">{{ eliminatoria.categoria.torneo.nombre }}</span>
                             </td>
                             <td>
-                                <span class="badge bg-secondary">{{ eliminatoria.orden }}°</span>
+                                {% if eliminatoria.modalidad == 'ida_vuelta' %}
+                                    <span class="badge bg-info">Ida y vuelta</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">A un partido</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="small">

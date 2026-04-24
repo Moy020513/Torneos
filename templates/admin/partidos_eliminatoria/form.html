@@ -141,6 +141,17 @@
                                 {% endif %}
                                 <div class="form-text">Campo donde se jugará el partido</div>
                             </div>
+
+                            <div class="mb-3">
+                                {{ form.arbitro.label_tag }}
+                                {{ form.arbitro }}
+                                {% if form.arbitro.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.arbitro.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Árbitro asignado al partido (opcional)</div>
+                            </div>
                         </div>
 
                         <!-- Resultados -->

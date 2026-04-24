@@ -69,21 +69,21 @@
                         {% endif %}
                         <div class="form-text">Tipo de fase eliminatoria</div>
                     </div>
-                    
-                    <!-- Orden -->
+
+                    <!-- Modalidad -->
                     <div class="admin-form-group">
-                        <label class="admin-form-label" for="{{ form.orden.id_for_label }}">
-                            {{ form.orden.label }} <span class="text-danger">*</span>
+                        <label class="admin-form-label" for="{{ form.modalidad.id_for_label }}">
+                            {{ form.modalidad.label }} <span class="text-danger">*</span>
                         </label>
-                        {{ form.orden }}
-                        {% if form.orden.errors %}
+                        {{ form.modalidad }}
+                        {% if form.modalidad.errors %}
                             <div class="text-danger small mt-1">
-                                {% for error in form.orden.errors %}
+                                {% for error in form.modalidad.errors %}
                                     <div>{{ error }}</div>
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">{{ form.orden.help_text }}</div>
+                        <div class="form-text">{{ form.modalidad.help_text }}</div>
                     </div>
                     
                     <!-- Botones de acción -->
@@ -126,9 +126,13 @@
                             <span>Torneo:</span>
                             <span class="fw-semibold">{{ eliminatoria.categoria.torneo.nombre }}</span>
                         </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Modalidad:</span>
+                            <span class="fw-semibold">{{ eliminatoria.get_modalidad_display }}</span>
+                        </div>
                         <div class="d-flex justify-content-between">
-                            <span>Orden:</span>
-                            <span class="fw-semibold">{{ eliminatoria.orden }}°</span>
+                            <span>Fase:</span>
+                            <span class="fw-semibold">{{ eliminatoria.get_nombre_display }}</span>
                         </div>
                     </div>
                 </div>
@@ -175,25 +179,12 @@
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <h6 class="fw-semibold mb-2">Orden de Ejecución</h6>
-                    <div class="small text-muted">
-                        El orden determina la secuencia de las fases:
-                        <ul class="mt-2 mb-0">
-                            <li><strong>1:</strong> Primera fase (ej: Octavos)</li>
-                            <li><strong>2:</strong> Segunda fase (ej: Cuartos)</li>
-                            <li><strong>3:</strong> Tercera fase (ej: Semifinal)</li>
-                            <li><strong>4:</strong> Cuarta fase (ej: Final)</li>
-                        </ul>
-                    </div>
-                </div>
-                
                 <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1);">
                     <div class="d-flex">
                         <i class="fas fa-lightbulb text-info me-2 mt-1"></i>
                         <div class="small">
                             <strong>Consejo:</strong> 
-                            Configure las fases en orden lógico. Los equipos avanzan de una fase a la siguiente según el orden establecido.
+                            Solo elige la fase (octavos, cuartos, semifinal, etc.). El sistema calcula automáticamente el orden de ejecución.
                         </div>
                     </div>
                 </div>
@@ -220,18 +211,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Validación del orden
-    const ordenInput = document.getElementById('{{ form.orden.id_for_label }}');
-    if (ordenInput) {
-        ordenInput.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            if (value < 1 || value > 10) {
-                this.setCustomValidity('El orden debe estar entre 1 y 10');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-    }
 });
 </script>
 {% endblock %}

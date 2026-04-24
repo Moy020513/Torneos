@@ -38,10 +38,10 @@
         <button class="btn-primary-action" 
                 data-action="add-player" 
                 id="addPlayerBtn"
-                data-jugadores-count="{{ jugadores|length }}"
+                data-jugadores-count="{{ jugadores_count }}"
                 data-create-url="{% url 'representante_jugador_create' %}"
-                data-limite="16"
-                {% if jugadores|length >= 16 %}disabled style="opacity:0.6;cursor:not-allowed;"{% endif %}>
+                data-limite="{{ limite_jugadores }}"
+                {% if bloqueo_registro_jugadores or jugadores_count >= limite_jugadores %}disabled style="opacity:0.6;cursor:not-allowed;"{% endif %}>
           <i class="fas fa-plus-circle"></i> Agregar Jugador
         </button>
         
@@ -87,9 +87,11 @@
         <div class="section-title-group">
           <h2 class="section-title">Gestión de Jugadores</h2>
           <p class="section-subtitle">Administra y controla los miembros de tu equipo</p>
-          <p class="text-muted" style="margin-bottom:0.5rem;">Cantidad máxima de jugadores permitidos: <strong>16</strong></p>
-          {% if jugadores|length >= 16 %}
-            <p style="color:#dc3545;font-weight:bold;">Actualmente tienes 16 jugadores, para agregar otro deberás eliminar uno primero.</p>
+          <p class="text-muted" style="margin-bottom:0.5rem;">Cantidad máxima de jugadores permitidos: <strong>{{ limite_jugadores }}</strong></p>
+          {% if bloqueo_registro_jugadores %}
+            <p style="color:#dc3545;font-weight:bold;">El administrador del torneo bloqueó temporalmente el registro de nuevos jugadores.</p>
+          {% elif jugadores_count >= limite_jugadores %}
+            <p style="color:#dc3545;font-weight:bold;">Ya alcanzaste el máximo permitido. Para agregar otro jugador, elimina uno primero.</p>
           {% endif %}
         </div>
         <div class="search-wrapper">
@@ -175,10 +177,14 @@
             <i class="fas fa-user-slash"></i>
           </div>
           <h3 class="empty-title">No hay jugadores registrados</h3>
-          <p class="empty-message">Comienza agregando tu primer jugador al equipo</p>
-          <a href="{% url 'representante_jugador_create' %}" class="btn-empty-action">
-            <i class="fas fa-plus"></i> Agregar Primer Jugador
-          </a>
+          {% if bloqueo_registro_jugadores %}
+            <p class="empty-message">El registro está bloqueado por el administrador del torneo.</p>
+          {% else %}
+            <p class="empty-message">Comienza agregando tu primer jugador al equipo</p>
+            <a href="{% url 'representante_jugador_create' %}" class="btn-empty-action">
+              <i class="fas fa-plus"></i> Agregar Primer Jugador
+            </a>
+          {% endif %}
         </div>
         {% endif %}
       </div>

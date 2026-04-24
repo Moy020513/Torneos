@@ -79,6 +79,7 @@ admin_urlpatterns = [
 
     # Capitanes
     path('panel/representantes/', admin_views.admin_representantes, name='admin_representantes'),
+    path('panel/representantes/configuracion/', admin_views.admin_configurar_registro_representantes, name='admin_configurar_registro_representantes'),
     path('panel/representantes/crear/', admin_views.admin_crear_representante, name='admin_crear_representante'),
     path('panel/representantes/<int:representante_id>/editar/', admin_views.admin_editar_representante, name='admin_editar_representante'),
     path('panel/representantes/<int:representante_id>/eliminar/', admin_views.admin_eliminar_representante, name='admin_eliminar_representante'),

@@ -1,4 +1,4 @@
-// Límite de jugadores: 16
+// Límite de jugadores configurable por torneo
 document.addEventListener('DOMContentLoaded', function() {
   var addBtn = document.getElementById('addPlayerBtn');
   if (addBtn) {
@@ -53,11 +53,6 @@ document.getElementById('deleteModal').addEventListener('click', function(e) {
   if (e.target === this) {
     closeDeleteModal();
   }
-});
-
-// Add player action
-document.querySelector('[data-action="add-player"]').addEventListener('click', function() {
-  window.location.href = "{% url 'representante_jugador_create' %}";
 });
 
 // Toast notification

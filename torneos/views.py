@@ -299,10 +299,20 @@ def representante_panel(request):
     representante = request.user.representante
     equipo = representante.equipo
     jugadores = Jugador.objects.filter(equipo=equipo)
+    torneo = equipo.categoria.torneo if equipo and equipo.categoria else None
+    limite_jugadores = 16
+    bloqueo_registro_jugadores = False
+    if torneo:
+        limite_jugadores = torneo.max_jugadores_por_representante or 16
+        bloqueo_registro_jugadores = torneo.bloquear_registro_jugadores_representante
+    jugadores_count = jugadores.count()
     context = {
         'representante': representante,
         'equipo': equipo,
         'jugadores': jugadores,
+        'jugadores_count': jugadores_count,
+        'limite_jugadores': limite_jugadores,
+        'bloqueo_registro_jugadores': bloqueo_registro_jugadores,
     }
     return render(request, 'torneos/representante/panel.html', context)
 
@@ -310,7 +320,27 @@ def representante_panel(request):
 @login_required
 @user_passes_test(is_representante)
 def representante_jugador_create(request):
-    equipo = request.user.representante.equipo
+    representante = request.user.representante
+    equipo = representante.equipo
+    torneo = equipo.categoria.torneo if equipo and equipo.categoria else None
+    limite_jugadores = 16
+    bloqueo_registro_jugadores = False
+    if torneo:
+        limite_jugadores = torneo.max_jugadores_por_representante or 16
+        bloqueo_registro_jugadores = torneo.bloquear_registro_jugadores_representante
+
+    total_jugadores = Jugador.objects.filter(equipo=equipo).count()
+    if bloqueo_registro_jugadores:
+        messages.error(request, 'El administrador del torneo ha bloqueado temporalmente el registro de nuevos jugadores.')
+        return redirect('representante_panel')
+
+    if total_jugadores >= limite_jugadores:
+        messages.warning(
+            request,
+            f'Ya alcanzaste el maximo permitido de {limite_jugadores} jugador(es). Elimina uno para poder registrar otro.'
+        )
+        return redirect('representante_panel')
+
     from .forms import RepresentanteJugadorForm
     if request.method == 'POST':
         form = RepresentanteJugadorForm(request.POST, request.FILES)

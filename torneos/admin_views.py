@@ -2463,7 +2463,25 @@ def admin_representantes(request):
         categorias = Categoria.objects.select_related('torneo').filter(torneo_id=assigned_torneo).order_by('nombre')
     else:
         categorias = Categoria.objects.select_related('torneo').all().order_by('torneo__nombre', 'nombre')
+
+    # Configuracion de cupo/bloqueo de registro por torneo
+    torneos_configurables = Torneo.objects.none()
+    torneo_configuracion = None
+    if assigned_torneo:
+        torneo_configuracion = Torneo.objects.filter(id=assigned_torneo).first()
+    else:
+        torneos_configurables = Torneo.objects.all().order_by('nombre')
+        torneo_config_id = request.GET.get('torneo_config')
+        if torneo_config_id:
+            try:
+                torneo_configuracion = torneos_configurables.filter(id=int(torneo_config_id)).first()
+            except (TypeError, ValueError):
+                torneo_configuracion = None
+        if torneo_configuracion is None:
+            torneo_configuracion = torneos_configurables.first()
     
+    representantes_activos_count = representantees.filter(activo=True).count()
+
     context = {
         'page_obj': page_obj,
         'search': search,
@@ -2471,9 +2489,54 @@ def admin_representantes(request):
         'activo': activo,
         'categorias': categorias,
         'total_representantees': representantees.count(),
-        'representantees_activos': Representante.objects.filter(activo=True).count(),
+        'representantees_activos': representantes_activos_count,
+        'total_representantes': representantees.count(),
+        'representantes_activos': representantes_activos_count,
+        'torneo_configuracion': torneo_configuracion,
+        'torneos_configurables': torneos_configurables,
     }
     return render(request, 'admin/representantes/listar.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_configurar_registro_representantes(request):
+    if request.method != 'POST':
+        return redirect('admin_representantes')
+
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
+    try:
+        if assigned_torneo:
+            torneo = get_object_or_404(Torneo, id=assigned_torneo)
+        else:
+            torneo_id = request.POST.get('torneo_id')
+            torneo = get_object_or_404(Torneo, id=torneo_id)
+    except Exception:
+        messages.error(request, 'No se pudo identificar el torneo a configurar.')
+        return redirect('admin_representantes')
+
+    limite_raw = request.POST.get('max_jugadores_por_representante', '').strip()
+    try:
+        limite = int(limite_raw)
+        if limite <= 0:
+            raise ValueError
+    except (TypeError, ValueError):
+        messages.error(request, 'El maximo de jugadores por representante debe ser un numero mayor que 0.')
+        return redirect('admin_representantes')
+
+    torneo.max_jugadores_por_representante = limite
+    torneo.bloquear_registro_jugadores_representante = request.POST.get('bloquear_registro_jugadores_representante') == 'on'
+    torneo.save(update_fields=['max_jugadores_por_representante', 'bloquear_registro_jugadores_representante'])
+
+    estado_bloqueo = 'activado' if torneo.bloquear_registro_jugadores_representante else 'desactivado'
+    messages.success(
+        request,
+        f'Configuracion actualizada para "{torneo.nombre}": maximo {limite} jugador(es) por representante y bloqueo {estado_bloqueo}.'
+    )
+    return redirect('admin_representantes')
 
 @login_required
 @user_passes_test(is_admin)
@@ -2643,14 +2706,18 @@ def admin_eliminatorias(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_eliminatoria(request):
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = EliminatoriaForm(request.POST)
+        form = EliminatoriaForm(request.POST, assigned_torneo=assigned_torneo)
         if form.is_valid():
             eliminatoria = form.save()
             messages.success(request, f'Eliminatoria "{eliminatoria.get_nombre_display()}" creada exitosamente.')
             return redirect('admin_eliminatorias')
     else:
-        form = EliminatoriaForm()
+        form = EliminatoriaForm(assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -2662,15 +2729,21 @@ def admin_crear_eliminatoria(request):
 @user_passes_test(is_admin)
 def admin_editar_eliminatoria(request, eliminatoria_id):
     eliminatoria = get_object_or_404(Eliminatoria, id=eliminatoria_id)
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo and eliminatoria.categoria.torneo_id != assigned_torneo:
+            messages.error(request, 'No tienes permisos para editar eliminatorias de otro torneo.')
+            return redirect('admin_eliminatorias')
     
     if request.method == 'POST':
-        form = EliminatoriaForm(request.POST, instance=eliminatoria)
+        form = EliminatoriaForm(request.POST, instance=eliminatoria, assigned_torneo=assigned_torneo)
         if form.is_valid():
             eliminatoria = form.save()
             messages.success(request, f'Eliminatoria "{eliminatoria.get_nombre_display()}" actualizada exitosamente.')
             return redirect('admin_eliminatorias')
     else:
-        form = EliminatoriaForm(instance=eliminatoria)
+        form = EliminatoriaForm(instance=eliminatoria, assigned_torneo=assigned_torneo)
     
     context = {
         'form': form,
@@ -2707,7 +2780,7 @@ def admin_partidos_eliminatoria(request):
     
     partidos = PartidoEliminatoria.objects.select_related(
         'eliminatoria', 'eliminatoria__categoria', 'eliminatoria__categoria__torneo',
-        'equipo_local', 'equipo_visitante'
+        'equipo_local', 'equipo_visitante', 'arbitro', 'arbitro__usuario'
     ).all()
     # Limitar por torneo si el usuario es AdministradorTorneo
     assigned_torneo = None
@@ -2766,14 +2839,25 @@ def admin_partidos_eliminatoria(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_crear_partido_eliminatoria(request):
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+
     if request.method == 'POST':
-        form = PartidoEliminatoriaForm(request.POST)
+        form = PartidoEliminatoriaForm(
+            request.POST,
+            assigned_torneo=assigned_torneo,
+            current_user=request.user
+        )
         if form.is_valid():
             partido = form.save()
             messages.success(request, f'Partido de eliminatoria creado exitosamente.')
             return redirect('admin_partidos_eliminatoria')
     else:
-        form = PartidoEliminatoriaForm()
+        form = PartidoEliminatoriaForm(
+            assigned_torneo=assigned_torneo,
+            current_user=request.user
+        )
     
     context = {
         'form': form,
@@ -2785,15 +2869,30 @@ def admin_crear_partido_eliminatoria(request):
 @user_passes_test(is_admin)
 def admin_editar_partido_eliminatoria(request, partido_id):
     partido = get_object_or_404(PartidoEliminatoria, id=partido_id)
+    assigned_torneo = None
+    if not request.user.is_superuser:
+        assigned_torneo = get_assigned_torneo_id(request.user)
+        if assigned_torneo and partido.eliminatoria.categoria.torneo_id != assigned_torneo:
+            messages.error(request, 'No tienes permisos para editar partidos de otro torneo.')
+            return redirect('admin_partidos_eliminatoria')
     
     if request.method == 'POST':
-        form = PartidoEliminatoriaForm(request.POST, instance=partido)
+        form = PartidoEliminatoriaForm(
+            request.POST,
+            instance=partido,
+            assigned_torneo=assigned_torneo,
+            current_user=request.user
+        )
         if form.is_valid():
             partido = form.save()
             messages.success(request, f'Partido de eliminatoria actualizado exitosamente.')
             return redirect('admin_partidos_eliminatoria')
     else:
-        form = PartidoEliminatoriaForm(instance=partido)
+        form = PartidoEliminatoriaForm(
+            instance=partido,
+            assigned_torneo=assigned_torneo,
+            current_user=request.user
+        )
     
     context = {
         'form': form,

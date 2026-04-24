@@ -64,6 +64,14 @@ class Torneo(models.Model):
     color1 = models.CharField(max_length=7, blank=True, null=True)
     color2 = models.CharField(max_length=7, blank=True, null=True)
     color3 = models.CharField(max_length=7, blank=True, null=True)
+    max_jugadores_por_representante = models.PositiveIntegerField(
+        default=16,
+        help_text='Cantidad maxima de jugadores que puede registrar cada representante en este torneo.'
+    )
+    bloquear_registro_jugadores_representante = models.BooleanField(
+        default=False,
+        help_text='Si esta activo, los representantes no pueden registrar nuevos jugadores.'
+    )
     activo = models.BooleanField(default=True)
     creado_por = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -388,7 +396,27 @@ class Eliminatoria(models.Model):
         ('tercer_lugar', 'Tercer Lugar'),
         ('final', 'Final')
     ])
+    modalidad = models.CharField(
+        max_length=20,
+        choices=[
+            ('ida_vuelta', 'Ida y vuelta'),
+            ('un_partido', 'A un partido'),
+        ],
+        default='ida_vuelta'
+    )
     orden = models.PositiveIntegerField()
+
+    def save(self, *args, **kwargs):
+        orden_por_fase = {
+            'octavos': 1,
+            'cuartos': 2,
+            'semifinal': 3,
+            'tercer_lugar': 4,
+            'final': 5,
+        }
+        if self.nombre in orden_por_fase:
+            self.orden = orden_por_fase[self.nombre]
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.categoria.nombre} - {self.get_nombre_display()}"
@@ -398,6 +426,7 @@ class PartidoEliminatoria(models.Model):
     equipo_local = models.ForeignKey(Equipo, related_name='partidos_eliminatoria_local', on_delete=models.CASCADE)
     equipo_visitante = models.ForeignKey(Equipo, related_name='partidos_eliminatoria_visitante', on_delete=models.CASCADE)
     fecha = models.DateTimeField()
+    arbitro = models.ForeignKey('Arbitro', on_delete=models.SET_NULL, null=True, blank=True, related_name='partidos_eliminatoria')
     goles_local = models.PositiveIntegerField(default=0)
     goles_visitante = models.PositiveIntegerField(default=0)
     goles_local_vuelta = models.PositiveIntegerField(default=0, null=True, blank=True)
