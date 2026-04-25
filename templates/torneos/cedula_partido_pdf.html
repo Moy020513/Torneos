@@ -7,7 +7,31 @@
     body { font-family: Arial, sans-serif; font-size: 11px; color: #222; margin: 0.2em 0.2em 0.2em 0.2em; }
     h2 { margin-bottom: 0.5em; font-size: 1.7em; }
     h5 { margin-bottom: 0.5em; font-size: 1.1em; }
-    .teams-row { display: flex; flex-direction: row; gap: 1.2em; justify-content: center; }
+    h5 a {
+  font-weight: normal;
+}
+    .torneo-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+      margin-bottom: 0.5em;
+      padding-bottom: 0.3em;
+      border-bottom: 1px solid #ccc;
+    }
+    .torneo-logo {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+    }
+    .torneo-nombre {
+      font-size: 1.2em;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .teams-row { display: flex; flex-direction: row; gap: 1.2em; justify-content: center; align-items: stretch; }
+    .team-column { width: 320px; display: flex; flex-direction: column; }
+    .team-table-wrap { flex: 1; }
     .team-table { width: 320px; table-layout: auto; font-size: 9px; }
     table { border-collapse: collapse; margin-bottom: 1.2em; }
     th, td { border: 1px solid #222; padding: 0.18em 0.3em; text-align: center; }
@@ -28,13 +52,37 @@
       color: #fff;
       font-weight: bold;
     }
+    .resumen-goles {
+      margin-top: auto;
+      padding-top: 0.35em;
+      font-size: 9px;
+      text-align: center;
+    }
+    .linea-goles {
+      display: inline-block;
+      min-width: 170px;
+      border-bottom: 1px solid #222;
+      padding: 0 0.2em 0.08em 0.2em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .goles-numero {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
+  <div class="torneo-header">
+    {% if partido.equipo_local.categoria.torneo.logo %}
+      <img src="{{ partido.equipo_local.categoria.torneo.logo.url }}" alt="Logo {{ partido.equipo_local.categoria.torneo.nombre }}" class="torneo-logo" />
+    {% endif %}
+    <span class="torneo-nombre">{{ partido.equipo_local.categoria.torneo.nombre }}</span>
+  </div>
   <h2>Acta del partido</h2>
-  <h5>Acta del partido de fútbol, efectuado el día: {{ partido.fecha|date:'d/m/Y' }}, a las {{ partido.fecha|date:'H:i' }} hrs, en el campo: {{ partido.ubicacion.nombre }}</h5>
-    <div class="teams-row">
-      <div>
+  <h5><a>Acta del partido de fútbol, efectuado el día:</a> {{ partido.fecha|date:'d/m/Y' }}, <a>a las </a>{{ partido.fecha|date:'H:i' }} hrs, <a>en el campo: </a>{{ partido.ubicacion.nombre }}</h5>
+  <div class="teams-row">
+    <div class="team-column">
+      <div class="team-table-wrap">
         <table class="team-table">
           <thead>
             <tr>
@@ -68,39 +116,49 @@
           </tbody>
         </table>
       </div>
-      <div>
+      <div class="resumen-goles">
+        <span class="goles-numero">({{ goles_local_total }})</span><span class="linea-goles">{{ goles_local_texto }}</span> 
+      </div>
+    </div>
+    <div class="team-column">
+      <div class="team-table-wrap">
         <table class="team-table">
-      <thead>
-        <tr>
-          <th colspan="5" class="team-title" style="width: 100%; text-align: center;">
-            {% if partido.equipo_visitante.logo %}
-              <img src="{{ partido.equipo_visitante.logo.url }}" alt="Logo {{ partido.equipo_visitante.nombre }}" style="height: 22px; vertical-align: middle; margin-right: 0.2em; display: inline-block;" />
-            {% endif %}
-            <span style="vertical-align: middle; display: inline-block;">{{ partido.equipo_visitante.nombre }}</span>
-          </th>
-        </tr>
-        <tr>
-          <th class="amo">Amo.</th>
-          <th class="exp">Exp.</th>
-          <th class="apellido">Apellido</th>
-          <th class="nombre">Nombre</th>
-          <th class="goles">Goles</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for jugador in jugadores_visitante %}
-        <tr>
-          <td class="amo">{{ jugador.amonestaciones }}</td>
-          <td class="exp">{% if jugador.expulsado %}<span class="expulsado">&#9632;</span>{% endif %}</td>
-          <td class="apellido">{{ jugador.apellido }}</td>
-          <td class="nombre">{{ jugador.nombre }}</td>
-          <td class="goles{% if jugador.goles > 0 %} goles-con-anotacion{% endif %}">{{ jugador.goles }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5">Sin participaciones</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-      <!-- Duplicado erróneo eliminado -->
+          <thead>
+            <tr>
+              <th colspan="5" class="team-title" style="width: 100%; text-align: center;">
+                {% if partido.equipo_visitante.logo %}
+                  <img src="{{ partido.equipo_visitante.logo.url }}" alt="Logo {{ partido.equipo_visitante.nombre }}" style="height: 22px; vertical-align: middle; margin-right: 0.2em; display: inline-block;" />
+                {% endif %}
+                <span style="vertical-align: middle; display: inline-block;">{{ partido.equipo_visitante.nombre }}</span>
+              </th>
+            </tr>
+            <tr>
+              <th class="amo">Amo.</th>
+              <th class="exp">Exp.</th>
+              <th class="apellido">Apellido</th>
+              <th class="nombre">Nombre</th>
+              <th class="goles">Goles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for jugador in jugadores_visitante %}
+            <tr>
+              <td class="amo">{{ jugador.amonestaciones }}</td>
+              <td class="exp">{% if jugador.expulsado %}<span class="expulsado">&#9632;</span>{% endif %}</td>
+              <td class="apellido">{{ jugador.apellido }}</td>
+              <td class="nombre">{{ jugador.nombre }}</td>
+              <td class="goles{% if jugador.goles > 0 %} goles-con-anotacion{% endif %}">{{ jugador.goles }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Sin participaciones</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="resumen-goles">
+        <span class="linea-goles">{{ goles_visitante_texto }}</span> <span class="goles-numero">({{ goles_visitante_total }})</span>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

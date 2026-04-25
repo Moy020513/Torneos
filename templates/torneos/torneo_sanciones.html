@@ -8,6 +8,7 @@
         <tr>
           <th>Jugador</th>
           <th>Equipo</th>
+          <th>Fecha</th>
           <th>Causa</th>
           <th>Sanción</th>
         </tr>
@@ -36,6 +37,9 @@
             </div>
           </td>
           <td>
+            Jornada {{ sancion.partido.jornada|default:'-' }} - {{ sancion.partido.fecha|date:'d/m/Y' }}
+          </td>
+          <td>
             {% if sancion.tipo_tarjeta == 'roja' %}
               <span class="fa-solid fa-square-full" style="color:#d32f2f;" title="Tarjeta roja"></span>
             {% elif sancion.tipo_tarjeta == 'amarilla' %}
@@ -55,7 +59,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="4" class="text-center">No hay sanciones registradas para este torneo.</td>
+          <td colspan="5" class="text-center">No hay sanciones registradas para este torneo.</td>
         </tr>
         {% endfor %}
       </tbody>

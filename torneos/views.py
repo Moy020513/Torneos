@@ -1592,7 +1592,7 @@ def partido_detalle(request, partido_id):
 def torneo_sanciones_view(request, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
     sanciones = Sancion.objects.filter(partido__grupo__categoria=categoria) | Sancion.objects.filter(partido__grupo=None, partido__equipo_local__categoria=categoria) | Sancion.objects.filter(partido__grupo=None, partido__equipo_visitante__categoria=categoria)
-    sanciones = sanciones.distinct().select_related('jugador', 'jugador__equipo')
+    sanciones = sanciones.distinct().select_related('jugador', 'jugador__equipo', 'partido')
     context = {
         'categoria': categoria,
         'sanciones': sanciones,
@@ -1604,6 +1604,42 @@ import weasyprint
 
 @login_required
 def cedula_partido_view(request, partido_id):
+    def numero_a_letras_es(numero):
+        unidades = [
+            'cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve',
+            'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciseis', 'diecisiete',
+            'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidos', 'veintitres',
+            'veinticuatro', 'veinticinco', 'veintiseis', 'veintisiete', 'veintiocho', 'veintinueve'
+        ]
+        decenas = {
+            30: 'treinta', 40: 'cuarenta', 50: 'cincuenta', 60: 'sesenta',
+            70: 'setenta', 80: 'ochenta', 90: 'noventa'
+        }
+        centenas = {
+            100: 'cien', 200: 'doscientos', 300: 'trescientos', 400: 'cuatrocientos',
+            500: 'quinientos', 600: 'seiscientos', 700: 'setecientos', 800: 'ochocientos', 900: 'novecientos'
+        }
+
+        if numero < 0:
+            return f"menos {numero_a_letras_es(abs(numero))}"
+        if numero < 30:
+            return unidades[numero]
+        if numero < 100:
+            d = (numero // 10) * 10
+            u = numero % 10
+            return decenas[d] if u == 0 else f"{decenas[d]} y {unidades[u]}"
+        if numero < 1000:
+            if numero in centenas:
+                return centenas[numero]
+            c = (numero // 100) * 100
+            r = numero % 100
+            if c == 100:
+                prefijo = 'ciento'
+            else:
+                prefijo = centenas[c]
+            return prefijo if r == 0 else f"{prefijo} {numero_a_letras_es(r)}"
+        return str(numero)
+
     partido = get_object_or_404(Partido.objects.select_related('equipo_local', 'equipo_visitante', 'ubicacion'), id=partido_id)
     # Jugadores con participación (ejemplo: ParticipacionJugador)
     participaciones_local = ParticipacionJugador.objects.filter(partido=partido, jugador__equipo=partido.equipo_local)
@@ -1639,10 +1675,19 @@ def cedula_partido_view(request, partido_id):
         }
     jugadores_local = [jugador_info(p) for p in participaciones_local]
     jugadores_visitante = [jugador_info(p) for p in participaciones_visitante]
+
+    # El resumen final de la cédula debe reflejar el marcador oficial del partido.
+    goles_local_total = partido.goles_local or 0
+    goles_visitante_total = partido.goles_visitante or 0
+
     context = {
         'partido': partido,
         'jugadores_local': jugadores_local,
         'jugadores_visitante': jugadores_visitante,
+        'goles_local_total': goles_local_total,
+        'goles_visitante_total': goles_visitante_total,
+        'goles_local_texto': numero_a_letras_es(goles_local_total),
+        'goles_visitante_texto': numero_a_letras_es(goles_visitante_total),
     }
     if request.GET.get('pdf'):
         html = render_to_string('torneos/cedula_partido_pdf.html', context)
