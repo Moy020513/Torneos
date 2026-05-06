@@ -119,8 +119,8 @@
             {% endif %}
             <span>{{ jugador.equipo.nombre }}</span>
           </div>
-          <div class="credencial-label">Nacimiento:</div>
-          <div>{{ jugador.fecha_nacimiento|date:'d/m/Y' }}</div>
+          <div class="credencial-label">N. Camiseta:</div>
+          <div>#{{ jugador.numero_camiseta }}</div>
         </div>
       </div>
       {% if jugador.qr_data_uri %}

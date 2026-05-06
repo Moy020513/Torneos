@@ -282,8 +282,14 @@ class RepresentanteJugadorForm(AdminFormMixin, forms.ModelForm):
             
         }
     def __init__(self, *args, **kwargs):
+        self.equipo = kwargs.pop('equipo', None)
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
+
+        # El formulario no expone 'equipo'; lo inyectamos para que el model.clean
+        # valide duplicados por equipo y por torneo durante is_valid().
+        if self.equipo and (not instance or not getattr(instance, 'equipo_id', None)):
+            self.instance.equipo = self.equipo
 
         # En creacion la foto es obligatoria; en edicion puede mantenerse la existente.
         self.fields['foto'].required = not (instance and instance.pk)

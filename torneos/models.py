@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from PIL import Image
 import os
@@ -252,6 +253,48 @@ class Jugador(models.Model):
     
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
+
+    def clean(self):
+        errors = {}
+
+        # No permitir repetir número de camiseta dentro del mismo equipo.
+        if self.equipo_id and self.numero_camiseta is not None:
+            repetido_equipo = Jugador.objects.filter(
+                equipo_id=self.equipo_id,
+                numero_camiseta=self.numero_camiseta,
+            )
+            if self.pk:
+                repetido_equipo = repetido_equipo.exclude(pk=self.pk)
+            if repetido_equipo.exists():
+                errors['numero_camiseta'] = 'Este numero de camiseta ya esta registrado en tu equipo.'
+
+        # No permitir mismo nombre+apellido+fecha de nacimiento dentro del mismo torneo.
+        if self.equipo_id and self.nombre and self.apellido and self.fecha_nacimiento:
+            torneo = None
+            try:
+                torneo = self.equipo.categoria.torneo
+            except Exception:
+                torneo = None
+
+            if torneo:
+                nombre_normalizado = self.nombre.strip()
+                apellido_normalizado = self.apellido.strip()
+                repetido_torneo = Jugador.objects.filter(
+                    equipo__categoria__torneo=torneo,
+                    nombre__iexact=nombre_normalizado,
+                    apellido__iexact=apellido_normalizado,
+                    fecha_nacimiento=self.fecha_nacimiento,
+                )
+                if self.pk:
+                    repetido_torneo = repetido_torneo.exclude(pk=self.pk)
+                if repetido_torneo.exists():
+                    mensaje = 'Ya existe un jugador con los mismos nombres, apellidos y fecha de nacimiento en este torneo.'
+                    errors['nombre'] = mensaje
+                    errors['apellido'] = mensaje
+                    errors['fecha_nacimiento'] = mensaje
+
+        if errors:
+            raise ValidationError(errors)
     
     def save(self, *args, **kwargs):
         # Forzar mayúsculas antes de guardar

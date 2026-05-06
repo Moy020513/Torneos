@@ -107,17 +107,28 @@
           <table class="players-table table table-responsive table-bordered w-100">
             <thead>
               <tr>
+                <th class="col-camiseta">#</th>
+                <th class="col-status">Verificado</th>
                 <th class="col-photo">Foto</th>
                 <th class="col-name">Nombre(s)</th>
                 <th class="col-apellido">Apellidos</th>
                 <th class="col-fecha-nac">Fecha Nac.</th>
-                <th class="col-status">Verificado</th>
                 <th class="col-actions">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {% for jugador in jugadores %}
               <tr class="player-row" data-player-name="{{ jugador.nombre|lower }}">
+                <td class="col-camiseta">
+                  <span class="player-camiseta">{{ jugador.numero_camiseta }}</span>
+                </td>
+                <td class="col-status">
+                  {% if jugador.verificado %}
+                    <span class="status-badge active" title="Verificado">V</span>
+                  {% else %}
+                    <span class="status-badge inactive" title="No verificado">X</span>
+                  {% endif %}
+                </td>
                 <td class="col-photo">
                   <div class="player-photo-container">
                     {% if jugador.foto %}
@@ -137,13 +148,6 @@
                 </td>
                 <td class="col-fecha-nac">
                   <span class="player-fecha-nac">{{ jugador.fecha_nacimiento|date:'d/m/Y' }}</span>
-                </td>
-                <td class="col-status">
-                  {% if jugador.verificado %}
-                    <span class="status-badge active" title="Verificado">V</span>
-                  {% else %}
-                    <span class="status-badge inactive" title="No verificado">X</span>
-                  {% endif %}
                 </td>
                 <td class="col-actions">
                     <div class="action-buttons">

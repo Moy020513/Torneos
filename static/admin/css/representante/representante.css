@@ -332,16 +332,23 @@ body {
   padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: black;
+  color: rgb(255, 255, 255);
+  background-color: #0056b3;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .col-photo { width: 80px; }
+.col-camiseta { width: 84px; }
 .col-name { flex: 1; }
 .col-status { width: 120px; }
 .col-actions { width: 150px; }
+
+.players-table th.col-camiseta,
+.players-table td.col-camiseta {
+  text-align: center;
+}
 
 .players-table th.col-status,
 .players-table td.col-status {
@@ -360,6 +367,28 @@ body {
 .players-table td {
   padding: 1rem;
   vertical-align: middle;
+}
+
+.player-camiseta {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.98rem;
+  letter-spacing: 0.2px;
+  color: #0d2a4a;
+  background: linear-gradient(135deg, #ffffff 0%, #e6f2ff 100%);
+  border: 1px solid #b9d8ff;
+  box-shadow: 0 6px 14px rgba(0, 128, 255, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.player-row:hover .player-camiseta {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 128, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .player-photo-container {
@@ -778,6 +807,7 @@ body {
   }
 
   .col-photo { width: 50px; }
+  .col-camiseta { width: 70px; }
 
   .modal-content {
     width: 95%;
@@ -847,6 +877,13 @@ body {
   .players-table td {
     font-size: 0.65rem;
     padding: 0.15rem;
+  }
+
+  .player-camiseta {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 0.8rem;
   }
   .player-photo {
     width: 50px;

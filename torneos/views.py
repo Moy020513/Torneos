@@ -343,7 +343,7 @@ def representante_jugador_create(request):
 
     from .forms import RepresentanteJugadorForm
     if request.method == 'POST':
-        form = RepresentanteJugadorForm(request.POST, request.FILES)
+        form = RepresentanteJugadorForm(request.POST, request.FILES, equipo=equipo)
         if form.is_valid():
             jugador = form.save(commit=False)
             jugador.equipo = equipo
@@ -370,7 +370,7 @@ def representante_jugador_create(request):
             messages.success(request, 'Jugador creado exitosamente.')
             return redirect('representante_panel')
     else:
-        form = RepresentanteJugadorForm()
+        form = RepresentanteJugadorForm(equipo=equipo)
     return render(request, 'torneos/representante/jugador_form.html', {'form': form})
 
 @login_required
@@ -384,7 +384,7 @@ def representante_jugador_update(request, jugador_id):
         return redirect('representante_panel')
     from .forms import RepresentanteJugadorForm
     if request.method == 'POST':
-        form = RepresentanteJugadorForm(request.POST, request.FILES, instance=jugador)
+        form = RepresentanteJugadorForm(request.POST, request.FILES, instance=jugador, equipo=equipo)
         if form.is_valid():
             jugador = form.save(commit=False)
             # Forzar mayúsculas en el nombre y apellido
@@ -410,7 +410,7 @@ def representante_jugador_update(request, jugador_id):
             messages.success(request, 'Jugador actualizado.')
             return redirect('representante_panel')
     else:
-        form = RepresentanteJugadorForm(instance=jugador)
+        form = RepresentanteJugadorForm(instance=jugador, equipo=equipo)
     return render(request, 'torneos/representante/jugador_form.html', {'form': form, 'jugador': jugador})
 
 @login_required
